@@ -106,7 +106,7 @@ class Parser:
     VERBS = {
         # Movement
         "go": "walk", "walk": "walk", "run": "walk", "travel": "walk",
-        "move": "walk",
+        "move": "move",  # MOVE is distinct - moves objects, not player
 
         # Looking
         "look": "look", "l": "look", "stare": "look", "gaze": "look",
@@ -441,6 +441,11 @@ class Parser:
         self.last_command = result
         return result
 
+    # Verbs that take literal text arguments, not object references
+    TEXT_VERBS = frozenset([
+        "say", "yell", "shout", "tell", "answer", "incant",
+    ])
+
     def _resolve_objects(
         self,
         result: ParsedCommand,
@@ -448,6 +453,10 @@ class Parser:
         state: "GameState",
     ) -> None:
         """Resolve noun phrases to actual object IDs."""
+        # Skip resolution for verbs that take literal text
+        if result.verb in self.TEXT_VERBS:
+            return
+
         # Handle pronouns
         if result.direct_object == "it":
             if state.last_it:

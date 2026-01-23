@@ -65,27 +65,60 @@ class VerbHandler:
             # Combat
             "attack": self.do_attack,
             "kill": self.do_attack,
+            "fight": self.do_attack,
 
             # Physical actions
             "push": self.do_push,
             "pull": self.do_pull,
             "turn": self.do_turn,
+            "move": self.do_move,
+            "lift": self.do_move,
+            "raise": self.do_move,
 
             # Light
             "light": self.do_light,
             "extinguish": self.do_extinguish,
+            "burn": self.do_burn,
 
             # Food/drink
             "eat": self.do_eat,
             "drink": self.do_drink,
+            "fill": self.do_fill,
+            "empty": self.do_empty,
+            "pour": self.do_empty,
 
             # Communication
             "hello": self.do_hello,
             "yell": self.do_yell,
+            "say": self.do_say,
+            "shout": self.do_yell,
+
+            # Special object interactions
+            "tie": self.do_tie,
+            "untie": self.do_untie,
+            "inflate": self.do_inflate,
+            "deflate": self.do_deflate,
+            "wind": self.do_wind,
+            "ring": self.do_ring,
+            "wave": self.do_wave,
+            "rub": self.do_rub,
+            "touch": self.do_touch,
+            "knock": self.do_knock,
+
+            # Lock/unlock
+            "lock": self.do_lock,
+            "unlock": self.do_unlock,
 
             # Special
             "climb": self.do_climb,
             "jump": self.do_jump,
+            "swim": self.do_swim,
+            "dig": self.do_dig,
+            "pray": self.do_pray,
+            "curse": self.do_curse,
+            "odysseus": self.do_odysseus,
+            "ulysses": self.do_odysseus,
+            "echo": self.do_echo,
         }
 
     def execute(self, command: ParsedCommand) -> VerbResult:
@@ -911,5 +944,885 @@ class VerbHandler:
         return VerbResult(
             success=True,
             message="Wheeee!",
+            end_turn=False,
+        )
+
+    # ============ Move/Lift ============
+
+    def do_move(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle MOVE/LIFT/RAISE command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to move?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        # Special case: rug reveals trap door
+        if obj.id == "rug":
+            room = self.game.world.get_room(self.game.state.current_room)
+            if room and room.id == "lroom":
+                # Check if already moved
+                obj_state = self.game.state.get_object_state(obj.id)
+                if obj_state.flags2 & ObjectFlag2.TCHBT:
+                    return VerbResult(
+                        success=True,
+                        message="Having moved the carpet once, you find it impossible to move it again.",
+                        end_turn=False,
+                    )
+                obj_state.flags2 |= ObjectFlag2.TCHBT
+                # Reveal the trap door exit
+                return VerbResult(
+                    success=True,
+                    message="With great effort, the rug is moved to one side of the room, revealing the dusty cover of a closed trap door.",
+                    score_change=2,
+                )
+
+        # Special case: leaves might reveal grating
+        if obj.id == "leave":
+            room = self.game.world.get_room(self.game.state.current_room)
+            if room and room.id == "mgrat":
+                return VerbResult(
+                    success=True,
+                    message="A grating appears beneath the pile of leaves!",
+                )
+
+        # Default behavior
+        if obj.is_takeable():
+            return VerbResult(
+                success=True,
+                message=f"Moving the {obj.name} reveals nothing.",
+                end_turn=False,
+            )
+        else:
+            return VerbResult(
+                success=False,
+                message=f"You can't move the {obj.name}.",
+                end_turn=False,
+            )
+
+    # ============ Tie/Untie ============
+
+    def do_tie(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle TIE command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to tie?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"You don't have any {cmd.direct_object}.",
+                end_turn=False,
+            )
+
+        # Check if it can be tied (rope)
+        if obj.id != "rope":
+            return VerbResult(
+                success=False,
+                message=f"You can't tie the {obj.name}.",
+                end_turn=False,
+            )
+
+        obj_state = self.game.state.get_object_state(obj.id)
+        if not obj_state.is_held_by("player"):
+            return VerbResult(
+                success=False,
+                message="You're not carrying the rope.",
+                end_turn=False,
+            )
+
+        # Check if we're in the dome room
+        room = self.game.world.get_room(self.game.state.current_room)
+        if not room or room.id != "dome":
+            return VerbResult(
+                success=False,
+                message="There's nothing here to tie the rope to.",
+                end_turn=False,
+            )
+
+        # Tie rope to railing
+        if cmd.indirect_object and cmd.indirect_object not in ["railing", "rail"]:
+            return VerbResult(
+                success=False,
+                message=f"You can't tie the rope to that.",
+                end_turn=False,
+            )
+
+        # Mark rope as tied
+        obj_state.flags2 |= ObjectFlag2.TIEBT
+        # Move rope to room
+        self.game.state.move_object_to_room(obj.id, room.id)
+
+        return VerbResult(
+            success=True,
+            message="The rope is now tied to the railing and dangles down into the darkness below.",
+            score_change=2,
+        )
+
+    def do_untie(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle UNTIE command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to untie?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        obj_state = self.game.state.get_object_state(obj.id)
+        if not (obj_state.flags2 & ObjectFlag2.TIEBT):
+            return VerbResult(
+                success=False,
+                message=f"The {obj.name} isn't tied to anything.",
+                end_turn=False,
+            )
+
+        obj_state.flags2 &= ~ObjectFlag2.TIEBT
+        self.game.state.move_object_to_actor(obj.id, "player")
+
+        return VerbResult(
+            success=True,
+            message=f"The {obj.name} is now untied.",
+        )
+
+    # ============ Inflate/Deflate ============
+
+    def do_inflate(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle INFLATE command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to inflate?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        # Only the boat can be inflated
+        if obj.id not in ["iboat", "boat"]:
+            return VerbResult(
+                success=False,
+                message=f"You can't inflate the {obj.name}.",
+                end_turn=False,
+            )
+
+        # Need a pump
+        pump = self.game.world.get_object("pump")
+        pump_state = self.game.state.get_object_state("pump") if pump else None
+
+        if not pump_state or not pump_state.is_held_by("player"):
+            return VerbResult(
+                success=False,
+                message="You don't have anything to inflate it with.",
+                end_turn=False,
+            )
+
+        obj_state = self.game.state.get_object_state(obj.id)
+        if obj_state.flags2 & ObjectFlag2.VEHBT:
+            return VerbResult(
+                success=False,
+                message="The boat is already inflated.",
+                end_turn=False,
+            )
+
+        # Inflate the boat
+        obj_state.flags2 |= ObjectFlag2.VEHBT
+
+        return VerbResult(
+            success=True,
+            message="The boat inflates and is now ready to board.",
+        )
+
+    def do_deflate(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle DEFLATE command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to deflate?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        if obj.id not in ["iboat", "boat", "rboat"]:
+            return VerbResult(
+                success=False,
+                message=f"You can't deflate the {obj.name}.",
+                end_turn=False,
+            )
+
+        obj_state = self.game.state.get_object_state(obj.id)
+        if not (obj_state.flags2 & ObjectFlag2.VEHBT):
+            return VerbResult(
+                success=False,
+                message="The boat is already deflated.",
+                end_turn=False,
+            )
+
+        obj_state.flags2 &= ~ObjectFlag2.VEHBT
+
+        return VerbResult(
+            success=True,
+            message="The boat deflates into a pile of plastic.",
+        )
+
+    # ============ Wind ============
+
+    def do_wind(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle WIND command (for the clockwork canary)."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to wind?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        # Only the canary can be wound
+        if obj.id not in ["canar", "canary"]:
+            return VerbResult(
+                success=False,
+                message=f"You can't wind the {obj.name}.",
+                end_turn=False,
+            )
+
+        obj_state = self.game.state.get_object_state(obj.id)
+        if not obj_state.is_held_by("player"):
+            return VerbResult(
+                success=False,
+                message="You're not carrying the canary.",
+                end_turn=False,
+            )
+
+        # The canary sings
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        # Special case: in the forest near the tree, the bird's song attracts the songbird
+        if room and room.id in ["fore3", "uptree"]:
+            return VerbResult(
+                success=True,
+                message="The canary begins to sing. From somewhere nearby, an answering song is heard. A songbird flies down and lands on the branch beside you!",
+                score_change=2,
+            )
+
+        return VerbResult(
+            success=True,
+            message="The canary begins to sing a beautiful melody.",
+        )
+
+    # ============ Ring ============
+
+    def do_ring(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle RING command (for the bell)."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to ring?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        if obj.id != "bell":
+            return VerbResult(
+                success=False,
+                message=f"You can't ring the {obj.name}.",
+                end_turn=False,
+            )
+
+        obj_state = self.game.state.get_object_state(obj.id)
+        if not obj_state.is_held_by("player"):
+            return VerbResult(
+                success=False,
+                message="You're not carrying the bell.",
+                end_turn=False,
+            )
+
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        # Special case: in Hades entrance, ringing the bell is part of the exorcism
+        if room and room.id == "entrc":
+            # Check if holding candles and book too
+            candles = self.game.world.get_object("candl")
+            book = self.game.world.get_object("book")
+            candles_state = self.game.state.get_object_state("candl") if candles else None
+            book_state = self.game.state.get_object_state("book") if book else None
+
+            if candles_state and candles_state.is_held_by("player"):
+                if book_state and book_state.is_held_by("player"):
+                    return VerbResult(
+                        success=True,
+                        message="The bell rings with a pure tone that echoes through the chamber. The spirits begin to stir...\n\nThe candles flicker with an eerie light. You feel the gates of Hades weakening!",
+                        score_change=5,
+                    )
+                return VerbResult(
+                    success=True,
+                    message="The bell rings but nothing happens. Perhaps you need something else?",
+                )
+
+        return VerbResult(
+            success=True,
+            message="The bell rings clearly.",
+        )
+
+    # ============ Wave ============
+
+    def do_wave(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle WAVE command (for the scepter)."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to wave?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"You don't have any {cmd.direct_object}.",
+                end_turn=False,
+            )
+
+        obj_state = self.game.state.get_object_state(obj.id)
+        if not obj_state.is_held_by("player"):
+            return VerbResult(
+                success=False,
+                message="You're not carrying that.",
+                end_turn=False,
+            )
+
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        # Special case: waving scepter at rainbow
+        if obj.id in ["scept", "scepter", "sceptre"]:
+            if room and room.id == "mrain":
+                return VerbResult(
+                    success=True,
+                    message="The scepter glows brightly and a shimmering path appears across the rainbow! You may now cross safely.",
+                    score_change=5,
+                )
+
+        return VerbResult(
+            success=True,
+            message=f"You wave the {obj.name}. Nothing happens.",
+            end_turn=False,
+        )
+
+    # ============ Touch/Rub ============
+
+    def do_touch(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle TOUCH command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to touch?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        # Special case: mirror in mirror room
+        if obj.id == "mirro" or "mirror" in obj.id:
+            return VerbResult(
+                success=True,
+                message="There is a faint tingling sensation as you touch the mirror.",
+            )
+
+        return VerbResult(
+            success=True,
+            message=f"Touching the {obj.name} doesn't seem to do anything.",
+            end_turn=False,
+        )
+
+    def do_rub(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle RUB command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to rub?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        return VerbResult(
+            success=True,
+            message=f"Rubbing the {obj.name} doesn't seem to do anything.",
+            end_turn=False,
+        )
+
+    def do_knock(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle KNOCK command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=True,
+                message="Knock knock. Who's there?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if obj and obj.is_door():
+            return VerbResult(
+                success=True,
+                message="Nobody's home.",
+                end_turn=False,
+            )
+
+        return VerbResult(
+            success=True,
+            message="Why would you want to knock on that?",
+            end_turn=False,
+        )
+
+    # ============ Lock/Unlock ============
+
+    def do_unlock(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle UNLOCK command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to unlock?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        # Check for key in inventory
+        keys = self.game.world.get_object("keys")
+        keys_state = self.game.state.get_object_state("keys") if keys else None
+
+        if not keys_state or not keys_state.is_held_by("player"):
+            return VerbResult(
+                success=False,
+                message="You don't have anything to unlock it with.",
+                end_turn=False,
+            )
+
+        # Special case: grating
+        if obj.id == "grate":
+            obj_state = self.game.state.get_object_state(obj.id)
+            if obj_state.flags2 & ObjectFlag2.OPENBT:
+                return VerbResult(
+                    success=False,
+                    message="The grating is already unlocked.",
+                    end_turn=False,
+                )
+            obj_state.flags2 |= ObjectFlag2.OPENBT
+            return VerbResult(
+                success=True,
+                message="The grating is now unlocked.",
+            )
+
+        if not obj.is_door():
+            return VerbResult(
+                success=False,
+                message=f"You can't unlock the {obj.name}.",
+                end_turn=False,
+            )
+
+        return VerbResult(
+            success=True,
+            message=f"The {obj.name} is now unlocked.",
+        )
+
+    def do_lock(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle LOCK command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to lock?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        if not obj.is_door():
+            return VerbResult(
+                success=False,
+                message=f"You can't lock the {obj.name}.",
+                end_turn=False,
+            )
+
+        return VerbResult(
+            success=True,
+            message=f"The {obj.name} is now locked.",
+        )
+
+    # ============ Burn ============
+
+    def do_burn(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle BURN command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to burn?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        # Check if we have something to burn with (match or torch)
+        has_fire = False
+        for item_id in self.game.state.objects_held_by("player"):
+            item = self.game.world.get_object(item_id)
+            if item and item.id in ["match", "torch"]:
+                item_state = self.game.state.get_object_state(item.id)
+                if item_state.flags1 & ObjectFlag1.ONBT:
+                    has_fire = True
+                    break
+
+        if not has_fire:
+            return VerbResult(
+                success=False,
+                message="You don't have anything to burn it with.",
+                end_turn=False,
+            )
+
+        # Check if burnable
+        if not (obj.flags1 & ObjectFlag1.BURNBT):
+            return VerbResult(
+                success=False,
+                message=f"The {obj.name} won't burn.",
+                end_turn=False,
+            )
+
+        # Burn the object (remove it)
+        obj_state = self.game.state.get_object_state(obj.id)
+        obj_state.room_id = None
+        obj_state.actor_id = None
+        obj_state.container_id = None
+
+        return VerbResult(
+            success=True,
+            message=f"The {obj.name} burns up in a puff of smoke.",
+        )
+
+    # ============ Fill/Empty ============
+
+    def do_fill(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle FILL command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to fill?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        # Only bottle can be filled
+        if obj.id != "bottl":
+            return VerbResult(
+                success=False,
+                message=f"You can't fill the {obj.name}.",
+                end_turn=False,
+            )
+
+        obj_state = self.game.state.get_object_state(obj.id)
+        if not obj_state.is_held_by("player"):
+            return VerbResult(
+                success=False,
+                message="You're not carrying the bottle.",
+                end_turn=False,
+            )
+
+        # Check if near water
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        if not room or not room.is_water():
+            return VerbResult(
+                success=False,
+                message="There's no water here.",
+                end_turn=False,
+            )
+
+        # Add water to bottle
+        water = self.game.world.get_object("water")
+        if water:
+            self.game.state.move_object_to_container("water", "bottl")
+
+        return VerbResult(
+            success=True,
+            message="The bottle is now full of water.",
+        )
+
+    def do_empty(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle EMPTY/POUR command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to empty?",
+                end_turn=False,
+            )
+
+        obj = self.game.world.get_object(cmd.direct_object)
+        if not obj:
+            return VerbResult(
+                success=False,
+                message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        if not obj.is_container():
+            return VerbResult(
+                success=False,
+                message=f"You can't empty the {obj.name}.",
+                end_turn=False,
+            )
+
+        # Empty contents to current room
+        contents = list(self.game.state.objects_in_container(obj.id))
+        if not contents:
+            return VerbResult(
+                success=True,
+                message=f"The {obj.name} is already empty.",
+                end_turn=False,
+            )
+
+        for item_id in contents:
+            self.game.state.move_object_to_room(item_id, self.game.state.current_room)
+
+        return VerbResult(
+            success=True,
+            message=f"The {obj.name} is now empty.",
+        )
+
+    # ============ Special verbs ============
+
+    def do_swim(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle SWIM command."""
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        if room and room.is_water():
+            return VerbResult(
+                success=True,
+                message="You paddle around for a bit.",
+            )
+
+        return VerbResult(
+            success=False,
+            message="There's no water here to swim in.",
+            end_turn=False,
+        )
+
+    def do_dig(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle DIG command."""
+        # Check for shovel
+        shovel = self.game.world.get_object("shove")
+        shovel_state = self.game.state.get_object_state("shove") if shovel else None
+
+        if not shovel_state or not shovel_state.is_held_by("player"):
+            return VerbResult(
+                success=False,
+                message="You have nothing to dig with.",
+                end_turn=False,
+            )
+
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        # Special case: sandy beach reveals scarab
+        if room and room.id == "sbeac":
+            scarab = self.game.world.get_object("scara")
+            if scarab:
+                scarab_state = self.game.state.get_object_state("scara")
+                if not scarab_state.room_id:
+                    self.game.state.move_object_to_room("scara", room.id)
+                    return VerbResult(
+                        success=True,
+                        message="You uncover a beautiful jeweled scarab!",
+                        score_change=5,
+                    )
+
+        return VerbResult(
+            success=True,
+            message="You dig for a while but find nothing.",
+        )
+
+    def do_pray(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle PRAY command."""
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        # Special case: in temple
+        if room and room.id in ["temp1", "temp2"]:
+            return VerbResult(
+                success=True,
+                message="Your prayer is answered by a faint humming sound.",
+            )
+
+        return VerbResult(
+            success=True,
+            message="If you pray enough, your prayers may be answered.",
+            end_turn=False,
+        )
+
+    def do_curse(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle CURSE command."""
+        return VerbResult(
+            success=True,
+            message="Such language in a family adventure!",
+            end_turn=False,
+        )
+
+    def do_odysseus(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle ODYSSEUS/ULYSSES command (defeats cyclops)."""
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        if not room or room.id != "mcycl":
+            return VerbResult(
+                success=False,
+                message="Nothing happens.",
+                end_turn=False,
+            )
+
+        cyclops = self.game.world.get_object("cyclo")
+        if not cyclops:
+            return VerbResult(
+                success=False,
+                message="Nothing happens.",
+                end_turn=False,
+            )
+
+        cyclops_state = self.game.state.get_object_state("cyclo")
+        if not cyclops_state.room_id:
+            return VerbResult(
+                success=False,
+                message="The cyclops isn't here.",
+                end_turn=False,
+            )
+
+        # Defeat the cyclops!
+        cyclops_state.room_id = None  # Remove cyclops
+
+        return VerbResult(
+            success=True,
+            message='The cyclops cowers in terror! "No, not again! NOBODY will get me this time!" The cyclops flees through a door which appears in the west wall, slamming it behind him.',
+            score_change=10,
+        )
+
+    def do_echo(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle ECHO command (for echo room)."""
+        room = self.game.world.get_room(self.game.state.current_room)
+
+        if room and room.id == "echor":
+            return VerbResult(
+                success=True,
+                message="echo ... echo ... echo ...",
+            )
+
+        return VerbResult(
+            success=True,
+            message="Echo!",
+            end_turn=False,
+        )
+
+    def do_say(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle SAY command."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=True,
+                message="You mutter to yourself.",
+                end_turn=False,
+            )
+
+        # Check for magic words
+        word = cmd.direct_object.lower()
+
+        if word in ["odysseus", "ulysses"]:
+            return self.do_odysseus(cmd)
+
+        if word == "echo":
+            return self.do_echo(cmd)
+
+        if word in ["xyzzy", "plugh", "plover"]:
+            return VerbResult(
+                success=True,
+                message="A hollow voice says 'Fool.'",
+            )
+
+        return VerbResult(
+            success=True,
+            message=f'You say "{cmd.direct_object}" but nothing happens.',
             end_turn=False,
         )
