@@ -1053,7 +1053,39 @@ pymeshzork/
 
 **Entry point:** `zork-editor` (or `python -m pymeshzork.editor.main`)
 
-### Phase 4: Player Account System 🔲 NOT STARTED
+### Phase 4: Player Account System ✅ COMPLETE
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Account model | ✅ Done | UUID, username, display name, stats, achievements |
+| Team model | ✅ Done | Name, tag, members, roles, settings, invites |
+| Team roles | ✅ Done | Owner, Officer, Member with permission hierarchy |
+| Join policies | ✅ Done | Open, Password, Invite-only, Closed |
+| SQLite database | ✅ Done | Accounts, teams, save slots tables |
+| AccountManager | ✅ Done | CRUD, validation, statistics tracking |
+| TeamManager | ✅ Done | Create, join, leave, kick, promote, demote |
+| Invite system | ✅ Done | Codes, expiration, max uses, targeted invites |
+| Password hashing | ✅ Done | bcrypt for team passwords |
+| ACCOUNT commands | ✅ Done | create, login, logout, delete, info, list, stats |
+| TEAM commands | ✅ Done | create, join, leave, invite, kick, promote, demote, settings |
+| WHO/SAY commands | ✅ Done | Player list and chat (multiplayer ready) |
+| Unit tests | ✅ Done | 24 tests passing |
+
+**Files created:**
+- `pymeshzork/accounts/__init__.py` - Module exports
+- `pymeshzork/accounts/models.py` - Account, Team, TeamMember, TeamInvite, enums
+- `pymeshzork/accounts/database.py` - SQLite persistence layer
+- `pymeshzork/accounts/manager.py` - AccountManager and TeamManager
+- `pymeshzork/accounts/commands.py` - In-game command handlers
+- `tests/test_accounts.py` - Comprehensive test suite
+
+**Features:**
+- Player accounts with stats tracking (score, moves, deaths, achievements)
+- Teams with 1-50 player capacity limits
+- Role-based permissions (Owner > Officer > Member)
+- Multiple join policies with bcrypt password protection
+- Time-limited invite codes with use tracking
+- Full in-game command interface for account/team management
 
 ### Phase 5: Meshtastic Multiplayer 🔲 NOT STARTED
 
@@ -1068,6 +1100,7 @@ pymeshzork/
 | 1.2 | 2026-01-22 | Claude | Phase 2 complete - JSON externalization |
 | 1.3 | 2026-01-22 | Claude | Phase 4 expanded - Teams, player limits, management |
 | 1.4 | 2026-01-22 | Claude | Phase 3 complete - GUI Map Editor |
+| 1.5 | 2026-01-22 | Claude | Phase 4 complete - Account/Team system |
 
 ---
 
