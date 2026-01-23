@@ -296,8 +296,11 @@ VILLBT  (128)   - Villain
   "player": {
     "id": "uuid-string",
     "username": "adventurer1",
+    "display_name": "Sir Adventurer",
     "created": "2026-01-22T10:00:00Z",
-    "last_played": "2026-01-22T15:30:00Z"
+    "last_played": "2026-01-22T15:30:00Z",
+    "team_id": "team-uuid-or-null",
+    "team_role": "member"
   },
   "game_state": {
     "world_id": "classic_zork",
@@ -337,19 +340,153 @@ VILLBT  (128)   - Villain
 }
 ```
 
-#### F4.2 Account Features
+#### F4.2 Team Data Model
+
+```json
+{
+  "team": {
+    "id": "team-uuid",
+    "name": "Grue Hunters",
+    "tag": "GH",
+    "created": "2026-01-22T10:00:00Z",
+    "owner_id": "player-uuid",
+    "settings": {
+      "max_players": 8,
+      "join_policy": "invite_only",
+      "password_hash": "bcrypt-hash-or-null",
+      "allow_friendly_fire": false,
+      "shared_discoveries": true
+    }
+  },
+  "members": [
+    {
+      "player_id": "uuid-1",
+      "username": "adventurer1",
+      "role": "owner",
+      "joined": "2026-01-22T10:00:00Z",
+      "last_active": "2026-01-22T15:30:00Z"
+    },
+    {
+      "player_id": "uuid-2",
+      "username": "adventurer2",
+      "role": "officer",
+      "joined": "2026-01-22T11:00:00Z",
+      "last_active": "2026-01-22T14:00:00Z"
+    }
+  ],
+  "invites": [
+    {
+      "invite_id": "invite-uuid",
+      "inviter_id": "player-uuid",
+      "invitee_id": "player-uuid-or-null",
+      "invite_code": "ABC123",
+      "expires": "2026-01-29T10:00:00Z",
+      "max_uses": 5,
+      "uses": 2
+    }
+  ],
+  "stats": {
+    "total_score": 450,
+    "total_treasures": 12,
+    "total_deaths": 7,
+    "worlds_completed": ["classic_zork"]
+  }
+}
+```
+
+#### F4.3 Account Features
 - Unique player ID (UUID)
 - Username with optional display name
 - Multiple save slots per account
 - Play statistics tracking
 - Achievement/objective completion
 - Session timestamps
+- Team membership tracking
+- Role-based permissions
 
-#### F4.3 Persistence Layer
-- SQLite database for account index
+#### F4.4 Team System Features
+
+##### Team Creation & Settings
+- Create team with name and optional tag (2-4 chars)
+- Set maximum player limit (1-50, default 8) to prevent overcrowding on large Meshtastic networks
+- Configure join policy: `open`, `password`, `invite_only`, `closed`
+- Optional password protection with secure hashing (bcrypt)
+- Team-wide settings (friendly fire, shared discoveries, etc.)
+
+##### Team Roles & Permissions
+| Role | Permissions |
+|------|-------------|
+| Owner | All permissions, transfer ownership, delete team |
+| Officer | Invite players, kick members, change settings |
+| Member | Basic team features, leave team |
+
+##### Team Management Commands (In-Game)
+```
+ACCOUNT CREATE <username>      - Create new account
+ACCOUNT LOGIN <username>       - Switch to account
+ACCOUNT DELETE <username>      - Delete account (with confirmation)
+ACCOUNT INFO                   - Show current account details
+ACCOUNT LIST                   - List all local accounts
+
+TEAM CREATE <name> [tag]       - Create a new team
+TEAM JOIN <name|code> [pass]   - Join a team (by name, invite code, or password)
+TEAM LEAVE                     - Leave current team
+TEAM INVITE <player> [uses]    - Generate invite for player (officers+)
+TEAM KICK <player>             - Remove player from team (officers+)
+TEAM PROMOTE <player>          - Promote to officer (owner only)
+TEAM DEMOTE <player>           - Demote to member (owner only)
+TEAM TRANSFER <player>         - Transfer ownership (owner only)
+TEAM SETTINGS                  - View/modify team settings (officers+)
+TEAM SET MAXPLAYERS <n>        - Set player limit 1-50 (officers+)
+TEAM SET JOINPOLICY <policy>   - Set join policy (officers+)
+TEAM SET PASSWORD [pass]       - Set/clear team password (officers+)
+TEAM INFO                      - Show team details and members
+TEAM LIST                      - List all known teams
+TEAM DISBAND                   - Delete team (owner only, with confirmation)
+
+WHO                            - Show players in current room
+TEAM WHO                       - Show all team members and locations
+SAY <message>                  - Say to players in room
+TEAM SAY <message>             - Message all team members
+```
+
+##### Team Capacity Management
+- Configurable max players per team (1-50)
+- Soft limit warning at 80% capacity
+- Hard limit enforcement - no joins when full
+- Queue system for full teams (optional)
+- Stale member cleanup (inactive > 30 days can be auto-removed)
+
+##### Join Policies
+| Policy | Description |
+|--------|-------------|
+| `open` | Anyone can join if under limit |
+| `password` | Requires correct password to join |
+| `invite_only` | Requires valid invite code from officer/owner |
+| `closed` | No new members allowed |
+
+##### Invite System
+- Officers and owners can generate invite codes
+- Invites can be single-use or multi-use (max 50)
+- Invites expire after configurable time (default 7 days)
+- Invites can target specific player or be generic
+- Revoke invites before use
+
+#### F4.5 Persistence Layer
+- SQLite database for account and team index
 - Individual JSON files per save slot
+- Team data stored in shared database
 - Automatic backup on save
 - Import/export for portability
+- Team sync via Meshtastic in multiplayer mode
+
+#### F4.6 Security Considerations
+- Passwords hashed with bcrypt (cost factor 12)
+- Rate limiting on login attempts
+- Team passwords never transmitted in plaintext
+- Invite codes are cryptographically random
+- Account deletion requires confirmation
+- Ownership transfer requires acceptance
 
 ---
 
@@ -640,36 +777,88 @@ pymeshzork/
 
 ---
 
-### Phase 4: Player Account System (Weeks 11-12)
+### Phase 4: Player Account System (Weeks 11-14)
 
 #### Step 4.1: Account Manager
-- [ ] Define account data model
+- [ ] Define account data model with team fields
 - [ ] Implement UUID generation
 - [ ] Create account CRUD operations
 - [ ] Build account selector UI
+- [ ] Implement ACCOUNT commands (CREATE, LOGIN, DELETE, INFO, LIST)
 
 #### Step 4.2: Save System Redesign
 - [ ] Extend save format for accounts
 - [ ] Implement per-account save slots
 - [ ] Add save metadata (timestamp, room, score)
 - [ ] Create save browser UI
+- [ ] Add team membership to save data
 
-#### Step 4.3: Objective Tracking
+#### Step 4.3: Team System Core
+- [ ] Define team data model
+- [ ] Implement team CRUD operations
+- [ ] Create SQLite schema for teams
+- [ ] Implement team creation with settings
+- [ ] Add player limit enforcement (1-50)
+- [ ] Implement join policy system (open/password/invite_only/closed)
+
+#### Step 4.4: Team Membership Management
+- [ ] Implement TEAM JOIN with policy checks
+- [ ] Implement TEAM LEAVE functionality
+- [ ] Add role system (owner/officer/member)
+- [ ] Implement TEAM KICK with permission checks
+- [ ] Implement TEAM PROMOTE/DEMOTE
+- [ ] Implement TEAM TRANSFER ownership
+- [ ] Add stale member cleanup option
+
+#### Step 4.5: Team Invite System
+- [ ] Generate cryptographically secure invite codes
+- [ ] Implement single-use and multi-use invites
+- [ ] Add invite expiration handling
+- [ ] Implement targeted invites (specific player)
+- [ ] Add invite revocation
+- [ ] Implement TEAM INVITE command
+
+#### Step 4.6: Team Security
+- [ ] Implement bcrypt password hashing
+- [ ] Add password verification for protected teams
+- [ ] Implement rate limiting on join attempts
+- [ ] Secure invite code generation
+- [ ] Add confirmation for destructive operations (DISBAND, DELETE)
+
+#### Step 4.7: Team Communication
+- [ ] Implement WHO command (players in room)
+- [ ] Implement TEAM WHO (all team members)
+- [ ] Implement SAY command (room chat)
+- [ ] Implement TEAM SAY (team-wide chat)
+- [ ] Add player location tracking for team members
+
+#### Step 4.8: Team Settings
+- [ ] Implement TEAM SETTINGS view/edit
+- [ ] Add TEAM SET MAXPLAYERS command
+- [ ] Add TEAM SET JOINPOLICY command
+- [ ] Add TEAM SET PASSWORD command
+- [ ] Implement shared discoveries setting
+- [ ] Implement friendly fire setting
+
+#### Step 4.9: Objective Tracking
 - [ ] Define objective data model
 - [ ] Implement treasure tracking
 - [ ] Add puzzle completion flags
 - [ ] Create achievement system
+- [ ] Add team-wide statistics
 
-#### Step 4.4: Statistics & History
+#### Step 4.10: Statistics & History
 - [ ] Track play time per session
 - [ ] Record death causes
 - [ ] Log puzzle solutions
 - [ ] Generate player stats report
+- [ ] Generate team stats report
 
-#### Step 4.5: Account Portability
+#### Step 4.11: Account Portability
 - [ ] Implement account export
 - [ ] Create account import with conflict resolution
 - [ ] Add account backup scheduling
+- [ ] Handle team membership on import
 - [ ] Support cloud sync (future)
 
 ---
@@ -853,6 +1042,7 @@ pymeshzork/
 | 1.0 | 2026-01-22 | Claude | Initial specification |
 | 1.1 | 2026-01-22 | Claude | Phase 1 complete - Python core engine |
 | 1.2 | 2026-01-22 | Claude | Phase 2 complete - JSON externalization |
+| 1.3 | 2026-01-22 | Claude | Phase 4 expanded - Teams, player limits, management |
 
 ---
 
