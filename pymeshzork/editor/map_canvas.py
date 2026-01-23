@@ -15,9 +15,92 @@ from PyQt6.QtGui import (
     QMouseEvent,
     QKeyEvent,
 )
-from PyQt6.QtWidgets import QWidget, QMenu
+from PyQt6.QtWidgets import (
+    QWidget,
+    QMenu,
+    QDialog,
+    QVBoxLayout,
+    QHBoxLayout,
+    QLabel,
+    QComboBox,
+    QCheckBox,
+    QPushButton,
+    QDialogButtonBox,
+)
 
 from pymeshzork.editor.world_model import EditorWorld, EditorRoom
+
+
+class DirectionPickerDialog(QDialog):
+    """Dialog for picking a direction when connecting rooms."""
+
+    DIRECTIONS = [
+        ("north", "North"),
+        ("south", "South"),
+        ("east", "East"),
+        ("west", "West"),
+        ("northeast", "Northeast"),
+        ("northwest", "Northwest"),
+        ("southeast", "Southeast"),
+        ("southwest", "Southwest"),
+        ("up", "Up"),
+        ("down", "Down"),
+        ("enter", "Enter"),
+        ("exit", "Exit"),
+    ]
+
+    def __init__(
+        self,
+        from_room: str,
+        to_room: str,
+        suggested_direction: str = "north",
+        parent: Optional[QWidget] = None,
+    ) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("Connect Rooms")
+        self.setModal(True)
+        self.setMinimumWidth(300)
+
+        layout = QVBoxLayout(self)
+
+        # Info label
+        info = QLabel(f"Connect <b>{from_room}</b> to <b>{to_room}</b>")
+        layout.addWidget(info)
+
+        # Direction picker
+        dir_layout = QHBoxLayout()
+        dir_layout.addWidget(QLabel("Direction:"))
+        self.direction_combo = QComboBox()
+        for value, label in self.DIRECTIONS:
+            self.direction_combo.addItem(label, value)
+        # Set suggested direction
+        for i, (value, _) in enumerate(self.DIRECTIONS):
+            if value == suggested_direction:
+                self.direction_combo.setCurrentIndex(i)
+                break
+        dir_layout.addWidget(self.direction_combo)
+        layout.addLayout(dir_layout)
+
+        # Bidirectional checkbox
+        self.bidirectional_check = QCheckBox("Create bidirectional connection (two-way)")
+        self.bidirectional_check.setChecked(True)
+        layout.addWidget(self.bidirectional_check)
+
+        # Buttons
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def get_direction(self) -> str:
+        """Get the selected direction."""
+        return self.direction_combo.currentData()
+
+    def is_bidirectional(self) -> bool:
+        """Check if bidirectional connection is selected."""
+        return self.bidirectional_check.isChecked()
 
 
 class MapCanvas(QWidget):
@@ -26,7 +109,7 @@ class MapCanvas(QWidget):
     # Signals
     room_selected = pyqtSignal(str)  # room_id
     room_moved = pyqtSignal(str, float, float)  # room_id, x, y
-    connection_created = pyqtSignal(str, str, str)  # from_room, to_room, direction
+    connection_created = pyqtSignal(str, str, str, bool)  # from_room, to_room, direction, bidirectional
 
     # Constants
     ROOM_WIDTH = 120
@@ -450,14 +533,14 @@ class MapCanvas(QWidget):
             if room_id:
                 # Select room
                 self.select_room(room_id)
-                # Start dragging
+                # Start dragging room
                 self.dragging = True
                 self.drag_start = event.position()
                 room = self.world.get_room(room_id) if self.world else None
                 if room:
                     self.drag_room_start = QPointF(room.x, room.y)
             else:
-                # Deselect and start panning
+                # Click on empty space - deselect and start panning
                 self.select_room(None)
                 self.panning = True
                 self.pan_start = event.position()
@@ -519,6 +602,7 @@ class MapCanvas(QWidget):
                 if room:
                     self.room_moved.emit(self.selected_room_id, room.x, room.y)
             self.dragging = False
+            self.panning = False
 
             if self.connecting:
                 world_pos = self.screen_to_world(QPointF(event.position()))
@@ -527,9 +611,10 @@ class MapCanvas(QWidget):
                     self._complete_connection(target_room)
                 self.connecting = False
                 self.connect_from_room = None
+                self.setCursor(Qt.CursorShape.ArrowCursor)
                 self.update()
 
-        elif event.button() in (Qt.MouseButton.MiddleButton, Qt.MouseButton.RightButton):
+        elif event.button() == Qt.MouseButton.MiddleButton:
             self.panning = False
 
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
@@ -579,9 +664,14 @@ class MapCanvas(QWidget):
             if self.connecting:
                 self.connecting = False
                 self.connect_from_room = None
+                self.setCursor(Qt.CursorShape.ArrowCursor)
                 self.update()
             else:
                 self.select_room(None)
+        elif event.key() == Qt.Key.Key_C:
+            # Start connection mode from selected room
+            if self.selected_room_id and not self.connecting:
+                self._start_connection(self.selected_room_id)
         else:
             super().keyPressEvent(event)
 
@@ -596,8 +686,12 @@ class MapCanvas(QWidget):
 
         menu.addSeparator()
 
-        action_connect = menu.addAction("Create Connection...")
+        action_connect = menu.addAction("Connect to Another Room... (C)")
         action_connect.triggered.connect(lambda: self._start_connection(room_id))
+
+        # Show hint about how to use
+        hint = menu.addAction("  → Click target room or press Esc to cancel")
+        hint.setEnabled(False)
 
         menu.addSeparator()
 
@@ -627,13 +721,68 @@ class MapCanvas(QWidget):
         """Start creating a connection from a room."""
         self.connecting = True
         self.connect_from_room = room_id
+        self.setCursor(Qt.CursorShape.CrossCursor)
         self.update()
 
     def _complete_connection(self, to_room: str) -> None:
         """Complete a connection to target room."""
-        if self.connect_from_room:
-            # Show direction picker dialog (simplified for now)
-            self.connection_created.emit(self.connect_from_room, to_room, "north")
+        if not self.connect_from_room or not self.world:
+            return
+
+        from_room_obj = self.world.get_room(self.connect_from_room)
+        to_room_obj = self.world.get_room(to_room)
+
+        if not from_room_obj or not to_room_obj:
+            return
+
+        # Guess direction based on relative positions
+        suggested = self._guess_direction(from_room_obj, to_room_obj)
+
+        # Show direction picker dialog
+        dialog = DirectionPickerDialog(
+            from_room_obj.name,
+            to_room_obj.name,
+            suggested,
+            self,
+        )
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            direction = dialog.get_direction()
+            bidirectional = dialog.is_bidirectional()
+            self.connection_created.emit(
+                self.connect_from_room, to_room, direction, bidirectional
+            )
+
+    def _guess_direction(self, from_room: EditorRoom, to_room: EditorRoom) -> str:
+        """Guess the direction based on relative room positions."""
+        dx = to_room.x - from_room.x
+        dy = to_room.y - from_room.y
+
+        # Determine primary direction based on angle
+        if abs(dx) < 30 and abs(dy) < 30:
+            return "north"  # Default for overlapping
+
+        angle = math.atan2(-dy, dx)  # Negative dy because screen Y is inverted
+        # Convert to degrees and normalize to 0-360
+        degrees = (math.degrees(angle) + 360) % 360
+
+        # Map angle to direction (0° = east, 90° = north, etc.)
+        if 337.5 <= degrees or degrees < 22.5:
+            return "east"
+        elif 22.5 <= degrees < 67.5:
+            return "northeast"
+        elif 67.5 <= degrees < 112.5:
+            return "north"
+        elif 112.5 <= degrees < 157.5:
+            return "northwest"
+        elif 157.5 <= degrees < 202.5:
+            return "west"
+        elif 202.5 <= degrees < 247.5:
+            return "southwest"
+        elif 247.5 <= degrees < 292.5:
+            return "south"
+        else:  # 292.5 <= degrees < 337.5
+            return "southeast"
 
     def _add_room_at(self, screen_pos: QPointF) -> None:
         """Add a new room at screen position."""

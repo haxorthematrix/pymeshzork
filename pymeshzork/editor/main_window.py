@@ -139,6 +139,8 @@ class MainWindow(QMainWindow):
     def _setup_menus(self) -> None:
         """Set up the menu bar."""
         menubar = self.menuBar()
+        # Disable native menubar on macOS to avoid menu visibility issues
+        menubar.setNativeMenuBar(False)
 
         # File menu
         file_menu = menubar.addMenu("&File")
@@ -385,10 +387,15 @@ class MainWindow(QMainWindow):
             if reply != QMessageBox.StandardButton.Yes:
                 return
 
+        # Default to data/worlds directory relative to current working directory
+        default_dir = Path.cwd() / "data" / "worlds"
+        if not default_dir.exists():
+            default_dir = Path.cwd()
+
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Open World File",
-            str(Path.home()),
+            str(default_dir),
             "JSON Files (*.json);;All Files (*)",
         )
 
@@ -421,10 +428,19 @@ class MainWindow(QMainWindow):
 
     def _save_file_as(self) -> bool:
         """Save the world to a new file."""
+        # Default to data/worlds directory or current file location
+        if self.current_file:
+            default_path = self.current_file
+        else:
+            default_dir = Path.cwd() / "data" / "worlds"
+            if not default_dir.exists():
+                default_dir = Path.cwd()
+            default_path = default_dir / "world.json"
+
         file_path, _ = QFileDialog.getSaveFileName(
             self,
             "Save World File",
-            str(self.current_file or Path.home() / "world.json"),
+            str(default_path),
             "JSON Files (*.json);;All Files (*)",
         )
 
@@ -595,10 +611,15 @@ class MainWindow(QMainWindow):
         self._mark_modified()
         self._update_status()
 
-    def _on_connection_created(self, from_room: str, to_room: str, direction: str) -> None:
+    def _on_connection_created(
+        self, from_room: str, to_room: str, direction: str, bidirectional: bool = True
+    ) -> None:
         """Handle a new connection being created."""
         if self.world:
-            self.world.add_exit(from_room, to_room, direction)
+            self.world.add_exit(from_room, to_room, direction, bidirectional=bidirectional)
             self._mark_modified()
             self.map_canvas.update()
-            self.statusbar.showMessage(f"Connected {from_room} -> {to_room} ({direction})")
+            conn_type = "↔" if bidirectional else "→"
+            self.statusbar.showMessage(
+                f"Connected {from_room} {conn_type} {to_room} ({direction})"
+            )
