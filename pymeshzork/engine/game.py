@@ -38,7 +38,39 @@ class Game:
 
         # Hooks for extensibility
         self.pre_turn_hooks: list[Callable[[], str | None]] = []
-        self.post_turn_hooks: list[Callable[[], str | None]] = []
+        self.post_turn_hooks: list[Callable[[], str | None]] = [
+            self._check_underground,
+        ]
+
+    def _check_underground(self) -> str | None:
+        """Check if player entered underground area and activate thief."""
+        room = self.world.get_room(self.state.current_room)
+        if not room:
+            return None
+
+        # Underground rooms are typically not naturally lit
+        # or have specific IDs indicating underground location
+        underground_indicators = [
+            "cella", "troll", "maze", "dome", "torc", "entra",
+            "egypt", "temp", "hades", "lld", "dam", "reser",
+            "strea", "chasm", "cave", "tunne", "mine", "coal",
+            "bank", "vault", "safty", "cycl", "treas",
+        ]
+
+        is_underground = any(
+            ind in self.state.current_room.lower()
+            for ind in underground_indicators
+        )
+
+        # Also check if room is naturally dark (usually underground)
+        if not room.is_lit():
+            is_underground = True
+
+        if is_underground and not self.state.thief_state.active:
+            self.events.activate_thief()
+            # Thief becomes active after first underground entry
+
+        return None
 
     def start(self) -> str:
         """Start a new game. Returns opening text."""

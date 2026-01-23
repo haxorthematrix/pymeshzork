@@ -122,6 +122,12 @@ class GameFlags:
     thfenf: bool = False  # Thief engaged
     singsf: bool = False  # Singing
     mrpshf: bool = False  # Mirror pushed
+
+    # Puzzle state flags for conditional exits
+    rug_moved: bool = False  # Rug moved revealing trap door
+    grate_open: bool = False  # Grating unlocked/opened
+    rope_tied: bool = False  # Rope tied to railing in dome
+    gates_open: bool = False  # Gates of Hades opened
     mropnf: bool = False  # Mirror open
     wdopnf: bool = False  # Wooden door open
     mr1f: bool = False  # Mirror room 1
@@ -245,6 +251,10 @@ class GameState:
     # End game state
     end_game_score: int = 0
     end_game_max: int = 100
+
+    # Combat/health state
+    player_wounds: int = 0  # Accumulated damage (death at 10)
+    player_health: int = 10  # Maximum health
 
     def get_room_state(self, room_id: str) -> RoomState:
         """Get or create state for a room."""

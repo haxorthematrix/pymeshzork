@@ -133,13 +133,45 @@ class World:
                     return False, None, "The door is closed."
 
         if exit.exit_type == ExitType.CONDITIONAL:
-            # Conditional exits need special handling
-            # This will be expanded with the action system
+            # Evaluate condition for conditional exits
             if exit.condition:
-                # For now, block conditional exits without handlers
-                return False, None, exit.message or "You can't go that way."
+                condition_met = self._evaluate_condition(state, exit.condition)
+                if not condition_met:
+                    return False, None, exit.message or "You can't go that way."
 
         return True, exit.destination_id, None
+
+    def _evaluate_condition(self, state: GameState, condition: str) -> bool:
+        """Evaluate a puzzle condition for conditional exits."""
+        # Check game flags first
+        if hasattr(state.flags, condition):
+            return getattr(state.flags, condition)
+
+        # Check specific conditions that may be tracked elsewhere
+        condition_handlers = {
+            "rug_moved": lambda: state.flags.rug_moved,
+            "troll_gone": lambda: state.flags.trollf,
+            "grate_open": lambda: state.flags.grate_open,
+            "rope_tied": lambda: state.flags.rope_tied,
+            "gates_open": lambda: state.flags.gates_open,
+            "cyclops_gone": lambda: state.flags.cyclof,
+            "rainbow_solid": lambda: state.flags.rainbf,
+        }
+
+        handler = condition_handlers.get(condition)
+        if handler:
+            return handler()
+
+        # Check object states for certain conditions
+        # e.g., door_open could check if a door object has OPENBT flag
+        if condition.endswith("_open"):
+            obj_id = condition.replace("_open", "")
+            obj_state = state.get_object_state(obj_id)
+            from pymeshzork.engine.models import ObjectFlag2
+            return bool(obj_state.flags2 & ObjectFlag2.OPENBT)
+
+        # Unknown condition - default to blocking
+        return False
 
     def move_player(
         self,

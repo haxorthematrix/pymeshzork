@@ -690,6 +690,8 @@ class VerbHandler:
 
     def do_attack(self, cmd: ParsedCommand) -> VerbResult:
         """Handle ATTACK/KILL command."""
+        import random
+
         if not cmd.direct_object:
             return VerbResult(
                 success=False,
@@ -702,6 +704,15 @@ class VerbHandler:
             return VerbResult(
                 success=False,
                 message=f"I don't see any {cmd.direct_object} here.",
+                end_turn=False,
+            )
+
+        # Check if target is in the room
+        obj_state = self.game.state.get_object_state(obj.id)
+        if obj_state.room_id != self.game.state.current_room:
+            return VerbResult(
+                success=False,
+                message=f"The {obj.name} isn't here.",
                 end_turn=False,
             )
 
@@ -731,10 +742,60 @@ class VerbHandler:
                 end_turn=False,
             )
 
-        # Basic combat placeholder - will be expanded
+        # Engage in combat
+        messages = [f"You swing the {weapon.name} at the {obj.name}!"]
+
+        # Calculate hit chance (base 50% + weapon bonus)
+        weapon_bonus = weapon.value if weapon.value else 0
+        hit_chance = min(50 + weapon_bonus, 85)
+
+        if random.randint(1, 100) <= hit_chance:
+            # Hit! Calculate damage
+            damage = random.randint(1, 5) + (weapon_bonus // 10)
+
+            # Track damage on villain
+            villain_wounds = obj_state.properties.get("wounds", 0) + damage
+            obj_state.properties["wounds"] = villain_wounds
+
+            # Check if villain is defeated
+            villain_health = obj_state.properties.get("health", 5)
+            if villain_wounds >= villain_health:
+                messages.append(f"Your blow strikes true! The {obj.name} falls dead!")
+                # Remove villain
+                self.game.events.kill_villain(obj.id)
+                # Set puzzle flags for specific villains
+                if obj.id == "troll":
+                    self.game.state.flags.trollf = True
+                elif obj.id == "thief":
+                    self.game.state.flags.thfenf = True
+                elif obj.id in ["cyclo", "cyclops"]:
+                    self.game.state.flags.cyclof = True
+                return VerbResult(
+                    success=True,
+                    message="\n".join(messages),
+                    score_change=10,
+                )
+            else:
+                hit_msgs = [
+                    f"You wound the {obj.name}!",
+                    f"Your blow connects with the {obj.name}!",
+                    f"The {obj.name} staggers from your attack!",
+                ]
+                messages.append(random.choice(hit_msgs))
+        else:
+            miss_msgs = [
+                f"You miss the {obj.name}!",
+                f"The {obj.name} parries your attack!",
+                f"Your swing goes wide!",
+            ]
+            messages.append(random.choice(miss_msgs))
+
+        # Activate villain for counterattack
+        self.game.events.activate_villain(obj.id)
+
         return VerbResult(
             success=True,
-            message=f"You swing the {weapon.name} at the {obj.name}!",
+            message="\n".join(messages),
         )
 
     # ============ Physical Actions ============
@@ -788,6 +849,8 @@ class VerbHandler:
 
     def do_light(self, cmd: ParsedCommand) -> VerbResult:
         """Handle LIGHT command."""
+        from pymeshzork.engine.models import EventID
+
         if not cmd.direct_object:
             return VerbResult(
                 success=False,
@@ -819,6 +882,27 @@ class VerbHandler:
             )
 
         obj_state.flags1 |= ObjectFlag1.ONBT
+
+        # Start appropriate timer based on light source
+        if obj.id in ["lamp", "lante", "lantern"]:
+            # Lantern has battery life
+            remaining = obj_state.properties.get("light_remaining", 350)
+            if remaining > 0:
+                self.game.events.set_event(EventID.LANTERN, 1)
+            else:
+                obj_state.flags1 &= ~ObjectFlag1.ONBT
+                return VerbResult(
+                    success=False,
+                    message="The lamp's batteries are dead.",
+                    end_turn=False,
+                )
+        elif obj.id in ["match", "matches"]:
+            # Match burns out quickly
+            self.game.events.set_event(EventID.MATCH, 2)
+        elif obj.id in ["candl", "candle", "candles"]:
+            # Candles last longer
+            self.game.events.set_event(EventID.CANDLE, 50)
+
         return VerbResult(
             success=True,
             message=f"The {obj.name} is now on.",
@@ -826,6 +910,8 @@ class VerbHandler:
 
     def do_extinguish(self, cmd: ParsedCommand) -> VerbResult:
         """Handle EXTINGUISH command."""
+        from pymeshzork.engine.models import EventID
+
         if not cmd.direct_object:
             return VerbResult(
                 success=False,
@@ -857,6 +943,15 @@ class VerbHandler:
             )
 
         obj_state.flags1 &= ~ObjectFlag1.ONBT
+
+        # Cancel timers when turning off
+        if obj.id in ["lamp", "lante", "lantern"]:
+            self.game.events.cancel_event(EventID.LANTERN)
+        elif obj.id in ["match", "matches"]:
+            self.game.events.cancel_event(EventID.MATCH)
+        elif obj.id in ["candl", "candle", "candles"]:
+            self.game.events.cancel_event(EventID.CANDLE)
+
         return VerbResult(
             success=True,
             message=f"The {obj.name} is now off.",
@@ -979,7 +1074,8 @@ class VerbHandler:
                         end_turn=False,
                     )
                 obj_state.flags2 |= ObjectFlag2.TCHBT
-                # Reveal the trap door exit
+                # Set puzzle flag to enable trap door exit
+                self.game.state.flags.rug_moved = True
                 return VerbResult(
                     success=True,
                     message="With great effort, the rug is moved to one side of the room, revealing the dusty cover of a closed trap door.",
@@ -1065,6 +1161,8 @@ class VerbHandler:
         obj_state.flags2 |= ObjectFlag2.TIEBT
         # Move rope to room
         self.game.state.move_object_to_room(obj.id, room.id)
+        # Set puzzle flag to enable dome-torch room passage
+        self.game.state.flags.rope_tied = True
 
         return VerbResult(
             success=True,
@@ -1099,6 +1197,9 @@ class VerbHandler:
 
         obj_state.flags2 &= ~ObjectFlag2.TIEBT
         self.game.state.move_object_to_actor(obj.id, "player")
+        # Clear puzzle flag - rope no longer tied
+        if obj.id == "rope":
+            self.game.state.flags.rope_tied = False
 
         return VerbResult(
             success=True,
@@ -1295,9 +1396,11 @@ class VerbHandler:
 
             if candles_state and candles_state.is_held_by("player"):
                 if book_state and book_state.is_held_by("player"):
+                    # Successful exorcism - open gates of Hades
+                    self.game.state.flags.gates_open = True
                     return VerbResult(
                         success=True,
-                        message="The bell rings with a pure tone that echoes through the chamber. The spirits begin to stir...\n\nThe candles flicker with an eerie light. You feel the gates of Hades weakening!",
+                        message="The bell rings with a pure tone that echoes through the chamber. The spirits begin to stir...\n\nThe candles flicker with an eerie light. With a great creaking, the gates of Hades swing open!",
                         score_change=5,
                     )
                 return VerbResult(
@@ -1463,7 +1566,7 @@ class VerbHandler:
             )
 
         # Special case: grating
-        if obj.id == "grate":
+        if obj.id in ["grate", "grati", "grating"]:
             obj_state = self.game.state.get_object_state(obj.id)
             if obj_state.flags2 & ObjectFlag2.OPENBT:
                 return VerbResult(
@@ -1472,6 +1575,8 @@ class VerbHandler:
                     end_turn=False,
                 )
             obj_state.flags2 |= ObjectFlag2.OPENBT
+            # Set puzzle flag to enable grating passage
+            self.game.state.flags.grate_open = True
             return VerbResult(
                 success=True,
                 message="The grating is now unlocked.",
@@ -1774,6 +1879,8 @@ class VerbHandler:
 
         # Defeat the cyclops!
         cyclops_state.room_id = None  # Remove cyclops
+        # Set puzzle flag - cyclops is gone
+        self.game.state.flags.cyclof = True
 
         return VerbResult(
             success=True,
