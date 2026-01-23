@@ -118,6 +118,9 @@ class VerbHandler:
             "curse": self.do_curse,
             "odysseus": self.do_odysseus,
             "ulysses": self.do_odysseus,
+            "launch": self.do_launch,
+            "land": self.do_land,
+            "answer": self.do_answer,
             "echo": self.do_echo,
         }
 
@@ -392,6 +395,27 @@ class VerbHandler:
                 message="Where do you want to put it?",
                 end_turn=False,
             )
+
+        # Special case: putting coal in machine
+        if cmd.direct_object == "coal" and cmd.indirect_object in ["machi", "machine"]:
+            room_result = self.game.room_actions.on_action(
+                self.game.state.current_room,
+                "put",
+                obj_id="coal",
+                target="machi",
+            )
+            if room_result:
+                if room_result.block_action:
+                    return VerbResult(
+                        success=False,
+                        message=room_result.message or "You can't do that.",
+                        end_turn=False,
+                    )
+                return VerbResult(
+                    success=True,
+                    message=room_result.message,
+                    score_change=room_result.score_change,
+                )
 
         obj = self.game.world.get_object(cmd.direct_object)
         container = self.game.world.get_object(cmd.indirect_object)
@@ -802,11 +826,21 @@ class VerbHandler:
 
     def do_push(self, cmd: ParsedCommand) -> VerbResult:
         """Handle PUSH command."""
+        from pymeshzork.engine.room_actions import handle_push_button
+
         if not cmd.direct_object:
             return VerbResult(
                 success=False,
                 message="What do you want to push?",
                 end_turn=False,
+            )
+
+        # Check for special button/switch handling
+        result = handle_push_button(self.game, cmd.direct_object)
+        if result:
+            return VerbResult(
+                success=True,
+                message=result,
             )
 
         return VerbResult(
@@ -832,11 +866,21 @@ class VerbHandler:
 
     def do_turn(self, cmd: ParsedCommand) -> VerbResult:
         """Handle TURN command."""
+        from pymeshzork.engine.room_actions import handle_turn_dial
+
         if not cmd.direct_object:
             return VerbResult(
                 success=False,
                 message="What do you want to turn?",
                 end_turn=False,
+            )
+
+        # Check for special dial/wheel handling
+        result = handle_turn_dial(self.game, cmd.direct_object)
+        if result:
+            return VerbResult(
+                success=True,
+                message=result,
             )
 
         return VerbResult(
@@ -1919,17 +1963,89 @@ class VerbHandler:
         if word in ["odysseus", "ulysses"]:
             return self.do_odysseus(cmd)
 
-        if word == "echo":
-            return self.do_echo(cmd)
-
         if word in ["xyzzy", "plugh", "plover"]:
             return VerbResult(
                 success=True,
                 message="A hollow voice says 'Fool.'",
             )
 
+        # Check for room-specific say actions
+        room_result = self.game.room_actions.on_action(
+            self.game.state.current_room,
+            "say",
+            obj_id=word,
+        )
+        if room_result and room_result.message:
+            return VerbResult(
+                success=True,
+                message=room_result.message,
+                score_change=room_result.score_change,
+            )
+
         return VerbResult(
             success=True,
             message=f'You say "{cmd.direct_object}" but nothing happens.',
+            end_turn=False,
+        )
+
+    def do_launch(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle LAUNCH command (for balloon)."""
+        from pymeshzork.engine.room_actions import handle_launch_balloon
+
+        result = handle_launch_balloon(self.game)
+        if result:
+            return VerbResult(
+                success=True,
+                message=result,
+            )
+
+        return VerbResult(
+            success=False,
+            message="There's nothing to launch here.",
+            end_turn=False,
+        )
+
+    def do_land(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle LAND command (for balloon)."""
+        from pymeshzork.engine.room_actions import handle_land_balloon
+
+        result = handle_land_balloon(self.game)
+        if result:
+            return VerbResult(
+                success=True,
+                message=result,
+            )
+
+        return VerbResult(
+            success=False,
+            message="You're not in anything that can land.",
+            end_turn=False,
+        )
+
+    def do_answer(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle ANSWER command (for riddles)."""
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="Answer what?",
+                end_turn=False,
+            )
+
+        # Check for room-specific answer actions (like riddle room)
+        room_result = self.game.room_actions.on_action(
+            self.game.state.current_room,
+            "answer",
+            obj_id=cmd.direct_object,
+        )
+        if room_result and room_result.message:
+            return VerbResult(
+                success=True,
+                message=room_result.message,
+                score_change=room_result.score_change,
+            )
+
+        return VerbResult(
+            success=True,
+            message="Nobody is asking you anything.",
             end_turn=False,
         )

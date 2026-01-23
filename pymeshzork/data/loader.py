@@ -125,6 +125,12 @@ class WorldLoader:
 
     def _load_world_dir(self, path: Path) -> World:
         """Load world from a directory with multiple JSON files."""
+        # Prefer combined world.json if it exists (most complete)
+        world_file = path / "world.json"
+        if world_file.exists():
+            return self._load_world_file(world_file)
+
+        # Fall back to separate files
         world = World()
 
         # Load rooms

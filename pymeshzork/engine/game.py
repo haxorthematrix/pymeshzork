@@ -6,6 +6,7 @@ from typing import Callable
 from pymeshzork.engine.events import EventManager, check_grue
 from pymeshzork.engine.models import ObjectFlag2
 from pymeshzork.engine.parser import ParsedCommand, Parser
+from pymeshzork.engine.room_actions import RoomActions
 from pymeshzork.engine.state import GameState
 from pymeshzork.engine.verbs import VerbHandler, VerbResult
 from pymeshzork.engine.world import World
@@ -35,6 +36,7 @@ class Game:
         self.parser = Parser()
         self.verbs = VerbHandler(self)
         self.events = EventManager(self)
+        self.room_actions = RoomActions(self)
 
         # Hooks for extensibility
         self.pre_turn_hooks: list[Callable[[], str | None]] = []
