@@ -4,7 +4,7 @@
     "name": "Zork I: The Great Underground Empire",
     "version": "1.0.0",
     "author": "Infocom (converted by PyMeshZork)",
-    "description": "The classic text adventure game - West of House and surrounding areas",
+    "description": "The complete classic text adventure game",
     "max_score": 350,
     "starting_room": "whous"
   },
@@ -13,424 +13,1049 @@
       "name": "West of House",
       "description_first": "You are standing in an open field west of a white house, with a boarded front door.",
       "description_short": "West of House",
-      "flags": [
-        "RLIGHT",
-        "RLAND"
-      ],
+      "flags": ["RLIGHT", "RLAND"],
       "exits": [
-        {
-          "direction": "north",
-          "destination": "nhous"
-        },
-        {
-          "direction": "south",
-          "destination": "shous"
-        },
-        {
-          "direction": "west",
-          "destination": "fore1"
-        },
-        {
-          "direction": "east",
-          "destination": "whous",
-          "type": "no_exit",
-          "message": "The door is boarded and you can't remove the boards."
-        },
-        {
-          "direction": "southwest",
-          "destination": "fore1"
-        },
-        {
-          "direction": "northwest",
-          "destination": "fore1"
-        }
+        {"direction": "north", "destination": "nhous"},
+        {"direction": "south", "destination": "shous"},
+        {"direction": "west", "destination": "fore1"},
+        {"direction": "east", "destination": "whous", "type": "no_exit", "message": "The door is boarded and you can't remove the boards."},
+        {"direction": "southwest", "destination": "fore1"},
+        {"direction": "northwest", "destination": "fore1"}
       ]
     },
     "nhous": {
       "name": "North of House",
       "description_first": "You are facing the north side of a white house. There is no door here, and all the windows are boarded up. To the north a narrow path winds through the trees.",
       "description_short": "North of House",
-      "flags": [
-        "RLIGHT",
-        "RLAND"
-      ],
+      "flags": ["RLIGHT", "RLAND"],
       "exits": [
-        {
-          "direction": "south",
-          "destination": "whous"
-        },
-        {
-          "direction": "west",
-          "destination": "fore1"
-        },
-        {
-          "direction": "east",
-          "destination": "ehous"
-        },
-        {
-          "direction": "north",
-          "destination": "fore3"
-        }
+        {"direction": "south", "destination": "whous"},
+        {"direction": "west", "destination": "fore1"},
+        {"direction": "east", "destination": "ehous"},
+        {"direction": "north", "destination": "fore3"}
       ]
     },
     "shous": {
       "name": "South of House",
       "description_first": "You are facing the south side of a white house. There is no door here, and all the windows are boarded.",
       "description_short": "South of House",
-      "flags": [
-        "RLIGHT",
-        "RLAND"
-      ],
+      "flags": ["RLIGHT", "RLAND"],
       "exits": [
-        {
-          "direction": "north",
-          "destination": "whous"
-        },
-        {
-          "direction": "west",
-          "destination": "fore1"
-        },
-        {
-          "direction": "east",
-          "destination": "ehous"
-        }
+        {"direction": "north", "destination": "whous"},
+        {"direction": "west", "destination": "fore1"},
+        {"direction": "east", "destination": "ehous"}
       ]
     },
     "ehous": {
       "name": "Behind House",
       "description_first": "You are behind the white house. A path leads into the forest to the east. In one corner of the house there is a small window which is slightly ajar.",
       "description_short": "Behind House",
-      "flags": [
-        "RLIGHT",
-        "RLAND"
-      ],
+      "flags": ["RLIGHT", "RLAND"],
       "exits": [
-        {
-          "direction": "north",
-          "destination": "nhous"
-        },
-        {
-          "direction": "south",
-          "destination": "shous"
-        },
-        {
-          "direction": "east",
-          "destination": "clear"
-        },
-        {
-          "direction": "west",
-          "destination": "kitch",
-          "type": "door",
-          "door_object": "windo"
-        },
-        {
-          "direction": "enter",
-          "destination": "kitch",
-          "type": "door",
-          "door_object": "windo"
-        }
+        {"direction": "north", "destination": "nhous"},
+        {"direction": "south", "destination": "shous"},
+        {"direction": "east", "destination": "clear"},
+        {"direction": "west", "destination": "kitch", "type": "door", "door_object": "windo"},
+        {"direction": "enter", "destination": "kitch", "type": "door", "door_object": "windo"}
       ]
     },
     "kitch": {
       "name": "Kitchen",
       "description_first": "You are in the kitchen of the white house. A table seems to have been used recently for the preparation of food. A passage leads to the west and a dark staircase can be seen leading upward. A dark chimney leads down and to the east is a small window which is open.",
       "description_short": "Kitchen",
-      "flags": [
-        "RLIGHT",
-        "RLAND",
-        "RHOUSE"
-      ],
+      "flags": ["RLIGHT", "RLAND", "RHOUSE"],
       "exits": [
-        {
-          "direction": "east",
-          "destination": "ehous",
-          "type": "door",
-          "door_object": "windo"
-        },
-        {
-          "direction": "west",
-          "destination": "lroom"
-        },
-        {
-          "direction": "up",
-          "destination": "attic"
-        },
-        {
-          "direction": "down",
-          "destination": "cella",
-          "type": "conditional",
-          "message": "Only Santa Claus climbs down chimneys."
-        }
+        {"direction": "east", "destination": "ehous", "type": "door", "door_object": "windo"},
+        {"direction": "west", "destination": "lroom"},
+        {"direction": "up", "destination": "attic"},
+        {"direction": "down", "destination": "cella", "type": "conditional", "message": "Only Santa Claus climbs down chimneys."}
       ]
     },
     "lroom": {
       "name": "Living Room",
       "description_first": "You are in the living room. There is a doorway to the east, a wooden door with strange gothic lettering to the west, which appears to be nailed shut, a trophy case, and a large oriental rug in the center of the room.",
       "description_short": "Living Room",
-      "flags": [
-        "RLIGHT",
-        "RLAND",
-        "RHOUSE"
-      ],
+      "flags": ["RLIGHT", "RLAND", "RHOUSE"],
       "exits": [
-        {
-          "direction": "east",
-          "destination": "kitch"
-        },
-        {
-          "direction": "west",
-          "destination": "lroom",
-          "type": "no_exit",
-          "message": "The door is nailed shut."
-        },
-        {
-          "direction": "down",
-          "destination": "cella",
-          "type": "conditional",
-          "condition": "rug_moved"
-        }
+        {"direction": "east", "destination": "kitch"},
+        {"direction": "west", "destination": "lroom", "type": "no_exit", "message": "The door is nailed shut."},
+        {"direction": "down", "destination": "cella", "type": "conditional", "condition": "rug_moved"}
       ]
     },
     "attic": {
       "name": "Attic",
       "description_first": "This is the attic. The only exit is a stairway leading down. A large coil of rope is lying in the corner. On a table is a nasty-looking knife.",
       "description_short": "Attic",
-      "flags": [
-        "RLIGHT",
-        "RLAND",
-        "RHOUSE"
-      ],
+      "flags": ["RLIGHT", "RLAND", "RHOUSE"],
       "exits": [
-        {
-          "direction": "down",
-          "destination": "kitch"
-        }
+        {"direction": "down", "destination": "kitch"}
       ]
     },
     "cella": {
       "name": "Cellar",
       "description_first": "You are in a dark and damp cellar with a narrow passageway leading north, and a crawlway to the south. On the west is the bottom of a steep metal ramp which is unclimbable.",
       "description_short": "Cellar",
-      "flags": [
-        "RLAND"
-      ],
+      "flags": ["RLAND"],
       "exits": [
-        {
-          "direction": "up",
-          "destination": "lroom"
-        },
-        {
-          "direction": "north",
-          "destination": "mtrol"
-        },
-        {
-          "direction": "south",
-          "destination": "estof"
-        },
-        {
-          "direction": "west",
-          "destination": "cella",
-          "type": "no_exit",
-          "message": "The ramp is too steep to climb."
-        }
+        {"direction": "up", "destination": "lroom"},
+        {"direction": "north", "destination": "mtrol"},
+        {"direction": "south", "destination": "estof"},
+        {"direction": "west", "destination": "cella", "type": "no_exit", "message": "The ramp is too steep to climb."}
       ]
     },
     "mtrol": {
       "name": "Troll Room",
       "description_first": "This is a small room with passages to the east and south and a forbidding hole leading west. Bloodstains and deep scratches (perhaps made by straining fingers) mar the walls.",
       "description_short": "Troll Room",
-      "flags": [
-        "RLAND"
-      ],
+      "flags": ["RLAND"],
       "exits": [
-        {
-          "direction": "south",
-          "destination": "cella"
-        },
-        {
-          "direction": "east",
-          "destination": "emaze"
-        },
-        {
-          "direction": "west",
-          "destination": "mtrol",
-          "type": "conditional",
-          "condition": "troll_gone",
-          "message": "The troll fends you off with a menacing gesture."
-        }
+        {"direction": "south", "destination": "cella"},
+        {"direction": "east", "destination": "maze1"},
+        {"direction": "west", "destination": "ewwch", "type": "conditional", "condition": "troll_gone", "message": "The troll fends you off with a menacing gesture."}
       ]
     },
     "fore1": {
       "name": "Forest",
       "description_first": "This is a forest, with trees in all directions. To the east, there appears to be sunlight.",
       "description_short": "Forest",
-      "flags": [
-        "RLIGHT",
-        "RLAND"
-      ],
+      "flags": ["RLIGHT", "RLAND"],
       "exits": [
-        {
-          "direction": "east",
-          "destination": "whous"
-        },
-        {
-          "direction": "north",
-          "destination": "fore3"
-        },
-        {
-          "direction": "south",
-          "destination": "fore1"
-        },
-        {
-          "direction": "west",
-          "destination": "fore1"
-        }
+        {"direction": "east", "destination": "whous"},
+        {"direction": "north", "destination": "fore3"},
+        {"direction": "south", "destination": "fore2"},
+        {"direction": "west", "destination": "fore2"}
+      ]
+    },
+    "fore2": {
+      "name": "Forest",
+      "description_first": "This is a dimly lit forest, with large trees all around.",
+      "description_short": "Forest",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "fore1"},
+        {"direction": "south", "destination": "fore2"},
+        {"direction": "east", "destination": "shous"},
+        {"direction": "west", "destination": "fore2"},
+        {"direction": "up", "destination": "fore2"}
       ]
     },
     "fore3": {
       "name": "Forest Path",
       "description_first": "This is a path winding through a dimly lit forest. The path heads north-south here. One particularly large tree with some low branches stands at the edge of the path.",
       "description_short": "Forest Path",
-      "flags": [
-        "RLIGHT",
-        "RLAND"
-      ],
+      "flags": ["RLIGHT", "RLAND"],
       "exits": [
-        {
-          "direction": "south",
-          "destination": "nhous"
-        },
-        {
-          "direction": "north",
-          "destination": "clear"
-        },
-        {
-          "direction": "east",
-          "destination": "fore1"
-        },
-        {
-          "direction": "west",
-          "destination": "fore1"
-        },
-        {
-          "direction": "up",
-          "destination": "uptree"
-        }
+        {"direction": "south", "destination": "nhous"},
+        {"direction": "north", "destination": "clear"},
+        {"direction": "east", "destination": "fore1"},
+        {"direction": "west", "destination": "fore1"},
+        {"direction": "up", "destination": "uptree"}
       ]
     },
     "clear": {
       "name": "Clearing",
       "description_first": "You are in a clearing, with a forest surrounding you on all sides. A path leads south.",
       "description_short": "Clearing",
-      "flags": [
-        "RLIGHT",
-        "RLAND"
-      ],
+      "flags": ["RLIGHT", "RLAND"],
       "exits": [
-        {
-          "direction": "south",
-          "destination": "fore3"
-        },
-        {
-          "direction": "west",
-          "destination": "fore1"
-        },
-        {
-          "direction": "east",
-          "destination": "canyv"
-        }
+        {"direction": "south", "destination": "fore3"},
+        {"direction": "west", "destination": "fore1"},
+        {"direction": "east", "destination": "canyv"}
       ]
     },
     "uptree": {
       "name": "Up a Tree",
       "description_first": "You are about 10 feet above the ground nestled among some large branches. The nearest branch above you is above your reach. Beside you on the branch is a small bird's nest.",
       "description_short": "Up a Tree",
-      "flags": [
-        "RLIGHT",
-        "RAIR"
-      ],
+      "flags": ["RLIGHT", "RAIR"],
       "exits": [
-        {
-          "direction": "down",
-          "destination": "fore3"
-        }
+        {"direction": "down", "destination": "fore3"}
+      ]
+    },
+    "canyv": {
+      "name": "Canyon View",
+      "description_first": "You are at the top of the Great Canyon on its west wall. From here there is a marvelous view of the canyon and parts of the Frigid River upstream. Across the canyon, the walls of the White Cliffs join the mighty ramparts of the Flathead Mountains to the east. Following the canyon upstream to the north, Aragain Falls may be seen, complete with rainbow. The canyon stretches off in the distance to the southwest.",
+      "description_short": "Canyon View",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "clear"},
+        {"direction": "south", "destination": "ledge"},
+        {"direction": "down", "destination": "ledge"}
+      ]
+    },
+    "ledge": {
+      "name": "Rocky Ledge",
+      "description_first": "You are on a ledge about halfway up the wall of the river canyon. You can see from here that the Great Canyon stretches off into the distance. Far below you can see the whitish froth of the river against the craggy cliffs of the gorge. Above you the face of the cliff rises vertically out of sight. There is no way up from here without climbing equipment.",
+      "description_short": "Rocky Ledge",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "canyv"},
+        {"direction": "down", "destination": "cnybm"}
+      ]
+    },
+    "cnybm": {
+      "name": "Canyon Bottom",
+      "description_first": "You are beneath the walls of the river canyon which may be climbable here. The canyon runs north and south.",
+      "description_short": "Canyon Bottom",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "ledge"},
+        {"direction": "north", "destination": "mrain"},
+        {"direction": "south", "destination": "strmv"}
+      ]
+    },
+    "strmv": {
+      "name": "Stream View",
+      "description_first": "You are standing on a path beside a gently flowing stream. The path follows the stream through the forest.",
+      "description_short": "Stream View",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "cnybm"},
+        {"direction": "east", "destination": "strea"},
+        {"direction": "south", "destination": "strea"}
+      ]
+    },
+    "strea": {
+      "name": "Stream",
+      "description_first": "You are on the gently sloping bank of a stream, which is flowing down from somewhere above. Upstream you can see a wooden dam blocking the river.",
+      "description_short": "Stream",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "strmv"},
+        {"direction": "south", "destination": "mgrat"},
+        {"direction": "west", "destination": "strmv"}
+      ]
+    },
+    "mgrat": {
+      "name": "Grating Room",
+      "description_first": "You are in a small room near the surface. A shaft of sunlight from above illuminates the room. In one corner is a pile of leaves. A narrow passage leads north.",
+      "description_short": "Grating Room",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "strea"},
+        {"direction": "down", "destination": "mgrat", "type": "conditional", "condition": "grate_open"},
+        {"direction": "up", "destination": "clear", "type": "door", "door_object": "grate"}
+      ]
+    },
+    "maze1": {
+      "name": "Maze",
+      "description_first": "You are in a maze of twisty little passages, all alike.",
+      "description_short": "Maze",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "mtrol"},
+        {"direction": "north", "destination": "maze2"},
+        {"direction": "south", "destination": "maze4"},
+        {"direction": "east", "destination": "maze3"}
+      ]
+    },
+    "maze2": {
+      "name": "Maze",
+      "description_first": "You are in a maze of twisty little passages, all alike.",
+      "description_short": "Maze",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "maze1"},
+        {"direction": "north", "destination": "maze3"},
+        {"direction": "east", "destination": "maze5"}
+      ]
+    },
+    "maze3": {
+      "name": "Maze",
+      "description_first": "You are in a maze of twisty little passages, all alike.",
+      "description_short": "Maze",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "maze1"},
+        {"direction": "south", "destination": "maze2"},
+        {"direction": "north", "destination": "maze4"}
+      ]
+    },
+    "maze4": {
+      "name": "Maze",
+      "description_first": "You are in a maze of twisty little passages, all alike.",
+      "description_short": "Maze",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "maze1"},
+        {"direction": "south", "destination": "maze3"},
+        {"direction": "west", "destination": "maz15"},
+        {"direction": "east", "destination": "dcell"}
+      ]
+    },
+    "maze5": {
+      "name": "Maze",
+      "description_first": "You are in a maze of twisty little passages, all alike.",
+      "description_short": "Maze",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "maze2"},
+        {"direction": "north", "destination": "maz15"},
+        {"direction": "east", "destination": "maze5"}
+      ]
+    },
+    "maz15": {
+      "name": "Grating Room",
+      "description_first": "You are in a small room near the surface. A shaft of sunlight from above illuminates the room. In one corner is a pile of leaves. A narrow passage leads north.",
+      "description_short": "Grating Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "maze4"},
+        {"direction": "east", "destination": "maze5"}
+      ]
+    },
+    "dcell": {
+      "name": "Dead End",
+      "description_first": "You have come to a dead end in the maze.",
+      "description_short": "Dead End",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "maze4"}
+      ]
+    },
+    "estof": {
+      "name": "East of Chasm",
+      "description_first": "You are on the east edge of a chasm, the bottom of which cannot be seen. The east edge is a narrow ledge looking across to a thin land bridge.",
+      "description_short": "East of Chasm",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "cella"},
+        {"direction": "southwest", "destination": "galry"}
+      ]
+    },
+    "galry": {
+      "name": "Gallery",
+      "description_first": "This is an art gallery. Most of the paintings have been stolen by vandals with exceptional taste. A doorway leads south.",
+      "description_short": "Gallery",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "estof"},
+        {"direction": "south", "destination": "studi"}
+      ]
+    },
+    "studi": {
+      "name": "Studio",
+      "description_first": "This is what was once an artist's studio. It appears the artist has moved on, perhaps scared away by the vandals. Many empty frames line the walls.",
+      "description_short": "Studio",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "galry"},
+        {"direction": "up", "destination": "kitch"}
+      ]
+    },
+    "ewwch": {
+      "name": "East-West Passage",
+      "description_first": "This is a narrow east-west passageway. There is a hole in the floor from which a foul stench emanates.",
+      "description_short": "East-West Passage",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "mtrol"},
+        {"direction": "west", "destination": "round"},
+        {"direction": "down", "destination": "smele"}
+      ]
+    },
+    "round": {
+      "name": "Round Room",
+      "description_first": "This is a circular stone room with passages in all directions. Several of them have unfortunately been blocked by cave-ins.",
+      "description_short": "Round Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "ewwch"},
+        {"direction": "west", "destination": "llrm2"},
+        {"direction": "north", "destination": "nsrm1"},
+        {"direction": "south", "destination": "ssmrm"},
+        {"direction": "southeast", "destination": "engra"}
+      ]
+    },
+    "nsrm1": {
+      "name": "North-South Passage",
+      "description_first": "This is a narrow north-south passage.",
+      "description_short": "North-South Passage",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "round"},
+        {"direction": "north", "destination": "chasm"}
+      ]
+    },
+    "chasm": {
+      "name": "Chasm",
+      "description_first": "A chasm runs southwest to northeast and the path follows it. You are on the south side of the chasm, where a crack opens into a dark passage.",
+      "description_short": "Chasm",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "nsrm1"},
+        {"direction": "northeast", "destination": "reser"}
+      ]
+    },
+    "reser": {
+      "name": "Reservoir",
+      "description_first": "You are at the edge of a large underground reservoir. There is a path along the edge of the reservoir.",
+      "description_short": "Reservoir",
+      "flags": ["RWATER"],
+      "exits": [
+        {"direction": "south", "destination": "chasm"},
+        {"direction": "north", "destination": "rsout"}
+      ]
+    },
+    "rsout": {
+      "name": "Reservoir South",
+      "description_first": "You are at the southern edge of a large underground reservoir.",
+      "description_short": "Reservoir South",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "reser"},
+        {"direction": "west", "destination": "strea"}
+      ]
+    },
+    "ssmrm": {
+      "name": "Mirror Room",
+      "description_first": "You are in a large room with a mirror on each wall. Above you hangs a large chandelier.",
+      "description_short": "Mirror Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "round"}
+      ]
+    },
+    "llrm2": {
+      "name": "Loud Room",
+      "description_first": "This is a large room with a ceiling which cannot be detected from the ground. There is a narrow passage from east to west and a stone stairway leading upward.",
+      "description_short": "Loud Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "round"},
+        {"direction": "west", "destination": "lld2"},
+        {"direction": "up", "destination": "dome"}
+      ]
+    },
+    "lld2": {
+      "name": "Loud Room",
+      "description_first": "This is a large room. A narrow passage goes west, and a stone stairway leads upward. The room is eerie in its quietness.",
+      "description_short": "Loud Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "llrm2"},
+        {"direction": "west", "destination": "damp"},
+        {"direction": "up", "destination": "dome"}
+      ]
+    },
+    "damp": {
+      "name": "Damp Cave",
+      "description_first": "This is a cave. The walls are covered with moisture. A passage leads south, and there is a crawlway to the west.",
+      "description_short": "Damp Cave",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "lld2"},
+        {"direction": "south", "destination": "wfiss"},
+        {"direction": "west", "destination": "wcave"}
+      ]
+    },
+    "wfiss": {
+      "name": "White Cliffs Beach",
+      "description_first": "You are on a narrow strip of beach beside the Frigid River.",
+      "description_short": "White Cliffs Beach",
+      "flags": ["RLAND", "RWATER"],
+      "exits": [
+        {"direction": "north", "destination": "damp"},
+        {"direction": "south", "destination": "rivr1"}
+      ]
+    },
+    "wcave": {
+      "name": "White Cliffs Cave",
+      "description_first": "You are in a small cave. There is a passage to the east and a crawlway to the north.",
+      "description_short": "White Cliffs Cave",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "damp"},
+        {"direction": "north", "destination": "engra"}
+      ]
+    },
+    "engra": {
+      "name": "Engravings Cave",
+      "description_first": "You are in a cave with engravings on the wall. An exit leads northwest and a crawlway leads south.",
+      "description_short": "Engravings Cave",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "northwest", "destination": "round"},
+        {"direction": "south", "destination": "wcave"}
+      ]
+    },
+    "dome": {
+      "name": "Dome Room",
+      "description_first": "You are at the periphery of a large dome, which forms the ceiling of another room below. Protecting you from a precipitous drop is a wooden railing which circles the dome.",
+      "description_short": "Dome Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "down", "destination": "mtorc", "type": "conditional", "condition": "rope_tied", "message": "You cannot go down without a rope."},
+        {"direction": "east", "destination": "llrm2"}
+      ]
+    },
+    "mtorc": {
+      "name": "Torch Room",
+      "description_first": "This is a large room with a high ceiling. A wooden door leads west. On the walls of the room are three torches. One is lit, one is out, and one is missing.",
+      "description_short": "Torch Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "dome", "type": "conditional", "condition": "rope_tied", "message": "You cannot climb up without a rope."},
+        {"direction": "south", "destination": "temp1"},
+        {"direction": "west", "destination": "egypt", "type": "door", "door_object": "door"}
+      ]
+    },
+    "egypt": {
+      "name": "Egyptian Room",
+      "description_first": "This is a room which looks like an Egyptian tomb. A passage leads north.",
+      "description_short": "Egyptian Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "mtorc", "type": "door", "door_object": "door"},
+        {"direction": "north", "destination": "echor"}
+      ]
+    },
+    "echor": {
+      "name": "Echo Room",
+      "description_first": "This is a very large room with a low ceiling. There are exits in all directions.",
+      "description_short": "Echo Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "egypt"},
+        {"direction": "north", "destination": "echor"},
+        {"direction": "east", "destination": "echor"},
+        {"direction": "west", "destination": "echor"}
+      ]
+    },
+    "temp1": {
+      "name": "Temple",
+      "description_first": "This is the north end of a large temple. On the east and west walls are engravings. A few, like 'Strangle the Troll' and 'Defenestrate the Ogre', are still legible. Large doors at the north end of the temple are closed.",
+      "description_short": "Temple",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "mtorc"},
+        {"direction": "south", "destination": "temp2"},
+        {"direction": "east", "destination": "treas"}
+      ]
+    },
+    "temp2": {
+      "name": "Altar",
+      "description_first": "This is the south end of a large temple. In front of you is what appears to be an altar. On the altar is a large black book.",
+      "description_short": "Altar",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "temp1"},
+        {"direction": "down", "destination": "entrc"}
+      ]
+    },
+    "treas": {
+      "name": "Treasure Room",
+      "description_first": "This is a huge room filled with piles of treasure. Valuable items are scattered everywhere.",
+      "description_short": "Treasure Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "temp1"}
+      ]
+    },
+    "entrc": {
+      "name": "Entrance to Hades",
+      "description_first": "You are outside a large gateway which blocks the entrance to Hades.",
+      "description_short": "Entrance to Hades",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "temp2"},
+        {"direction": "south", "destination": "hades", "type": "conditional", "condition": "gates_open"}
+      ]
+    },
+    "hades": {
+      "name": "Land of the Living Dead",
+      "description_first": "You are in a gloomy room lit only by a flickering light. On the wall hangs a bell pull.",
+      "description_short": "Land of the Living Dead",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "entrc"}
+      ]
+    },
+    "smele": {
+      "name": "Smelly Room",
+      "description_first": "This is a small room with a foul stench. A passage leads south.",
+      "description_short": "Smelly Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "ewwch"},
+        {"direction": "south", "destination": "gas"}
+      ]
+    },
+    "gas": {
+      "name": "Gas Room",
+      "description_first": "This room has a damp floor. A passage leads west.",
+      "description_short": "Gas Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "smele"},
+        {"direction": "west", "destination": "coal1"}
+      ]
+    },
+    "coal1": {
+      "name": "Coal Mine",
+      "description_first": "This is a dead-end in a coal mine.",
+      "description_short": "Coal Mine",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "gas"},
+        {"direction": "north", "destination": "coal2"}
+      ]
+    },
+    "coal2": {
+      "name": "Ladder Top",
+      "description_first": "This is the top of a wooden ladder. There is a room to the north.",
+      "description_short": "Ladder Top",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "coal1"},
+        {"direction": "down", "destination": "coal3"},
+        {"direction": "north", "destination": "tshaf"}
+      ]
+    },
+    "coal3": {
+      "name": "Ladder Bottom",
+      "description_first": "This is the bottom of a wooden ladder.",
+      "description_short": "Ladder Bottom",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "coal2"},
+        {"direction": "south", "destination": "coal4"}
+      ]
+    },
+    "coal4": {
+      "name": "Dead End",
+      "description_first": "You have come to a dead end.",
+      "description_short": "Dead End",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "coal3"}
+      ]
+    },
+    "tshaf": {
+      "name": "Shaft Room",
+      "description_first": "This is a small room with a shaft descending into the darkness.",
+      "description_short": "Shaft Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "coal2"},
+        {"direction": "down", "destination": "bshaf"}
+      ]
+    },
+    "bshaf": {
+      "name": "Shaft Bottom",
+      "description_first": "This is the bottom of the shaft. A passage leads south.",
+      "description_short": "Shaft Bottom",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "tshaf"},
+        {"direction": "south", "destination": "mmach"}
+      ]
+    },
+    "mmach": {
+      "name": "Machine Room",
+      "description_first": "This is a large room dominated by a huge machine. The machine is quiet and cold.",
+      "description_short": "Machine Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "bshaf"}
+      ]
+    },
+    "mcycl": {
+      "name": "Cyclops Room",
+      "description_first": "This is a room with a cyclops in it.",
+      "description_short": "Cyclops Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "treas"},
+        {"direction": "west", "destination": "strng"}
+      ]
+    },
+    "strng": {
+      "name": "Strange Passage",
+      "description_first": "This is a strange passage that leads in many directions.",
+      "description_short": "Strange Passage",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "mcycl"},
+        {"direction": "west", "destination": "lroom"}
+      ]
+    },
+    "rivr1": {
+      "name": "Frigid River",
+      "description_first": "You are on the Frigid River in a small magic boat. The river is smooth here.",
+      "description_short": "Frigid River",
+      "flags": ["RWATER"],
+      "exits": [
+        {"direction": "north", "destination": "wfiss"},
+        {"direction": "south", "destination": "rivr2"}
+      ]
+    },
+    "rivr2": {
+      "name": "Frigid River",
+      "description_first": "The river is moving faster here. The banks look rocky.",
+      "description_short": "Frigid River",
+      "flags": ["RWATER"],
+      "exits": [
+        {"direction": "north", "destination": "rivr1"},
+        {"direction": "south", "destination": "rivr3"},
+        {"direction": "west", "destination": "rivr2", "type": "no_exit", "message": "The shore is too rocky to land."}
+      ]
+    },
+    "rivr3": {
+      "name": "Frigid River",
+      "description_first": "The river continues through a narrow canyon. The current is swift.",
+      "description_short": "Frigid River",
+      "flags": ["RWATER"],
+      "exits": [
+        {"direction": "north", "destination": "rivr2"},
+        {"direction": "south", "destination": "rivr4"}
+      ]
+    },
+    "rivr4": {
+      "name": "Frigid River",
+      "description_first": "You can hear the roar of a waterfall somewhere downstream.",
+      "description_short": "Frigid River",
+      "flags": ["RWATER"],
+      "exits": [
+        {"direction": "north", "destination": "rivr3"},
+        {"direction": "south", "destination": "rivr5"},
+        {"direction": "west", "destination": "sbeac"}
+      ]
+    },
+    "rivr5": {
+      "name": "Frigid River",
+      "description_first": "The river is rushing toward a waterfall ahead!",
+      "description_short": "Frigid River",
+      "flags": ["RWATER"],
+      "exits": [
+        {"direction": "north", "destination": "rivr4"},
+        {"direction": "south", "destination": "falls"}
+      ]
+    },
+    "sbeac": {
+      "name": "Sandy Beach",
+      "description_first": "You are on a sandy beach at the bank of the Frigid River. There is a cave to the south.",
+      "description_short": "Sandy Beach",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "scave"},
+        {"direction": "launch", "destination": "rivr4"}
+      ]
+    },
+    "scave": {
+      "name": "Sandy Cave",
+      "description_first": "This is a sandy cave near the river.",
+      "description_short": "Sandy Cave",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "sbeac"},
+        {"direction": "south", "destination": "carou"}
+      ]
+    },
+    "carou": {
+      "name": "Carousel Room",
+      "description_first": "You are in a circular room which is spinning. There are exits in all directions, but it is hard to tell which one to take.",
+      "description_short": "Carousel Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "scave"},
+        {"direction": "south", "destination": "riddl"},
+        {"direction": "east", "destination": "carou"},
+        {"direction": "west", "destination": "carou"}
+      ]
+    },
+    "riddl": {
+      "name": "Riddle Room",
+      "description_first": "This is a room with a large inscription on the wall.",
+      "description_short": "Riddle Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "carou"},
+        {"direction": "east", "destination": "pearl"}
+      ]
+    },
+    "pearl": {
+      "name": "Pearl Room",
+      "description_first": "This is a small room with an opening to the east.",
+      "description_short": "Pearl Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "riddl"}
+      ]
+    },
+    "falls": {
+      "name": "Aragain Falls",
+      "description_first": "You are at the top of Aragain Falls, a magnificent waterfall with a drop of some 450 feet. The only path here is on the western edge.",
+      "description_short": "Aragain Falls",
+      "flags": ["RLIGHT", "RWATER"],
+      "exits": [
+        {"direction": "west", "destination": "mrain"}
+      ]
+    },
+    "mrain": {
+      "name": "On the Rainbow",
+      "description_first": "You are on top of a beautiful rainbow arching over the falls. From here, you could go either east to the falls, west to the cliff, or down through the mist.",
+      "description_short": "On the Rainbow",
+      "flags": ["RLIGHT", "RAIR"],
+      "exits": [
+        {"direction": "east", "destination": "falls"},
+        {"direction": "west", "destination": "pog"},
+        {"direction": "down", "destination": "mbarr"}
+      ]
+    },
+    "pog": {
+      "name": "End of Rainbow",
+      "description_first": "You are on a small, rocky beach on the west shore of the river. The falls are visible to the east.",
+      "description_short": "End of Rainbow",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "mrain"},
+        {"direction": "southwest", "destination": "cnybm"}
+      ]
+    },
+    "mbarr": {
+      "name": "Dam Base",
+      "description_first": "You are at the base of Flood Control Dam #3. The water is cascading over the dam and into a large reservoir.",
+      "description_short": "Dam Base",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "mrain"},
+        {"direction": "north", "destination": "fchmp"}
+      ]
+    },
+    "fchmp": {
+      "name": "Dam",
+      "description_first": "You are standing on the top of Flood Control Dam #3, which was quite a feat of engineering in its day.",
+      "description_short": "Dam",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "mbarr"},
+        {"direction": "north", "destination": "dlobb"},
+        {"direction": "east", "destination": "damma"}
+      ]
+    },
+    "damma": {
+      "name": "Dam",
+      "description_first": "You are on the east edge of the dam. From here you can see the mighty Frigid River stretching away into the distance.",
+      "description_short": "Dam",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "fchmp"}
+      ]
+    },
+    "dlobb": {
+      "name": "Dam Lobby",
+      "description_first": "This room appears to have been the waiting room for tourists who visited the dam. There are exits to the north and east. A flight of stairs leads down.",
+      "description_short": "Dam Lobby",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "fchmp"},
+        {"direction": "north", "destination": "maint"},
+        {"direction": "east", "destination": "damro"},
+        {"direction": "down", "destination": "reser"}
+      ]
+    },
+    "maint": {
+      "name": "Maintenance Room",
+      "description_first": "This is what appears to have been the maintenance room for the dam. There are various tools scattered around.",
+      "description_short": "Maintenance Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "dlobb"}
+      ]
+    },
+    "damro": {
+      "name": "Dam",
+      "description_first": "This is a room on the east side of the dam. A stairway leads down.",
+      "description_short": "Dam",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "dlobb"},
+        {"direction": "down", "destination": "reser"}
+      ]
+    },
+    "blroo": {
+      "name": "Blue Room",
+      "description_first": "This is a blue room.",
+      "description_short": "Blue Room",
+      "flags": ["RLAND"],
+      "exits": []
+    },
+    "vlbot": {
+      "name": "Volcano Bottom",
+      "description_first": "You are at the bottom of a volcanic shaft. The walls are warm to the touch.",
+      "description_short": "Volcano Bottom",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "vair1"}
+      ]
+    },
+    "vair1": {
+      "name": "In the Balloon",
+      "description_first": "You are in a hot air balloon.",
+      "description_short": "In the Balloon",
+      "flags": ["RAIR"],
+      "exits": [
+        {"direction": "down", "destination": "vlbot"}
+      ]
+    },
+    "vair2": {
+      "name": "In the Balloon",
+      "description_first": "You are in a hot air balloon, drifting in the volcanic shaft.",
+      "description_short": "In the Balloon",
+      "flags": ["RAIR"],
+      "exits": [
+        {"direction": "land", "destination": "ledg2"}
+      ]
+    },
+    "vair3": {
+      "name": "In the Balloon",
+      "description_first": "You are in a hot air balloon, high in the volcanic shaft.",
+      "description_short": "In the Balloon",
+      "flags": ["RAIR"],
+      "exits": [
+        {"direction": "land", "destination": "ledg3"}
+      ]
+    },
+    "vair4": {
+      "name": "In the Balloon",
+      "description_first": "You are in a hot air balloon at the top of the volcanic shaft.",
+      "description_short": "In the Balloon",
+      "flags": ["RAIR"],
+      "exits": [
+        {"direction": "land", "destination": "ledg4"}
+      ]
+    },
+    "ledg2": {
+      "name": "Narrow Ledge",
+      "description_first": "You are on a narrow ledge inside the volcano.",
+      "description_short": "Narrow Ledge",
+      "flags": ["RLAND"],
+      "exits": []
+    },
+    "ledg3": {
+      "name": "Narrow Ledge",
+      "description_first": "You are on a narrow ledge inside the volcano.",
+      "description_short": "Narrow Ledge",
+      "flags": ["RLAND"],
+      "exits": []
+    },
+    "ledg4": {
+      "name": "Narrow Ledge",
+      "description_first": "You are on a narrow ledge at the top of the volcanic shaft.",
+      "description_short": "Narrow Ledge",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "libra"}
+      ]
+    },
+    "libra": {
+      "name": "Library",
+      "description_first": "This is a library, with books covering the walls. A stairway leads down.",
+      "description_short": "Library",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "east", "destination": "ledg4"},
+        {"direction": "down", "destination": "bkent"}
+      ]
+    },
+    "bkent": {
+      "name": "Bank Entrance",
+      "description_first": "This is the entrance to a bank. There is a door to the north.",
+      "description_short": "Bank Entrance",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "libra"},
+        {"direction": "north", "destination": "bktvw"}
+      ]
+    },
+    "bktvw": {
+      "name": "Viewing Room",
+      "description_first": "This is a viewing room overlooking the bank.",
+      "description_short": "Viewing Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "bkent"},
+        {"direction": "east", "destination": "bktwi"}
+      ]
+    },
+    "bktwi": {
+      "name": "Teller's Room",
+      "description_first": "This appears to have been a teller's room. There are broken windows everywhere.",
+      "description_short": "Teller's Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "bktvw"},
+        {"direction": "north", "destination": "bkvau"}
+      ]
+    },
+    "bkvau": {
+      "name": "Bank Vault",
+      "description_first": "This is the bank vault. The door is extremely heavy.",
+      "description_short": "Bank Vault",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "south", "destination": "bktwi"},
+        {"direction": "east", "destination": "bkbox"}
+      ]
+    },
+    "bkbox": {
+      "name": "Safety Deposit Room",
+      "description_first": "This room contains rows of safety deposit boxes.",
+      "description_short": "Safety Deposit Room",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "west", "destination": "bkvau"}
+      ]
+    },
+    "crypt": {
+      "name": "Crypt",
+      "description_first": "This is a dark and musty crypt.",
+      "description_short": "Crypt",
+      "flags": ["RLAND"],
+      "exits": [
+        {"direction": "up", "destination": "hades"}
       ]
     }
   },
   "objects": {
     "mailb": {
       "name": "small mailbox",
-      "synonyms": [
-        "mailbox",
-        "box"
-      ],
-      "adjectives": [
-        "small"
-      ],
+      "synonyms": ["mailbox", "box"],
+      "adjectives": ["small"],
       "description": "There is a small mailbox here.",
       "examine": "The mailbox is a small mailbox.",
-      "flags": [
-        "VISIBT",
-        "CONTBT",
-        "OPENBT"
-      ],
+      "flags": ["VISIBT", "CONTBT"],
       "initial_room": "whous",
       "capacity": 10
     },
     "leafl": {
       "name": "leaflet",
-      "synonyms": [
-        "paper",
-        "flyer"
-      ],
+      "synonyms": ["paper", "flyer"],
       "description": "",
       "examine": "The leaflet is a small piece of paper.",
       "read_text": "WELCOME TO ZORK!\n\nZORK is a game of adventure, danger, and low cunning. In it you will explore some of the most amazing territory ever seen by mortals. No computer should be without one!",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "READBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "READBT"],
       "initial_container": "mailb",
       "size": 2
     },
     "sword": {
       "name": "elvish sword",
-      "synonyms": [
-        "sword",
-        "blade"
-      ],
-      "adjectives": [
-        "elvish",
-        "antique"
-      ],
+      "synonyms": ["sword", "blade"],
+      "adjectives": ["elvish", "antique"],
       "description": "Above the trophy case hangs an elvish sword of great antiquity.",
       "examine": "The sword is of exquisite craftsmanship. It is inscribed with ancient elvish runes.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "WEAPBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "WEAPBT"],
       "initial_room": "lroom",
       "size": 30
     },
     "lamp": {
       "name": "brass lantern",
-      "synonyms": [
-        "lamp",
-        "lantern",
-        "light"
-      ],
-      "adjectives": [
-        "brass"
-      ],
+      "synonyms": ["lamp", "lantern", "light"],
+      "adjectives": ["brass"],
       "description": "There is a brass lantern (battery-powered) here.",
       "examine": "The lamp is a battery-powered brass lantern.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "LITEBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "LITEBT"],
       "initial_room": "lroom",
       "size": 15,
       "properties": {
@@ -439,255 +1064,530 @@
     },
     "tcase": {
       "name": "trophy case",
-      "synonyms": [
-        "case"
-      ],
-      "adjectives": [
-        "trophy"
-      ],
+      "synonyms": ["case"],
+      "adjectives": ["trophy"],
       "description": "",
       "examine": "The trophy case is empty.",
-      "flags": [
-        "VISIBT",
-        "CONTBT",
-        "TRANBT",
-        "OPENBT"
-      ],
+      "flags": ["VISIBT", "CONTBT", "TRANBT", "OPENBT"],
       "initial_room": "lroom",
       "capacity": 100
     },
     "rug": {
       "name": "oriental rug",
-      "synonyms": [
-        "rug",
-        "carpet"
-      ],
-      "adjectives": [
-        "oriental",
-        "large"
-      ],
+      "synonyms": ["rug", "carpet"],
+      "adjectives": ["oriental", "large"],
       "description": "",
       "examine": "The rug is extremely beautiful and tightly woven. It does not appear to be attached to the floor.",
-      "flags": [
-        "VISIBT"
-      ],
+      "flags": ["VISIBT"],
       "initial_room": "lroom"
     },
     "windo": {
       "name": "small window",
-      "synonyms": [
-        "window"
-      ],
-      "adjectives": [
-        "small"
-      ],
+      "synonyms": ["window"],
+      "adjectives": ["small"],
       "description": "",
       "examine": "The window is slightly ajar.",
-      "flags": [
-        "VISIBT",
-        "DOORBT",
-        "OPENBT"
-      ],
+      "flags": ["VISIBT", "DOORBT", "OPENBT"],
       "initial_room": "ehous"
     },
     "rope": {
       "name": "coil of rope",
-      "synonyms": [
-        "rope",
-        "coil"
-      ],
+      "synonyms": ["rope", "coil"],
       "description": "A large coil of rope is lying in the corner.",
       "examine": "The rope is strong and about 50 feet long.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "TIEBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "TIEBT"],
       "initial_room": "attic",
       "size": 10
     },
     "knife": {
       "name": "nasty knife",
-      "synonyms": [
-        "knife",
-        "blade"
-      ],
-      "adjectives": [
-        "nasty"
-      ],
+      "synonyms": ["knife", "blade"],
+      "adjectives": ["nasty"],
       "description": "On a table is a nasty-looking knife.",
       "examine": "The knife looks very sharp and unpleasant.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "WEAPBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "WEAPBT"],
       "initial_room": "attic",
       "size": 20
     },
     "troll": {
       "name": "troll",
-      "synonyms": [
-        "troll",
-        "monster"
-      ],
+      "synonyms": ["troll", "monster"],
       "description": "A nasty-looking troll, brandishing a bloody axe, blocks all passages out of the room.",
       "examine": "The troll is a large, nasty creature that wants nothing more than to kill you.",
-      "flags": [
-        "VISIBT",
-        "ACTRBT",
-        "VILLBT",
-        "FITEBT"
-      ],
+      "flags": ["VISIBT", "ACTRBT", "VILLBT", "FITEBT"],
       "initial_room": "mtrol"
     },
     "axe": {
       "name": "bloody axe",
-      "synonyms": [
-        "axe"
-      ],
-      "adjectives": [
-        "bloody"
-      ],
+      "synonyms": ["axe"],
+      "adjectives": ["bloody"],
       "description": "",
       "examine": "The axe is covered in blood and looks extremely dangerous.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "WEAPBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "WEAPBT"],
       "initial_room": null
     },
     "sack": {
       "name": "brown sack",
-      "synonyms": [
-        "sack",
-        "bag"
-      ],
-      "adjectives": [
-        "brown",
-        "elongated"
-      ],
+      "synonyms": ["sack", "bag"],
+      "adjectives": ["brown", "elongated"],
       "description": "On the table is an elongated brown sack, smelling of hot peppers.",
       "examine": "The sack is an ordinary brown sack.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "CONTBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "CONTBT"],
       "initial_room": "kitch",
       "size": 9,
       "capacity": 15
     },
     "garli": {
       "name": "clove of garlic",
-      "synonyms": [
-        "garlic",
-        "clove"
-      ],
+      "synonyms": ["garlic", "clove"],
       "description": "",
       "examine": "The garlic is a standard cooking ingredient.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "FOODBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "FOODBT"],
       "initial_container": "sack",
       "size": 4
     },
     "food": {
       "name": "lunch",
-      "synonyms": [
-        "food",
-        "lunch",
-        "sandwich"
-      ],
+      "synonyms": ["food", "lunch", "sandwich"],
       "description": "",
       "examine": "The lunch looks delicious.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "FOODBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "FOODBT"],
       "initial_container": "sack",
       "size": 6
     },
     "bottl": {
       "name": "glass bottle",
-      "synonyms": [
-        "bottle"
-      ],
-      "adjectives": [
-        "glass"
-      ],
+      "synonyms": ["bottle"],
+      "adjectives": ["glass"],
       "description": "A bottle is sitting on the table.",
       "examine": "The glass bottle contains a quantity of water.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "CONTBT",
-        "TRANBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "CONTBT", "TRANBT"],
       "initial_room": "kitch",
       "size": 7,
       "capacity": 5
     },
     "water": {
       "name": "quantity of water",
-      "synonyms": [
-        "water",
-        "liquid"
-      ],
+      "synonyms": ["water", "liquid"],
       "description": "",
       "examine": "It looks like ordinary water.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "DRNKBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "DRNKBT"],
       "initial_container": "bottl",
       "size": 4
     },
     "nest": {
       "name": "bird's nest",
-      "synonyms": [
-        "nest"
-      ],
-      "adjectives": [
-        "bird's",
-        "small"
-      ],
+      "synonyms": ["nest"],
+      "adjectives": ["bird's", "small"],
       "description": "Beside you on the branch is a small bird's nest.",
       "examine": "The nest looks like it was made by a songbird of some kind.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "CONTBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "CONTBT"],
       "initial_room": "uptree",
       "size": 5,
       "capacity": 5
     },
     "egg": {
       "name": "jewel-encrusted egg",
-      "synonyms": [
-        "egg"
-      ],
-      "adjectives": [
-        "jeweled",
-        "jewel-encrusted"
-      ],
+      "synonyms": ["egg"],
+      "adjectives": ["jeweled", "jewel-encrusted"],
       "description": "",
       "examine": "The egg is covered with beautiful jewels that glitter in the light.",
-      "flags": [
-        "VISIBT",
-        "TAKEBT",
-        "VICTBT"
-      ],
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
       "initial_container": "nest",
       "size": 6,
       "value": 5,
       "tval": 10
+    },
+    "leave": {
+      "name": "pile of leaves",
+      "synonyms": ["leaves", "pile"],
+      "description": "There is a pile of leaves here.",
+      "examine": "The leaves are brown and dry.",
+      "flags": ["VISIBT", "TAKEBT", "BURNBT"],
+      "initial_room": "mgrat",
+      "size": 25
+    },
+    "grate": {
+      "name": "grating",
+      "synonyms": ["grate", "grating"],
+      "description": "There is a grating securely fastened into the ground.",
+      "examine": "The grating is locked.",
+      "flags": ["VISIBT", "DOORBT"],
+      "initial_room": "mgrat"
+    },
+    "coal": {
+      "name": "small pile of coal",
+      "synonyms": ["coal", "pile"],
+      "adjectives": ["small"],
+      "description": "There is a small pile of coal here.",
+      "examine": "It is ordinary coal, suitable for burning.",
+      "flags": ["VISIBT", "TAKEBT", "BURNBT"],
+      "initial_room": "coal1",
+      "size": 20
+    },
+    "machi": {
+      "name": "machine",
+      "synonyms": ["machine"],
+      "description": "There is a large machine here.",
+      "examine": "The machine is a coal-operated gadget that looks like it would convert coal into diamonds.",
+      "flags": ["VISIBT", "CONTBT"],
+      "initial_room": "mmach",
+      "capacity": 50
+    },
+    "diamo": {
+      "name": "huge diamond",
+      "synonyms": ["diamond", "gem"],
+      "adjectives": ["huge"],
+      "description": "",
+      "examine": "The diamond is enormous and sparkles brilliantly.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "size": 6,
+      "value": 10,
+      "tval": 10
+    },
+    "keys": {
+      "name": "set of skeleton keys",
+      "synonyms": ["keys", "key"],
+      "adjectives": ["skeleton"],
+      "description": "There is a set of skeleton keys here.",
+      "examine": "The keys are old but still functional.",
+      "flags": ["VISIBT", "TAKEBT", "TOOLBT"],
+      "initial_room": "maze1",
+      "size": 10
+    },
+    "bar": {
+      "name": "platinum bar",
+      "synonyms": ["bar", "platinum"],
+      "adjectives": ["platinum"],
+      "description": "There is a large platinum bar here.",
+      "examine": "The bar is stamped 'Frobozz Magic Platinum Company'.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "initial_room": "llrm2",
+      "size": 20,
+      "value": 10,
+      "tval": 10
+    },
+    "coffi": {
+      "name": "gold coffin",
+      "synonyms": ["coffin"],
+      "adjectives": ["gold"],
+      "description": "There is a gold coffin here.",
+      "examine": "The coffin is beautifully crafted, with gold hieroglyphics.",
+      "flags": ["VISIBT", "TAKEBT", "CONTBT", "VICTBT"],
+      "initial_room": "egypt",
+      "size": 55,
+      "capacity": 35,
+      "value": 10,
+      "tval": 15
+    },
+    "torch": {
+      "name": "ivory torch",
+      "synonyms": ["torch"],
+      "adjectives": ["ivory"],
+      "description": "There is an ivory torch here.",
+      "examine": "The torch is made of ivory and burns with an eternal flame.",
+      "flags": ["VISIBT", "TAKEBT", "LITEBT", "VICTBT", "ONBT"],
+      "initial_room": "mtorc",
+      "size": 20,
+      "value": 10,
+      "tval": 14
+    },
+    "bell": {
+      "name": "brass bell",
+      "synonyms": ["bell"],
+      "adjectives": ["brass"],
+      "description": "There is a brass bell here.",
+      "examine": "The bell is made of brass and is very heavy.",
+      "flags": ["VISIBT", "TAKEBT"],
+      "initial_room": "temp1",
+      "size": 10
+    },
+    "book": {
+      "name": "black book",
+      "synonyms": ["book"],
+      "adjectives": ["black"],
+      "description": "On the altar is a large black book.",
+      "examine": "The book is written in a strange language.",
+      "read_text": "This ancient tome contains many dark secrets of the Great Underground Empire.",
+      "flags": ["VISIBT", "TAKEBT", "READBT"],
+      "initial_room": "temp2",
+      "size": 10
+    },
+    "candl": {
+      "name": "pair of candles",
+      "synonyms": ["candles", "candle"],
+      "description": "A pair of candles is here.",
+      "examine": "The candles are white and unlit.",
+      "flags": ["VISIBT", "TAKEBT", "LITEBT"],
+      "initial_room": "temp2",
+      "size": 10
+    },
+    "match": {
+      "name": "matchbook",
+      "synonyms": ["match", "matches", "matchbook"],
+      "description": "There is a matchbook here.",
+      "examine": "The matchbook contains several wooden matches.",
+      "flags": ["VISIBT", "TAKEBT"],
+      "initial_room": "damp",
+      "size": 2
+    },
+    "wrenc": {
+      "name": "wrench",
+      "synonyms": ["wrench"],
+      "description": "There is a wrench here.",
+      "examine": "The wrench is made of solid steel.",
+      "flags": ["VISIBT", "TAKEBT", "TOOLBT"],
+      "initial_room": "maint",
+      "size": 10
+    },
+    "screw": {
+      "name": "screwdriver",
+      "synonyms": ["screwdriver"],
+      "description": "There is a screwdriver here.",
+      "examine": "The screwdriver has a flat head.",
+      "flags": ["VISIBT", "TAKEBT", "TOOLBT"],
+      "initial_room": "maint",
+      "size": 10
+    },
+    "cyclo": {
+      "name": "cyclops",
+      "synonyms": ["cyclops", "monster"],
+      "description": "A cyclops, who looks extremely hungry, blocks the staircase.",
+      "examine": "The cyclops has one large eye and very large hands.",
+      "flags": ["VISIBT", "ACTRBT", "VILLBT", "FITEBT"],
+      "initial_room": "mcycl"
+    },
+    "chali": {
+      "name": "silver chalice",
+      "synonyms": ["chalice", "cup"],
+      "adjectives": ["silver"],
+      "description": "There is a silver chalice here.",
+      "examine": "The chalice is beautifully crafted with intricate designs.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "initial_room": "treas",
+      "size": 10,
+      "value": 10,
+      "tval": 10
+    },
+    "thief": {
+      "name": "thief",
+      "synonyms": ["thief", "robber"],
+      "description": "There is a seedy-looking individual, wielding a stiletto, here.",
+      "examine": "The thief is a dangerous character.",
+      "flags": ["VISIBT", "ACTRBT", "VILLBT", "FITEBT"],
+      "initial_room": "treas"
+    },
+    "still": {
+      "name": "stiletto",
+      "synonyms": ["stiletto", "knife"],
+      "description": "",
+      "examine": "The stiletto is thin and deadly.",
+      "flags": ["VISIBT", "TAKEBT", "WEAPBT"],
+      "size": 10
+    },
+    "pot": {
+      "name": "pot of gold",
+      "synonyms": ["pot", "gold"],
+      "description": "At the end of the rainbow is a pot of gold.",
+      "examine": "The pot is full of gold coins.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "initial_room": "pog",
+      "size": 15,
+      "value": 10,
+      "tval": 10
+    },
+    "buoy": {
+      "name": "buoy",
+      "synonyms": ["buoy"],
+      "adjectives": ["red"],
+      "description": "There is a red buoy here.",
+      "examine": "The buoy is made of cork and marked with the words 'Frobozz Magic Buoy Company'.",
+      "flags": ["VISIBT", "TAKEBT", "CONTBT"],
+      "initial_room": "sbeac",
+      "size": 10,
+      "capacity": 20
+    },
+    "shove": {
+      "name": "shovel",
+      "synonyms": ["shovel"],
+      "description": "There is a shovel here.",
+      "examine": "The shovel is a standard digging implement.",
+      "flags": ["VISIBT", "TAKEBT", "TOOLBT"],
+      "initial_room": "sbeac",
+      "size": 15
+    },
+    "scara": {
+      "name": "jeweled scarab",
+      "synonyms": ["scarab", "beetle"],
+      "adjectives": ["jeweled"],
+      "description": "There is a jeweled scarab here.",
+      "examine": "The scarab is encrusted with precious gems.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "initial_room": "egypt",
+      "size": 5,
+      "value": 5,
+      "tval": 5
+    },
+    "trunk": {
+      "name": "trunk of jewels",
+      "synonyms": ["trunk", "jewels"],
+      "description": "There is a trunk filled with jewels here.",
+      "examine": "The trunk overflows with precious stones.",
+      "flags": ["VISIBT", "TAKEBT", "CONTBT", "VICTBT"],
+      "initial_room": "reser",
+      "size": 35,
+      "capacity": 35,
+      "value": 15,
+      "tval": 15
+    },
+    "paint": {
+      "name": "painting",
+      "synonyms": ["painting", "canvas", "art"],
+      "description": "A painting is on the wall.",
+      "examine": "The painting depicts a fiendishly detailed scene of a hellscape.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "initial_room": "galry",
+      "size": 15,
+      "value": 4,
+      "tval": 6
+    },
+    "iboat": {
+      "name": "magic boat",
+      "synonyms": ["boat"],
+      "adjectives": ["magic", "inflatable"],
+      "description": "There is a pile of plastic here which has a small valve on it.",
+      "examine": "The boat is made of plastic and has 'Frobozz Magic Boat Co.' printed on it.",
+      "flags": ["VISIBT", "TAKEBT", "VEHBT"],
+      "initial_room": "dlobb",
+      "size": 20
+    },
+    "pump": {
+      "name": "hand pump",
+      "synonyms": ["pump"],
+      "adjectives": ["hand"],
+      "description": "There is a hand pump here.",
+      "examine": "The pump is for inflating something.",
+      "flags": ["VISIBT", "TAKEBT", "TOOLBT"],
+      "initial_room": "reser",
+      "size": 10
+    },
+    "statu": {
+      "name": "crystal statue",
+      "synonyms": ["statue", "crystal"],
+      "adjectives": ["crystal"],
+      "description": "There is a beautiful crystal statue here.",
+      "examine": "The statue is made of pure crystal and depicts a warrior.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "size": 10,
+      "value": 10,
+      "tval": 10
+    },
+    "saffr": {
+      "name": "tin of spices",
+      "synonyms": ["spices", "saffron", "tin"],
+      "description": "There is a tin of rare spices here.",
+      "examine": "The tin contains valuable saffron.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "initial_room": "pearl",
+      "size": 5,
+      "value": 5,
+      "tval": 5
+    },
+    "bills": {
+      "name": "stack of bills",
+      "synonyms": ["bills", "money", "stack"],
+      "description": "There is a stack of bills here.",
+      "examine": "The bills are worth a small fortune.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "initial_room": "bkvau",
+      "size": 5,
+      "value": 10,
+      "tval": 10
+    },
+    "portr": {
+      "name": "portrait",
+      "synonyms": ["portrait", "picture"],
+      "description": "There is a portrait here.",
+      "examine": "The portrait depicts J. Pierpont Flathead.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "initial_room": "bktvw",
+      "size": 10,
+      "value": 10,
+      "tval": 10
+    },
+    "baubl": {
+      "name": "brass bauble",
+      "synonyms": ["bauble"],
+      "adjectives": ["brass"],
+      "description": "A brass bauble is here.",
+      "examine": "The bauble is quite ornate.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "size": 3,
+      "value": 1,
+      "tval": 1
+    },
+    "canar": {
+      "name": "golden canary",
+      "synonyms": ["canary", "bird"],
+      "adjectives": ["golden"],
+      "description": "A golden clockwork canary is here.",
+      "examine": "The canary is made of gold and sings when wound.",
+      "flags": ["VISIBT", "TAKEBT", "VICTBT"],
+      "size": 4,
+      "value": 6,
+      "tval": 6
+    },
+    "ghost": {
+      "name": "ghost",
+      "synonyms": ["ghost", "spirit", "spectre"],
+      "description": "The ghost of a spirit haunts this place.",
+      "examine": "The ghost is pale and translucent.",
+      "flags": ["VISIBT", "ACTRBT"],
+      "initial_room": "hades"
+    },
+    "skele": {
+      "name": "skeleton",
+      "synonyms": ["skeleton", "bones"],
+      "description": "There is a skeleton here.",
+      "examine": "The skeleton appears to be centuries old.",
+      "flags": ["VISIBT"],
+      "initial_room": "hades",
+      "size": 50
+    },
+    "ballo": {
+      "name": "hot air balloon",
+      "synonyms": ["balloon"],
+      "adjectives": ["hot", "air"],
+      "description": "There is a hot air balloon here.",
+      "examine": "The balloon is large and colorful.",
+      "flags": ["VISIBT", "VEHBT", "CONTBT"],
+      "initial_room": "vlbot",
+      "capacity": 100
+    },
+    "recep": {
+      "name": "receptacle",
+      "synonyms": ["receptacle", "basket"],
+      "description": "There is a wire receptacle here.",
+      "examine": "The receptacle can hold small objects.",
+      "flags": ["VISIBT", "CONTBT"],
+      "initial_room": "vlbot",
+      "capacity": 20
+    },
+    "brick": {
+      "name": "brick",
+      "synonyms": ["brick"],
+      "description": "There is a brick here.",
+      "examine": "The brick is red and heavy.",
+      "flags": ["VISIBT", "TAKEBT"],
+      "size": 10
+    },
+    "fuse": {
+      "name": "fuse",
+      "synonyms": ["fuse"],
+      "description": "There is a fuse here.",
+      "examine": "The fuse is short and appears to be functional.",
+      "flags": ["VISIBT", "TAKEBT", "BURNBT"],
+      "size": 2
     }
   },
   "messages": {}

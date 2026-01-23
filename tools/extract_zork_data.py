@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
-"""Extract Zork game data from original C source files and data file.
+"""Extract Zork game data from dtextc.dat binary file.
 
-This tool reads the original Zork C source files and the dtextc.dat binary
-to extract room definitions, object definitions, exits, and messages,
-converting them to JSON format for use with PyMeshZork.
+This script parses the original Zork binary data file and extracts:
+- All rooms with descriptions and flags
+- All exits/travel connections
+- All objects with descriptions, flags, and properties
+- All messages
+
+The data is output as JSON compatible with PyMeshZork's world.json format.
 """
 
 import json
-import re
-import struct
-from dataclasses import dataclass, field
 from pathlib import Path
 
 
-# Room indices from vars.h rindex_
+# Room indices from vars.h rindex_ (name -> number)
 ROOM_INDICES = {
     "whous": 2, "lroom": 8, "cella": 9, "mtrol": 10, "maze1": 11,
     "mgrat": 25, "maz15": 30, "fore1": 31, "fore3": 33, "clear": 36,
@@ -35,7 +36,7 @@ ROOM_INDICES = {
     "cpuzz": 190,
 }
 
-# Object indices from vars.h oindex_
+# Object indices from vars.h oindex_ (name -> number)
 OBJECT_INDICES = {
     "garli": 2, "food": 3, "gunk": 4, "coal": 5, "machi": 7, "diamo": 8,
     "tcase": 9, "bottl": 10, "water": 11, "rope": 12, "knife": 13,
@@ -90,870 +91,474 @@ OBJECT_FLAGS2 = {
     8: "OPENBT", 4: "TCHBT", 2: "VEHBT", 1: "SCHBT",
 }
 
-# Direction codes
+# Direction codes from vars.h xsrch_
 DIRECTIONS = {
-    1024: "north", 2048: "northeast", 3072: "east", 4096: "southeast",
-    5120: "south", 6144: "southwest", 7168: "west", 8192: "northwest",
-    9216: "up", 10240: "down", 11264: "launch", 12288: "land",
-    13312: "enter", 14336: "exit", 15360: "travel",
-}
-
-# Human-readable room names
-ROOM_NAMES = {
-    "whous": "West of House",
-    "lroom": "Living Room",
-    "cella": "Cellar",
-    "mtrol": "Troll Room",
-    "maze1": "Maze",
-    "mgrat": "Grating Room",
-    "maz15": "Maze",
-    "fore1": "Forest",
-    "fore3": "Forest",
-    "clear": "Clearing",
-    "reser": "Reservoir",
-    "strea": "Stream",
-    "egypt": "Egyptian Room",
-    "echor": "Echo Room",
-    "tshaf": "Shaft Room",
-    "bshaf": "Shaft Bottom",
-    "mmach": "Machine Room",
-    "dome": "Dome Room",
-    "mtorc": "Torch Room",
-    "carou": "Carousel Room",
-    "riddl": "Riddle Room",
-    "lld2": "Loud Room",
-    "temp1": "Temple",
-    "temp2": "Altar",
-    "maint": "Maintenance Room",
-    "blroo": "Blue Room",
-    "treas": "Treasure Room",
-    "rivr1": "Frigid River",
-    "rivr2": "Frigid River",
-    "rivr3": "Frigid River",
-    "mcycl": "Cyclops Room",
-    "rivr4": "Frigid River",
-    "rivr5": "Frigid River",
-    "fchmp": "Flood Control Dam #3",
-    "falls": "Aragain Falls",
-    "mbarr": "Dam Base",
-    "mrain": "Rainbow Room",
-    "pog": "End of Rainbow",
-    "vlbot": "Volcano Bottom",
-    "vair1": "Volcano Core",
-    "vair2": "Volcano Core",
-    "vair3": "Volcano Core",
-    "vair4": "Volcano Core",
-    "ledg2": "Narrow Ledge",
-    "ledg3": "Narrow Ledge",
-    "ledg4": "Narrow Ledge",
-    "msafe": "Safe",
-    "cager": "Cage",
-    "caged": "Cage",
-    "twell": "Well Top",
-    "bwell": "Well Bottom",
-    "alice": "Alice's Restaurant",
-    "alism": "Small Cave",
-    "alitr": "Treasury",
-    "mtree": "Tree",
-    "bkent": "Bank Entrance",
-    "bkvw": "Viewing Room",
-    "bktwi": "Teller's Room",
-    "bkvau": "Bank Vault",
-    "bkbox": "Safety Deposit",
-    "crypt": "Crypt",
-    "tstrs": "Stairs",
-    "mrant": "Anteroom",
-    "mreye": "Beam Room",
-    "mra": "Mirror Room",
-    "mrb": "Mirror Room",
-    "mrc": "Mirror Room",
-    "mrg": "Mirror Room",
-    "mrd": "Mirror Room",
-    "fdoor": "Front Door",
-    "mrae": "Mirror Room",
-    "mrce": "Mirror Room",
-    "mrcw": "Mirror Room",
-    "mrge": "Mirror Room",
-    "mrgw": "Mirror Room",
-    "mrdw": "Mirror Room",
-    "inmir": "Inside Mirror",
-    "scorr": "South Corridor",
-    "ncorr": "North Corridor",
-    "parap": "Parapet",
-    "cell": "Cell",
-    "pcell": "Prison Cell",
-    "ncell": "North Cell",
-    "cpant": "Puzzle Anteroom",
-    "cpout": "Puzzle Room",
-    "cpuzz": "Puzzle",
-}
-
-# Human-readable object names
-OBJECT_NAMES = {
-    "garli": "clove of garlic",
-    "food": "lunch",
-    "gunk": "gunk",
-    "coal": "small pile of coal",
-    "machi": "machine",
-    "diamo": "huge diamond",
-    "tcase": "trophy case",
-    "bottl": "glass bottle",
-    "water": "quantity of water",
-    "rope": "rope",
-    "knife": "nasty knife",
-    "sword": "elvish sword",
-    "lamp": "brass lantern",
-    "blamp": "broken lantern",
-    "rug": "oriental rug",
-    "leave": "pile of leaves",
-    "troll": "troll",
-    "axe": "bloody axe",
-    "rknif": "rusty knife",
-    "keys": "set of keys",
-    "ice": "glacier",
-    "bar": "platinum bar",
-    "coffi": "gold coffin",
-    "torch": "ivory torch",
-    "tbask": "wicker basket",
-    "fbask": "fallen basket",
-    "irbox": "steel box",
-    "ghost": "ghost",
-    "trunk": "old trunk",
-    "bell": "brass bell",
-    "book": "black book",
-    "candl": "pair of candles",
-    "match": "matchbook",
-    "tube": "tube",
-    "putty": "gunk",
-    "wrenc": "wrench",
-    "screw": "screwdriver",
-    "cyclo": "cyclops",
-    "chali": "silver chalice",
-    "thief": "thief",
-    "still": "stiletto",
-    "windo": "window",
-    "grate": "grating",
-    "door": "door",
-    "hpole": "pole",
-    "leak": "leak",
-    "rbutt": "red button",
-    "raili": "railing",
-    "pot": "pot of gold",
-    "statu": "crystal statue",
-    "iboat": "inflated boat",
-    "dboat": "pile of plastic",
-    "pump": "hand pump",
-    "rboat": "punctured boat",
-    "stick": "wooden stick",
-    "buoy": "buoy",
-    "shove": "shovel",
-    "ballo": "hot air balloon",
-    "recep": "receptacle",
-    "guano": "guano",
-    "brope": "braided rope",
-    "hook1": "hook",
-    "hook2": "hook",
-    "safe": "safe",
-    "sslot": "slot",
-    "brick": "brick",
-    "fuse": "fuse",
-    "gnome": "gnome",
-    "blabe": "blade",
-    "dball": "crystal ball",
-    "tomb": "tomb",
-    "lcase": "trophy case",
-    "cage": "cage",
-    "rcage": "robot cage",
-    "spher": "crystal sphere",
-    "sqbut": "square button",
-    "flask": "flask",
-    "pool": "pool of tears",
-    "saffr": "saffron",
-    "bucke": "bucket",
-    "ecake": "piece of cake",
-    "orice": "orange cake",
-    "rdice": "red cake",
-    "blice": "blue cake",
-    "robot": "robot",
-    "ftree": "large tree",
-    "bills": "pile of bills",
-    "portr": "portrait",
-    "scol": "wall",
-    "zgnom": "zorkmid",
-    "egg": "jewel-encrusted egg",
-    "begg": "broken egg",
-    "baubl": "bauble",
-    "canar": "brass bauble",
-    "bcana": "broken canary",
-    "ylwal": "yellow wall",
-    "rdwal": "red wall",
-    "pindr": "pine door",
-    "rbeam": "beam of light",
-    "odoor": "oak door",
-    "qdoor": "quartz door",
-    "cdoor": "crystal door",
-    "num1": "button 1",
-    "num8": "button 8",
-    "warni": "warning sign",
-    "cslit": "coin slot",
-    "gcard": "gold card",
-    "stldr": "steel ladder",
-    "hands": "pair of hands",
-    "wall": "wall",
-    "lungs": "pair of lungs",
-    "sailo": "sailor",
-    "aviat": "aviator",
-    "teeth": "teeth",
-    "master": "dungeon master",
+    1: "north", 2: "ne", 3: "east", 4: "se",
+    5: "south", 6: "sw", 7: "west", 8: "nw",
+    9: "up", 10: "down", 11: "land", 12: "launch",
+    13: "enter", 14: "exit", 15: "travel",
 }
 
 
-@dataclass
-class ExtractedRoom:
-    """Extracted room data."""
-    id: str
-    index: int
-    name: str
-    description_first: str = ""
-    description_short: str = ""
-    flags: list = field(default_factory=list)
-    exits: list = field(default_factory=list)
-    action: int = 0
-    value: int = 0
+class BinaryReader:
+    """Read binary data from dtextc.dat."""
 
+    def __init__(self, data: bytes):
+        self.data = data
+        self.pos = 0
 
-@dataclass
-class ExtractedObject:
-    """Extracted object data."""
-    id: str
-    index: int
-    name: str
-    description: str = ""
-    examine: str = ""
-    read_text: str = ""
-    flags1: list = field(default_factory=list)
-    flags2: list = field(default_factory=list)
-    initial_room: str | None = None
-    initial_container: str | None = None
-    size: int = 0
-    capacity: int = 0
-    value: int = 0
-    tval: int = 0
-    action: int = 0
+    def read_int(self) -> int:
+        """Read a 2-byte big-endian signed integer."""
+        if self.pos + 2 > len(self.data):
+            return 0
+        b1 = self.data[self.pos]
+        b2 = self.data[self.pos + 1]
+        self.pos += 2
+        # Signed: if high byte > 127, it's negative
+        if b1 > 127:
+            return (b1 - 256) * 256 + b2
+        return b1 * 256 + b2
 
+    def read_ints(self, count: int) -> list:
+        """Read multiple 2-byte integers."""
+        return [self.read_int() for _ in range(count)]
 
-class ZorkDataExtractor:
-    """Extracts game data from original Zork source files."""
-
-    def __init__(self, source_dir: Path):
-        self.source_dir = Path(source_dir)
-        self.rooms: dict[str, ExtractedRoom] = {}
-        self.objects: dict[str, ExtractedObject] = {}
-        self.messages: dict[int, str] = {}
-        self.exits: list[int] = []
-
-    def extract_all(self) -> None:
-        """Extract all game data."""
-        print("Extracting Zork data...")
-
-        # Initialize room and object structures
-        self._init_rooms()
-        self._init_objects()
-
-        # Try to read binary data file
-        data_file = self.source_dir / "dtextc.dat"
-        if data_file.exists():
-            self._read_data_file(data_file)
-
-        print(f"Extracted {len(self.rooms)} rooms, {len(self.objects)} objects")
-
-    def _init_rooms(self) -> None:
-        """Initialize room structures from indices."""
-        for room_id, index in ROOM_INDICES.items():
-            name = ROOM_NAMES.get(room_id, room_id.title())
-            self.rooms[room_id] = ExtractedRoom(
-                id=room_id,
-                index=index,
-                name=name,
-            )
-
-    def _init_objects(self) -> None:
-        """Initialize object structures from indices."""
-        for obj_id, index in OBJECT_INDICES.items():
-            name = OBJECT_NAMES.get(obj_id, obj_id)
-            self.objects[obj_id] = ExtractedObject(
-                id=obj_id,
-                index=index,
-                name=name,
-            )
-
-    def _read_data_file(self, path: Path) -> None:
-        """Read the dtextc.dat binary file."""
-        print(f"Reading {path}...")
-
-        try:
-            with open(path, "rb") as f:
-                data = f.read()
-
-            # The data file format varies, try to extract text
-            # Look for readable ASCII text sections
-            self._extract_text_from_binary(data)
-
-        except Exception as e:
-            print(f"Warning: Could not read data file: {e}")
-
-    def _extract_text_from_binary(self, data: bytes) -> None:
-        """Extract readable text from binary data."""
-        # Find sequences of printable ASCII characters
-        text_sections = []
-        current_text = []
-        min_length = 20  # Minimum text length to consider
-
-        for byte in data:
-            # Check if printable ASCII or newline/tab
-            if 32 <= byte <= 126 or byte in (10, 13, 9):
-                current_text.append(chr(byte))
+    def read_partial_ints(self, max_count: int) -> dict:
+        """Read sparse array stored as index,value pairs."""
+        result = {}
+        while True:
+            if max_count < 255:
+                idx = self.data[self.pos]
+                self.pos += 1
+                if idx == 255:  # Terminator
+                    break
             else:
-                if len(current_text) >= min_length:
-                    text_sections.append("".join(current_text))
-                current_text = []
+                idx = self.read_int()
+                if idx == -1:  # Terminator
+                    break
+            value = self.read_int()
+            result[idx] = value
+        return result
 
-        if len(current_text) >= min_length:
-            text_sections.append("".join(current_text))
+    def read_flags(self, count: int) -> list:
+        """Read 1-byte flags."""
+        result = []
+        for _ in range(count):
+            result.append(self.data[self.pos])
+            self.pos += 1
+        return result
 
-        # Store extracted text as messages
-        for i, text in enumerate(text_sections):
-            self.messages[i] = text.strip()
 
-        print(f"Extracted {len(text_sections)} text sections")
+class ZorkExtractor:
+    """Extract all data from dtextc.dat."""
 
-    def _decode_flags(self, flag_value: int, flag_map: dict) -> list[str]:
-        """Decode bit flags to list of flag names."""
-        flags = []
-        for bit_value, name in flag_map.items():
-            if flag_value & bit_value:
-                flags.append(name)
-        return flags
+    def __init__(self, filepath: Path):
+        self.filepath = filepath
+        self.data = filepath.read_bytes()
+        self.reader = BinaryReader(self.data)
 
-    def to_json(self) -> dict:
-        """Convert extracted data to JSON-compatible dict."""
-        return {
+        # Parsed data
+        self.version = (0, 0, '')
+        self.mxscor = 0
+        self.strbit = 0
+        self.egmxsc = 0
+
+        # Room data (indexed by room number)
+        self.rooms = {}
+        # Object data (indexed by object number)
+        self.objects = {}
+        # Exit/travel table
+        self.exits = []
+        # Messages (indexed by message number)
+        self.messages = {}
+
+    def parse(self):
+        """Parse the entire binary file."""
+        r = self.reader
+        print(f"Parsing {self.filepath} ({len(self.data)} bytes)...")
+
+        # Version: vmaj, vmin, vedit
+        vmaj = r.read_int()
+        vmin = r.read_int()
+        vedit = r.read_int()
+        self.version = (vmaj, vmin, chr(vedit) if 32 <= vedit <= 126 else '')
+        print(f"Version: {vmaj}.{vmin}{self.version[2]}")
+
+        # Scores
+        self.mxscor = r.read_int()
+        self.strbit = r.read_int()
+        self.egmxsc = r.read_int()
+        print(f"Max score: {self.mxscor}, Endgame max: {self.egmxsc}")
+
+        # === ROOMS ===
+        rlnt = r.read_int()
+        print(f"Rooms: {rlnt}")
+
+        rdesc1 = r.read_ints(rlnt)  # Long description msg indices
+        rdesc2 = r.read_ints(rlnt)  # Short description msg indices
+        rexit = r.read_ints(rlnt)   # Exit table indices
+        ractio = r.read_partial_ints(rlnt)  # Action routines (sparse)
+        rval = r.read_partial_ints(rlnt)    # Room values (sparse)
+        rflag = r.read_ints(rlnt)   # Flags
+
+        for i in range(rlnt):
+            room_num = i + 1  # 1-indexed
+            self.rooms[room_num] = {
+                "desc1_idx": rdesc1[i],
+                "desc2_idx": rdesc2[i],
+                "exit_idx": rexit[i],
+                "action": ractio.get(i, 0),
+                "value": rval.get(i, 0),
+                "flags": rflag[i],
+            }
+
+        # === EXITS ===
+        xlnt = r.read_int()
+        print(f"Exit entries: {xlnt}")
+        self.exits = r.read_ints(xlnt)
+
+        # === OBJECTS ===
+        olnt = r.read_int()
+        print(f"Objects: {olnt}")
+
+        odesc1 = r.read_ints(olnt)  # Long description
+        odesc2 = r.read_ints(olnt)  # Short/contents description
+        odesco = r.read_partial_ints(olnt)  # Object name/description
+        oactio = r.read_partial_ints(olnt)  # Action routines
+        oflag1 = r.read_ints(olnt)  # Flags set 1
+        oflag2 = r.read_partial_ints(olnt)  # Flags set 2
+        ofval = r.read_partial_ints(olnt)   # Flag/score values
+        otval = r.read_partial_ints(olnt)   # Trophy values
+        osize = r.read_ints(olnt)   # Size
+        ocapac = r.read_partial_ints(olnt)  # Capacity
+        oroom = r.read_ints(olnt)   # Initial room
+        oadv = r.read_partial_ints(olnt)    # Adventurer owner
+        ocan = r.read_partial_ints(olnt)    # Container object
+        oread = r.read_partial_ints(olnt)   # Read message index
+
+        for i in range(olnt):
+            obj_num = i + 1  # 1-indexed
+            self.objects[obj_num] = {
+                "desc1_idx": odesc1[i],
+                "desc2_idx": odesc2[i],
+                "desco_idx": odesco.get(i, 0),
+                "action": oactio.get(i, 0),
+                "flag1": oflag1[i],
+                "flag2": oflag2.get(i, 0),
+                "fval": ofval.get(i, 0),
+                "tval": otval.get(i, 0),
+                "size": osize[i],
+                "capacity": ocapac.get(i, 0),
+                "room": oroom[i],
+                "adventurer": oadv.get(i, 0),
+                "container": ocan.get(i, 0),
+                "read_idx": oread.get(i, 0),
+            }
+
+        # === ROOM2 (multi-room objects) ===
+        r2lnt = r.read_int()
+        print(f"Room2 entries: {r2lnt}")
+        if r2lnt > 0:
+            r.read_ints(r2lnt)  # oroom2
+            r.read_ints(r2lnt)  # rroom2
+
+        # === CLOCK EVENTS ===
+        clnt = r.read_int()
+        print(f"Clock events: {clnt}")
+        r.read_ints(clnt)  # ctick
+        r.read_ints(clnt)  # cactio
+        r.read_flags(clnt)  # cflag
+
+        # === VILLAINS ===
+        vlnt = r.read_int()
+        print(f"Villains: {vlnt}")
+        r.read_ints(vlnt)  # villns
+        r.read_partial_ints(vlnt)  # vprob
+        r.read_partial_ints(vlnt)  # vopps
+        r.read_ints(vlnt)  # vbest
+        r.read_ints(vlnt)  # vmelee
+
+        # === ADVENTURERS ===
+        alnt = r.read_int()
+        print(f"Adventurers: {alnt}")
+        r.read_ints(alnt)  # aroom
+        r.read_partial_ints(alnt)  # ascore
+        r.read_partial_ints(alnt)  # avehic
+        r.read_ints(alnt)  # aobj
+        r.read_ints(alnt)  # aactio
+        r.read_ints(alnt)  # astren
+        r.read_partial_ints(alnt)  # aflag
+
+        # === MESSAGES ===
+        mbase = r.read_int()
+        mlnt = r.read_int()
+        print(f"Messages: {mlnt}, base offset: {mbase}")
+        msg_offsets = r.read_ints(mlnt)
+
+        # Message text starts right after offsets
+        msg_text_start = r.pos
+        remaining = self.data[msg_text_start:]
+
+        # Parse messages - offsets are relative to mbase (which is 0-based index)
+        for i, offset in enumerate(msg_offsets):
+            if offset == 0:
+                self.messages[i + 1] = ""
+                continue
+
+            # Offset is 1-based position in the text area
+            abs_pos = offset - 1
+            if abs_pos >= len(remaining):
+                self.messages[i + 1] = ""
+                continue
+
+            # Read null-terminated string
+            end_pos = abs_pos
+            while end_pos < len(remaining) and remaining[end_pos] != 0:
+                end_pos += 1
+
+            try:
+                msg = remaining[abs_pos:end_pos].decode('ascii', errors='replace')
+                self.messages[i + 1] = msg
+            except Exception:
+                self.messages[i + 1] = ""
+
+        print(f"Parsed {len(self.messages)} messages")
+
+    def get_message(self, idx: int) -> str:
+        """Get message by index."""
+        return self.messages.get(idx, "")
+
+    def decode_room_flags(self, flags: int) -> list:
+        """Decode room flags bitfield."""
+        result = []
+        for bit, name in ROOM_FLAGS.items():
+            if flags & bit and name != "RSEEN":  # Skip runtime flag
+                result.append(name)
+        return result
+
+    def decode_object_flags(self, flag1: int, flag2: int) -> list:
+        """Decode object flags."""
+        result = []
+        for bit, name in OBJECT_FLAGS1.items():
+            if flag1 & bit:
+                result.append(name)
+        for bit, name in OBJECT_FLAGS2.items():
+            if flag2 & bit:
+                result.append(name)
+        return result
+
+    def parse_room_exits(self, room_num: int) -> list:
+        """Parse exits for a room from the travel table."""
+        room_data = self.rooms.get(room_num)
+        if not room_data:
+            return []
+
+        exit_idx = room_data["exit_idx"]
+        if exit_idx == 0 or exit_idx > len(self.exits):
+            return []
+
+        exits = []
+        idx = exit_idx - 1  # Convert to 0-indexed
+
+        while idx < len(self.exits):
+            entry = self.exits[idx]
+            if entry == 0:
+                break
+
+            # Check for "last exit" flag (bit 15)
+            is_last = (entry & 32768) != 0
+            entry = entry & 32767  # Clear last flag
+
+            # Parse exit entry
+            # Bits 0-7: destination room
+            # Bits 8-9: exit type (0=normal, 1=no-exit, 2=conditional, 3=door)
+            # Bits 10-14: direction
+            dest_room = entry & 255
+            exit_type = (entry >> 8) & 3
+            direction = (entry >> 10) & 31
+
+            dir_name = DIRECTIONS.get(direction, f"dir{direction}")
+            dest_id = INDEX_TO_ROOM.get(dest_room, f"room{dest_room}")
+
+            exit_data = {
+                "direction": dir_name,
+                "destination": dest_id,
+            }
+
+            # Handle special exit types
+            if exit_type == 1:  # No exit
+                exit_data["type"] = "no_exit"
+                idx += 1
+                if idx < len(self.exits):
+                    msg_idx = self.exits[idx]
+                    msg = self.get_message(msg_idx)
+                    if msg:
+                        exit_data["message"] = msg
+            elif exit_type == 2:  # Conditional
+                exit_data["type"] = "conditional"
+                idx += 1
+                if idx < len(self.exits):
+                    cond = self.exits[idx]
+                    # Condition can be a message index or a flag
+                    if cond > 0:
+                        msg = self.get_message(cond)
+                        if msg:
+                            exit_data["message"] = msg
+            elif exit_type == 3:  # Door
+                exit_data["type"] = "door"
+                idx += 1
+                if idx < len(self.exits):
+                    door_obj = self.exits[idx]
+                    door_id = INDEX_TO_OBJECT.get(door_obj, f"obj{door_obj}")
+                    exit_data["door_object"] = door_id
+
+            exits.append(exit_data)
+
+            if is_last:
+                break
+            idx += 1
+
+        return exits
+
+    def to_world_json(self) -> dict:
+        """Convert extracted data to world.json format."""
+        result = {
             "meta": {
                 "id": "classic_zork",
                 "name": "Zork I: The Great Underground Empire",
                 "version": "1.0.0",
                 "author": "Infocom (converted by PyMeshZork)",
-                "description": "The classic text adventure game",
-                "max_score": 350,
+                "description": "The complete classic text adventure game",
+                "max_score": self.mxscor,
                 "starting_room": "whous",
             },
-            "rooms": {
-                room_id: {
-                    "name": room.name,
-                    "description_first": room.description_first,
-                    "description_short": room.description_short,
-                    "flags": room.flags,
-                    "exits": room.exits,
-                    "action": f"room_action_{room.action}" if room.action else None,
-                    "value": room.value,
-                }
-                for room_id, room in self.rooms.items()
-            },
-            "objects": {
-                obj_id: {
-                    "name": obj.name,
-                    "description": obj.description,
-                    "examine": obj.examine,
-                    "read_text": obj.read_text,
-                    "flags": obj.flags1 + obj.flags2,
-                    "initial_room": obj.initial_room,
-                    "initial_container": obj.initial_container,
-                    "size": obj.size,
-                    "capacity": obj.capacity,
-                    "value": obj.value,
-                    "tval": obj.tval,
-                    "action": f"obj_action_{obj.action}" if obj.action else None,
-                }
-                for obj_id, obj in self.objects.items()
-            },
-            "messages": {
-                str(k): v for k, v in self.messages.items()
-            },
+            "rooms": {},
+            "objects": {},
+            "messages": {},
         }
 
-    def save_json(self, output_path: Path) -> None:
-        """Save extracted data as JSON."""
-        data = self.to_json()
-        with open(output_path, "w") as f:
-            json.dump(data, f, indent=2)
-        print(f"Saved to {output_path}")
+        # Convert rooms
+        for room_num, room_data in self.rooms.items():
+            room_id = INDEX_TO_ROOM.get(room_num, f"room{room_num}")
 
+            desc1 = self.get_message(room_data["desc1_idx"])
+            desc2 = self.get_message(room_data["desc2_idx"])
+            flags = self.decode_room_flags(room_data["flags"])
 
-def create_classic_zork_world() -> dict:
-    """Create the classic Zork world with known data.
+            # Skip rooms without descriptions (not real rooms)
+            if not desc1 and not desc2:
+                continue
 
-    Since the binary data format is complex, we'll construct the world
-    from known information about the original game.
-    """
+            # Parse exits
+            exits = self.parse_room_exits(room_num)
 
-    world = {
-        "meta": {
-            "id": "classic_zork",
-            "name": "Zork I: The Great Underground Empire",
-            "version": "1.0.0",
-            "author": "Infocom (converted by PyMeshZork)",
-            "description": "The classic text adventure game - West of House and surrounding areas",
-            "max_score": 350,
-            "starting_room": "whous",
-        },
-        "rooms": {},
-        "objects": {},
-        "messages": {},
-    }
+            # First line of desc1 is typically the room name
+            lines = desc1.strip().split('\n') if desc1 else []
+            name = lines[0] if lines else (desc2 or room_id)
+            description = '\n'.join(lines[1:]).strip() if len(lines) > 1 else desc1
 
-    # ===== ROOMS =====
+            room_json = {
+                "name": name,
+                "description_first": description,
+                "description_short": desc2 or name,
+                "flags": flags,
+                "exits": exits,
+            }
 
-    # West of House
-    world["rooms"]["whous"] = {
-        "name": "West of House",
-        "description_first": "You are standing in an open field west of a white house, with a boarded front door.",
-        "description_short": "West of House",
-        "flags": ["RLIGHT", "RLAND"],
-        "exits": [
-            {"direction": "north", "destination": "nhous"},
-            {"direction": "south", "destination": "shous"},
-            {"direction": "west", "destination": "fore1"},
-            {"direction": "east", "destination": "whous", "type": "no_exit",
-             "message": "The door is boarded and you can't remove the boards."},
-            {"direction": "southwest", "destination": "fore1"},
-            {"direction": "northwest", "destination": "fore1"},
-        ],
-    }
+            if room_data["value"]:
+                room_json["value"] = room_data["value"]
 
-    # North of House
-    world["rooms"]["nhous"] = {
-        "name": "North of House",
-        "description_first": "You are facing the north side of a white house. There is no door here, and all the windows are boarded up. To the north a narrow path winds through the trees.",
-        "description_short": "North of House",
-        "flags": ["RLIGHT", "RLAND"],
-        "exits": [
-            {"direction": "south", "destination": "whous"},
-            {"direction": "west", "destination": "fore1"},
-            {"direction": "east", "destination": "ehous"},
-            {"direction": "north", "destination": "fore3"},
-        ],
-    }
+            result["rooms"][room_id] = room_json
 
-    # South of House
-    world["rooms"]["shous"] = {
-        "name": "South of House",
-        "description_first": "You are facing the south side of a white house. There is no door here, and all the windows are boarded.",
-        "description_short": "South of House",
-        "flags": ["RLIGHT", "RLAND"],
-        "exits": [
-            {"direction": "north", "destination": "whous"},
-            {"direction": "west", "destination": "fore1"},
-            {"direction": "east", "destination": "ehous"},
-        ],
-    }
+        # Convert objects
+        for obj_num, obj_data in self.objects.items():
+            obj_id = INDEX_TO_OBJECT.get(obj_num, f"obj{obj_num}")
 
-    # Behind House (East of House)
-    world["rooms"]["ehous"] = {
-        "name": "Behind House",
-        "description_first": "You are behind the white house. A path leads into the forest to the east. In one corner of the house there is a small window which is slightly ajar.",
-        "description_short": "Behind House",
-        "flags": ["RLIGHT", "RLAND"],
-        "exits": [
-            {"direction": "north", "destination": "nhous"},
-            {"direction": "south", "destination": "shous"},
-            {"direction": "east", "destination": "clear"},
-            {"direction": "west", "destination": "kitch", "type": "door", "door_object": "windo"},
-            {"direction": "enter", "destination": "kitch", "type": "door", "door_object": "windo"},
-        ],
-    }
+            desc1 = self.get_message(obj_data["desc1_idx"])
+            desc2 = self.get_message(obj_data["desc2_idx"])
+            desco = self.get_message(obj_data["desco_idx"])
+            flags = self.decode_object_flags(obj_data["flag1"], obj_data["flag2"])
 
-    # Kitchen
-    world["rooms"]["kitch"] = {
-        "name": "Kitchen",
-        "description_first": "You are in the kitchen of the white house. A table seems to have been used recently for the preparation of food. A passage leads to the west and a dark staircase can be seen leading upward. A dark chimney leads down and to the east is a small window which is open.",
-        "description_short": "Kitchen",
-        "flags": ["RLIGHT", "RLAND", "RHOUSE"],
-        "exits": [
-            {"direction": "east", "destination": "ehous", "type": "door", "door_object": "windo"},
-            {"direction": "west", "destination": "lroom"},
-            {"direction": "up", "destination": "attic"},
-            {"direction": "down", "destination": "cella", "type": "conditional",
-             "message": "Only Santa Claus climbs down chimneys."},
-        ],
-    }
+            # Skip objects without any description or visibility
+            if not desc1 and not desco and "VISIBT" not in flags:
+                continue
 
-    # Living Room
-    world["rooms"]["lroom"] = {
-        "name": "Living Room",
-        "description_first": "You are in the living room. There is a doorway to the east, a wooden door with strange gothic lettering to the west, which appears to be nailed shut, a trophy case, and a large oriental rug in the center of the room.",
-        "description_short": "Living Room",
-        "flags": ["RLIGHT", "RLAND", "RHOUSE"],
-        "exits": [
-            {"direction": "east", "destination": "kitch"},
-            {"direction": "west", "destination": "lroom", "type": "no_exit",
-             "message": "The door is nailed shut."},
-            {"direction": "down", "destination": "cella", "type": "conditional",
-             "condition": "rug_moved"},
-        ],
-    }
+            obj_json = {
+                "name": desco or desc1 or obj_id,
+                "description": desc1 or "",
+                "examine": desc2 or desc1 or "",
+                "flags": flags,
+            }
 
-    # Attic
-    world["rooms"]["attic"] = {
-        "name": "Attic",
-        "description_first": "This is the attic. The only exit is a stairway leading down. A large coil of rope is lying in the corner. On a table is a nasty-looking knife.",
-        "description_short": "Attic",
-        "flags": ["RLIGHT", "RLAND", "RHOUSE"],
-        "exits": [
-            {"direction": "down", "destination": "kitch"},
-        ],
-    }
+            # Initial location
+            if obj_data["room"] > 0:
+                room_id = INDEX_TO_ROOM.get(obj_data["room"])
+                if room_id:
+                    obj_json["initial_room"] = room_id
+            if obj_data["container"] > 0:
+                cont_id = INDEX_TO_OBJECT.get(obj_data["container"])
+                if cont_id:
+                    obj_json["initial_container"] = cont_id
 
-    # Cellar
-    world["rooms"]["cella"] = {
-        "name": "Cellar",
-        "description_first": "You are in a dark and damp cellar with a narrow passageway leading north, and a crawlway to the south. On the west is the bottom of a steep metal ramp which is unclimbable.",
-        "description_short": "Cellar",
-        "flags": ["RLAND"],  # No light!
-        "exits": [
-            {"direction": "up", "destination": "lroom"},
-            {"direction": "north", "destination": "mtrol"},
-            {"direction": "south", "destination": "estof"},
-            {"direction": "west", "destination": "cella", "type": "no_exit",
-             "message": "The ramp is too steep to climb."},
-        ],
-    }
+            if obj_data["size"] > 0:
+                obj_json["size"] = obj_data["size"]
+            if obj_data["capacity"] > 0:
+                obj_json["capacity"] = obj_data["capacity"]
+            if obj_data["tval"] > 0:
+                obj_json["value"] = obj_data["fval"]
+                obj_json["tval"] = obj_data["tval"]
+            elif obj_data["fval"] > 0:
+                obj_json["value"] = obj_data["fval"]
 
-    # Troll Room
-    world["rooms"]["mtrol"] = {
-        "name": "Troll Room",
-        "description_first": "This is a small room with passages to the east and south and a forbidding hole leading west. Bloodstains and deep scratches (perhaps made by straining fingers) mar the walls.",
-        "description_short": "Troll Room",
-        "flags": ["RLAND"],
-        "exits": [
-            {"direction": "south", "destination": "cella"},
-            {"direction": "east", "destination": "emaze"},
-            {"direction": "west", "destination": "mtrol", "type": "conditional",
-             "condition": "troll_gone", "message": "The troll fends you off with a menacing gesture."},
-        ],
-    }
+            # Read text
+            if obj_data["read_idx"] > 0:
+                read_text = self.get_message(obj_data["read_idx"])
+                if read_text:
+                    obj_json["read_text"] = read_text
 
-    # Forest (generic)
-    world["rooms"]["fore1"] = {
-        "name": "Forest",
-        "description_first": "This is a forest, with trees in all directions. To the east, there appears to be sunlight.",
-        "description_short": "Forest",
-        "flags": ["RLIGHT", "RLAND"],
-        "exits": [
-            {"direction": "east", "destination": "whous"},
-            {"direction": "north", "destination": "fore3"},
-            {"direction": "south", "destination": "fore1"},
-            {"direction": "west", "destination": "fore1"},
-        ],
-    }
+            result["objects"][obj_id] = obj_json
 
-    # Forest Path
-    world["rooms"]["fore3"] = {
-        "name": "Forest Path",
-        "description_first": "This is a path winding through a dimly lit forest. The path heads north-south here. One particularly large tree with some low branches stands at the edge of the path.",
-        "description_short": "Forest Path",
-        "flags": ["RLIGHT", "RLAND"],
-        "exits": [
-            {"direction": "south", "destination": "nhous"},
-            {"direction": "north", "destination": "clear"},
-            {"direction": "east", "destination": "fore1"},
-            {"direction": "west", "destination": "fore1"},
-            {"direction": "up", "destination": "uptree"},
-        ],
-    }
-
-    # Clearing
-    world["rooms"]["clear"] = {
-        "name": "Clearing",
-        "description_first": "You are in a clearing, with a forest surrounding you on all sides. A path leads south.",
-        "description_short": "Clearing",
-        "flags": ["RLIGHT", "RLAND"],
-        "exits": [
-            {"direction": "south", "destination": "fore3"},
-            {"direction": "west", "destination": "fore1"},
-            {"direction": "east", "destination": "canyv"},
-        ],
-    }
-
-    # Up a Tree
-    world["rooms"]["uptree"] = {
-        "name": "Up a Tree",
-        "description_first": "You are about 10 feet above the ground nestled among some large branches. The nearest branch above you is above your reach. Beside you on the branch is a small bird's nest.",
-        "description_short": "Up a Tree",
-        "flags": ["RLIGHT", "RAIR"],
-        "exits": [
-            {"direction": "down", "destination": "fore3"},
-        ],
-    }
-
-    # ===== OBJECTS =====
-
-    # Mailbox
-    world["objects"]["mailb"] = {
-        "name": "small mailbox",
-        "synonyms": ["mailbox", "box"],
-        "adjectives": ["small"],
-        "description": "There is a small mailbox here.",
-        "examine": "The mailbox is a small mailbox.",
-        "flags": ["VISIBT", "CONTBT", "OPENBT"],
-        "initial_room": "whous",
-        "capacity": 10,
-    }
-
-    # Leaflet
-    world["objects"]["leafl"] = {
-        "name": "leaflet",
-        "synonyms": ["paper", "flyer"],
-        "description": "",
-        "examine": "The leaflet is a small piece of paper.",
-        "read_text": "WELCOME TO ZORK!\n\nZORK is a game of adventure, danger, and low cunning. In it you will explore some of the most amazing territory ever seen by mortals. No computer should be without one!",
-        "flags": ["VISIBT", "TAKEBT", "READBT"],
-        "initial_container": "mailb",
-        "size": 2,
-    }
-
-    # Sword
-    world["objects"]["sword"] = {
-        "name": "elvish sword",
-        "synonyms": ["sword", "blade"],
-        "adjectives": ["elvish", "antique"],
-        "description": "Above the trophy case hangs an elvish sword of great antiquity.",
-        "examine": "The sword is of exquisite craftsmanship. It is inscribed with ancient elvish runes.",
-        "flags": ["VISIBT", "TAKEBT", "WEAPBT"],
-        "initial_room": "lroom",
-        "size": 30,
-    }
-
-    # Lamp
-    world["objects"]["lamp"] = {
-        "name": "brass lantern",
-        "synonyms": ["lamp", "lantern", "light"],
-        "adjectives": ["brass"],
-        "description": "There is a brass lantern (battery-powered) here.",
-        "examine": "The lamp is a battery-powered brass lantern.",
-        "flags": ["VISIBT", "TAKEBT", "LITEBT"],
-        "initial_room": "lroom",
-        "size": 15,
-        "properties": {"light_remaining": 350},
-    }
-
-    # Trophy Case
-    world["objects"]["tcase"] = {
-        "name": "trophy case",
-        "synonyms": ["case"],
-        "adjectives": ["trophy"],
-        "description": "",
-        "examine": "The trophy case is empty.",
-        "flags": ["VISIBT", "CONTBT", "TRANBT", "OPENBT"],
-        "initial_room": "lroom",
-        "capacity": 100,
-    }
-
-    # Rug
-    world["objects"]["rug"] = {
-        "name": "oriental rug",
-        "synonyms": ["rug", "carpet"],
-        "adjectives": ["oriental", "large"],
-        "description": "",
-        "examine": "The rug is extremely beautiful and tightly woven. It does not appear to be attached to the floor.",
-        "flags": ["VISIBT"],
-        "initial_room": "lroom",
-    }
-
-    # Window
-    world["objects"]["windo"] = {
-        "name": "small window",
-        "synonyms": ["window"],
-        "adjectives": ["small"],
-        "description": "",
-        "examine": "The window is slightly ajar.",
-        "flags": ["VISIBT", "DOORBT", "OPENBT"],
-        "initial_room": "ehous",
-    }
-
-    # Rope
-    world["objects"]["rope"] = {
-        "name": "coil of rope",
-        "synonyms": ["rope", "coil"],
-        "description": "A large coil of rope is lying in the corner.",
-        "examine": "The rope is strong and about 50 feet long.",
-        "flags": ["VISIBT", "TAKEBT", "TIEBT"],
-        "initial_room": "attic",
-        "size": 10,
-    }
-
-    # Knife
-    world["objects"]["knife"] = {
-        "name": "nasty knife",
-        "synonyms": ["knife", "blade"],
-        "adjectives": ["nasty"],
-        "description": "On a table is a nasty-looking knife.",
-        "examine": "The knife looks very sharp and unpleasant.",
-        "flags": ["VISIBT", "TAKEBT", "WEAPBT"],
-        "initial_room": "attic",
-        "size": 20,
-    }
-
-    # Troll
-    world["objects"]["troll"] = {
-        "name": "troll",
-        "synonyms": ["troll", "monster"],
-        "description": "A nasty-looking troll, brandishing a bloody axe, blocks all passages out of the room.",
-        "examine": "The troll is a large, nasty creature that wants nothing more than to kill you.",
-        "flags": ["VISIBT", "ACTRBT", "VILLBT", "FITEBT"],
-        "initial_room": "mtrol",
-    }
-
-    # Axe
-    world["objects"]["axe"] = {
-        "name": "bloody axe",
-        "synonyms": ["axe"],
-        "adjectives": ["bloody"],
-        "description": "",
-        "examine": "The axe is covered in blood and looks extremely dangerous.",
-        "flags": ["VISIBT", "TAKEBT", "WEAPBT"],
-        "initial_room": None,  # Troll has it
-    }
-
-    # Sack (brown bag)
-    world["objects"]["sack"] = {
-        "name": "brown sack",
-        "synonyms": ["sack", "bag"],
-        "adjectives": ["brown", "elongated"],
-        "description": "On the table is an elongated brown sack, smelling of hot peppers.",
-        "examine": "The sack is an ordinary brown sack.",
-        "flags": ["VISIBT", "TAKEBT", "CONTBT"],
-        "initial_room": "kitch",
-        "size": 9,
-        "capacity": 15,
-    }
-
-    # Garlic
-    world["objects"]["garli"] = {
-        "name": "clove of garlic",
-        "synonyms": ["garlic", "clove"],
-        "description": "",
-        "examine": "The garlic is a standard cooking ingredient.",
-        "flags": ["VISIBT", "TAKEBT", "FOODBT"],
-        "initial_container": "sack",
-        "size": 4,
-    }
-
-    # Food
-    world["objects"]["food"] = {
-        "name": "lunch",
-        "synonyms": ["food", "lunch", "sandwich"],
-        "description": "",
-        "examine": "The lunch looks delicious.",
-        "flags": ["VISIBT", "TAKEBT", "FOODBT"],
-        "initial_container": "sack",
-        "size": 6,
-    }
-
-    # Bottle
-    world["objects"]["bottl"] = {
-        "name": "glass bottle",
-        "synonyms": ["bottle"],
-        "adjectives": ["glass"],
-        "description": "A bottle is sitting on the table.",
-        "examine": "The glass bottle contains a quantity of water.",
-        "flags": ["VISIBT", "TAKEBT", "CONTBT", "TRANBT"],
-        "initial_room": "kitch",
-        "size": 7,
-        "capacity": 5,
-    }
-
-    # Water
-    world["objects"]["water"] = {
-        "name": "quantity of water",
-        "synonyms": ["water", "liquid"],
-        "description": "",
-        "examine": "It looks like ordinary water.",
-        "flags": ["VISIBT", "TAKEBT", "DRNKBT"],
-        "initial_container": "bottl",
-        "size": 4,
-    }
-
-    # Nest
-    world["objects"]["nest"] = {
-        "name": "bird's nest",
-        "synonyms": ["nest"],
-        "adjectives": ["bird's", "small"],
-        "description": "Beside you on the branch is a small bird's nest.",
-        "examine": "The nest looks like it was made by a songbird of some kind.",
-        "flags": ["VISIBT", "TAKEBT", "CONTBT"],
-        "initial_room": "uptree",
-        "size": 5,
-        "capacity": 5,
-    }
-
-    # Egg
-    world["objects"]["egg"] = {
-        "name": "jewel-encrusted egg",
-        "synonyms": ["egg"],
-        "adjectives": ["jeweled", "jewel-encrusted"],
-        "description": "",
-        "examine": "The egg is covered with beautiful jewels that glitter in the light.",
-        "flags": ["VISIBT", "TAKEBT", "VICTBT"],
-        "initial_container": "nest",
-        "size": 6,
-        "value": 5,
-        "tval": 10,
-    }
-
-    return world
+        return result
 
 
 def main():
     """Main entry point."""
-    import sys
+    # Find dtextc.dat
+    script_dir = Path(__file__).parent.parent
+    dat_file = script_dir / "dtextc.dat"
 
-    # Get source directory
-    if len(sys.argv) > 1:
-        source_dir = Path(sys.argv[1])
-    else:
-        source_dir = Path(__file__).parent.parent
+    if not dat_file.exists():
+        print(f"Error: {dat_file} not found")
+        return
 
-    # Output directory
-    output_dir = source_dir / "data" / "worlds" / "classic_zork"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    # Parse the binary file
+    extractor = ZorkExtractor(dat_file)
+    extractor.parse()
 
-    # Try to extract from source
-    extractor = ZorkDataExtractor(source_dir)
-    extractor.extract_all()
+    # Convert to world JSON
+    world = extractor.to_world_json()
 
-    # Generate the known world data
-    print("\nGenerating classic Zork world...")
-    world_data = create_classic_zork_world()
+    print(f"\nExtracted {len(world['rooms'])} rooms")
+    print(f"Extracted {len(world['objects'])} objects")
 
-    # Save the world JSON
-    world_file = output_dir / "world.json"
-    with open(world_file, "w") as f:
-        json.dump(world_data, f, indent=2)
-    print(f"Saved world to {world_file}")
+    # Save extracted data
+    output_dir = script_dir / "tools"
+    output_dir.mkdir(exist_ok=True)
 
-    # Save rooms separately
-    rooms_file = output_dir / "rooms.json"
-    with open(rooms_file, "w") as f:
-        json.dump({"rooms": world_data["rooms"]}, f, indent=2)
-    print(f"Saved rooms to {rooms_file}")
+    output_file = output_dir / "extracted_zork.json"
+    output_file.write_text(json.dumps(world, indent=2))
+    print(f"\nWritten to {output_file}")
 
-    # Save objects separately
-    objects_file = output_dir / "objects.json"
-    with open(objects_file, "w") as f:
-        json.dump({"objects": world_data["objects"]}, f, indent=2)
-    print(f"Saved objects to {objects_file}")
+    # Print summary
+    print("\n=== Rooms ===")
+    for room_id in sorted(world["rooms"].keys()):
+        room = world["rooms"][room_id]
+        print(f"  {room_id}: {room['name'][:50]}")
 
-    print("\nDone!")
+    print("\n=== Objects ===")
+    for obj_id in sorted(world["objects"].keys()):
+        obj = world["objects"][obj_id]
+        print(f"  {obj_id}: {obj['name'][:40]}")
 
 
 if __name__ == "__main__":
