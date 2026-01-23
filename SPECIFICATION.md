@@ -1,6 +1,6 @@
 # PyMeshZork: Zork Conversion & Multiplayer Specification
 
-**Version:** 1.0
+**Version:** 1.9
 **Date:** January 2026
 **Project:** Python Zork with GUI Map Editor and Meshtastic Multiplayer
 
@@ -492,77 +492,542 @@ TEAM SAY <message>             - Message all team members
 
 ### 3.5 Phase 5: Meshtastic Multiplayer
 
-#### F5.1 Network Architecture
+Phase 5 supports four deployment scenarios for multiplayer gameplay over Meshtastic mesh networks.
+
+#### F5.1 Deployment Scenarios Overview
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                     GAME SERVER (Optional)                   │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │ World State │  │   Player    │  │   Event     │          │
-│  │   Manager   │  │   Registry  │  │   Broker    │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
-└──────────────────────────────────────────────────────────────┘
-                              │
-                    ┌─────────┴─────────┐
-                    │   Meshtastic      │
-                    │   Mesh Network    │
-                    └─────────┬─────────┘
-          ┌───────────────────┼───────────────────┐
-          ▼                   ▼                   ▼
-   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-   │  Player 1   │     │  Player 2   │     │  Player 3   │
-   │  (Node A)   │◄───►│  (Node B)   │◄───►│  (Node C)   │
-   │             │     │             │     │             │
-   │ ┌─────────┐ │     │ ┌─────────┐ │     │ ┌─────────┐ │
-   │ │ Zork    │ │     │ │ Zork    │ │     │ │ Zork    │ │
-   │ │ Client  │ │     │ │ Client  │ │     │ │ Client  │ │
-   │ └─────────┘ │     │ └─────────┘ │     │ └─────────┘ │
-   └─────────────┘     └─────────────┘     └─────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        PyMeshZork Deployment Options                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Scenario A: MQTT Bridge          Scenario B: Direct LoRa                   │
+│  ┌─────────────────────┐          ┌─────────────────────┐                   │
+│  │  Raspberry Pi/Linux │          │  Raspberry Pi/Linux │                   │
+│  │  ┌───────────────┐  │          │  ┌───────────────┐  │                   │
+│  │  │   PyMeshZork  │  │          │  │   PyMeshZork  │  │                   │
+│  │  └───────┬───────┘  │          │  └───────┬───────┘  │                   │
+│  │          │          │          │          │          │                   │
+│  │  ┌───────▼───────┐  │          │  ┌───────▼───────┐  │                   │
+│  │  │  paho-mqtt    │  │          │  │  meshtasticd  │  │                   │
+│  │  └───────┬───────┘  │          │  └───────┬───────┘  │                   │
+│  │          │          │          │          │          │                   │
+│  │  ┌───────▼───────┐  │          │  ┌───────▼───────┐  │                   │
+│  │  │   Mosquitto   │  │          │  │  LoRa HAT     │  │                   │
+│  │  │   (local)     │  │          │  │  (SX1262)     │  │                   │
+│  │  └───────┬───────┘  │          │  └───────┬───────┘  │                   │
+│  └──────────┼──────────┘          └──────────┼──────────┘                   │
+│             │                                │                               │
+│             ▼                                ▼                               │
+│      ┌──────────────┐                 ┌──────────────┐                      │
+│      │  Internet/   │                 │   LoRa RF    │                      │
+│      │  MQTT Broker │                 │   915MHz     │                      │
+│      └──────────────┘                 └──────────────┘                      │
+│                                                                             │
+│  Scenario C: Serial Node          Scenario D: T-Deck Standalone             │
+│  ┌─────────────────────┐          ┌─────────────────────┐                   │
+│  │    Any Computer     │          │   LILYGO T-Deck     │                   │
+│  │  ┌───────────────┐  │          │  ┌───────────────┐  │                   │
+│  │  │   PyMeshZork  │  │          │  │  Custom       │  │                   │
+│  │  │   (CLI)       │  │          │  │  Firmware     │  │                   │
+│  │  └───────┬───────┘  │          │  │  (ESP32-S3)   │  │                   │
+│  │          │          │          │  │               │  │                   │
+│  │  ┌───────▼───────┐  │          │  │  Meshtastic   │  │                   │
+│  │  │ SerialInterface│  │          │  │  + PyMeshZork │  │                   │
+│  │  │ (USB Serial)  │  │          │  │  (LVGL UI)    │  │                   │
+│  │  └───────┬───────┘  │          │  └───────┬───────┘  │                   │
+│  └──────────┼──────────┘          │          │          │                   │
+│             │ USB                 │  ┌───────▼───────┐  │                   │
+│  ┌──────────▼──────────┐          │  │  Built-in     │  │                   │
+│  │  Meshtastic Node    │          │  │  LoRa Radio   │  │                   │
+│  │  (T-Beam, RAK, etc) │          │  └───────────────┘  │                   │
+│  │  No screen/keyboard │          │  Built-in keyboard  │                   │
+│  └─────────────────────┘          │  320x240 screen     │                   │
+│                                   └─────────────────────┘                   │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### F5.2 Message Types
+---
 
-| Type | Payload | Description |
-|------|---------|-------------|
-| `PLAYER_JOIN` | player_id, name, room | New player announcement |
-| `PLAYER_LEAVE` | player_id | Player disconnect |
-| `PLAYER_MOVE` | player_id, from_room, to_room | Location update |
-| `PLAYER_ACTION` | player_id, verb, noun | Visible actions |
-| `ROOM_UPDATE` | room_id, changes | Room state sync |
-| `OBJECT_UPDATE` | object_id, location, state | Object state sync |
-| `CHAT` | player_id, message | In-game communication |
-| `HEARTBEAT` | player_id, timestamp | Keep-alive |
+#### F5.2 Scenario A: Raspberry Pi/Linux with MQTT
 
-#### F5.3 Meshtastic Protocol
+##### F5.2.1 Overview
+Run PyMeshZork on Raspberry Pi or any Linux system, communicating with the Meshtastic network via MQTT protocol. Requires either a local Mosquitto broker or connection to the public Meshtastic MQTT server.
+
+##### F5.2.2 MQTT Broker Setup
+
+**Local Mosquitto Broker (Recommended for private games):**
+```bash
+# Install Mosquitto on Raspberry Pi
+sudo apt update
+sudo apt install mosquitto mosquitto-clients
+
+# Configure for Meshtastic access
+sudo sh -c "cat >> /etc/mosquitto/mosquitto.conf << EOF
+listener 1883 0.0.0.0
+allow_anonymous true
+EOF"
+
+# Start and enable service
+sudo systemctl enable mosquitto
+sudo systemctl start mosquitto
+
+# Test broker
+mosquitto_sub -t "msh/#" &
+mosquitto_pub -t "msh/test" -m "hello"
+```
+
+**Public Meshtastic Broker:**
+- Server: `mqtt.meshtastic.org`
+- Port: 1883 (unencrypted) or 8883 (TLS)
+- Note: Zero-hop policy - messages only reach directly connected nodes
+
+##### F5.2.3 Python MQTT Integration
 
 ```python
-# Message format (compact for LoRa bandwidth constraints)
-{
-    "v": 1,                    # Protocol version
-    "t": "PM",                 # Type: Player Move
-    "p": "abc123",             # Player ID (short hash)
-    "d": {                     # Data payload
-        "f": 1,                # From room ID
-        "r": 5                 # To room ID
-    },
-    "s": 12345                 # Sequence number
-}
+# pymeshzork/meshtastic/mqtt_client.py
+import paho.mqtt.client as paho
+from meshtastic import mesh_pb2, portnums_pb2
+
+class MeshtasticMQTTClient:
+    def __init__(self, broker: str = "localhost", port: int = 1883):
+        self.client = paho.Client(paho.CallbackAPIVersion.VERSION2)
+        self.broker = broker
+        self.port = port
+        self.channel_key = None  # For encrypted channels
+
+    def connect(self, channel: str = "LongFast"):
+        self.client.on_message = self._on_message
+        self.client.connect(self.broker, self.port)
+        self.client.subscribe(f"msh/+/+/json/#")  # JSON format
+        self.client.loop_start()
+
+    def send_game_message(self, msg_type: str, payload: dict):
+        # Compact message format for LoRa bandwidth
+        message = self._encode_game_message(msg_type, payload)
+        self.client.publish(f"msh/US/pymeshzork/json", message)
 ```
 
-#### F5.4 Multiplayer Features
-- **Presence:** See other players in same room
-- **Actions:** Watch others perform actions
-- **Chat:** Say/shout commands for communication
-- **Shared World:** Object states synchronized
-- **Cooperative Play:** Help solve puzzles together
-- **Conflict Resolution:** Turn-based for contested actions
+##### F5.2.4 Hardware Requirements
+| Component | Specification |
+|-----------|---------------|
+| Raspberry Pi | Zero 2 W, 3B+, 4, or 5 |
+| OS | Raspberry Pi OS (bookworm) or Ubuntu 22.04+ |
+| Network | WiFi or Ethernet for MQTT |
+| Storage | 8GB+ microSD |
+| Optional | LoRa HAT for direct mesh access |
 
-#### F5.5 Offline/Sync Handling
-- Local-first gameplay (works without network)
-- Eventual consistency for world state
-- Conflict resolution for simultaneous actions
+---
+
+#### F5.3 Scenario B: Raspberry Pi with Direct LoRa Radio
+
+##### F5.3.1 Overview
+Run PyMeshZork with meshtasticd daemon and attached LoRa HAT for direct mesh network participation without requiring internet connectivity.
+
+##### F5.3.2 Recommended LoRa HAT Hardware
+
+| HAT | Module | Status | Notes |
+|-----|--------|--------|-------|
+| **MeshAdv-Pi v1.1** | SX1262 (1W) | ✅ Recommended | Purpose-built for Meshtastic |
+| **MeshAdv-Mini** | SX1262 | ✅ Recommended | Compact, GPS, temp sensor |
+| Adafruit RFM9x | SX1276 | ✅ Tested | Lower power, good for short range |
+| Elecrow Lora RFM95 | SX1276 | ✅ Tested | Budget option |
+| Waveshare SX1262 LoRaWAN | SX1262 | ⚠️ Not Recommended | Message length issues |
+
+##### F5.3.3 MeshAdv-Pi v1.1 GPIO Pinout
+
+```
+┌─────────────────────────────────────────┐
+│           MeshAdv-Pi v1.1               │
+│         (40-pin RPi Header)             │
+├─────────────────────────────────────────┤
+│  Signal      │ GPIO │ Pin │ Function    │
+├─────────────────────────────────────────┤
+│  SPI CS      │  21  │  40 │ Chip Select │
+│  SPI CLK     │  11  │  23 │ Clock       │
+│  SPI MOSI    │  10  │  19 │ Data Out    │
+│  SPI MISO    │   9  │  21 │ Data In     │
+│  IRQ (DIO1)  │  16  │  36 │ Interrupt   │
+│  BUSY        │  20  │  38 │ Busy Status │
+│  RESET       │  18  │  12 │ Reset       │
+│  TX Enable   │  13  │  33 │ TX Switch   │
+│  RX Enable   │  12  │  32 │ RX Switch   │
+│  GPS PPS     │  23  │  16 │ GPS Pulse   │
+└─────────────────────────────────────────┘
+```
+
+##### F5.3.4 meshtasticd Installation
+
+```bash
+# Enable SPI on Raspberry Pi
+sudo raspi-config nonint do_spi 0
+
+# Add to /boot/firmware/config.txt
+echo "enable_uart=1" | sudo tee -a /boot/firmware/config.txt
+echo "dtparam=spi=on" | sudo tee -a /boot/firmware/config.txt
+
+# Install meshtasticd (Debian/64-bit)
+echo 'deb http://download.opensuse.org/repositories/home:/meshtastic/Debian_12/ /' | \
+  sudo tee /etc/apt/sources.list.d/meshtasticd.list
+curl -fsSL https://download.opensuse.org/repositories/home:meshtastic/Debian_12/Release.key | \
+  gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/meshtasticd.gpg > /dev/null
+sudo apt update
+sudo apt install meshtasticd
+
+# Or for Ubuntu
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:meshtastic/beta
+sudo apt install meshtasticd
+```
+
+##### F5.3.5 meshtasticd Configuration
+
+```yaml
+# /etc/meshtasticd/config.yaml
+Lora:
+  Module: sx1262
+  CS: 21
+  IRQ: 16
+  Busy: 20
+  Reset: 18
+  TXen: 13
+  RXen: 12
+  # DIO2_AS_RF_SWITCH: true  # Uncomment for MeshAdv-Mini
+
+GPS:
+  SerialPath: /dev/ttyAMA0
+
+Webserver:
+  Port: 443
+  RootPath: /usr/share/meshtasticd/web
+
+Logging:
+  LogLevel: info
+```
+
+##### F5.3.6 PyMeshZork Integration with meshtasticd
+
+```python
+# pymeshzork/meshtastic/lora_client.py
+import meshtastic
+import meshtastic.tcp_interface
+
+class MeshtasticLoRaClient:
+    """Connect to local meshtasticd via TCP."""
+
+    def __init__(self, host: str = "localhost", port: int = 4403):
+        self.interface = meshtastic.tcp_interface.TCPInterface(
+            hostname=host, portNumber=port
+        )
+
+    def send_text(self, message: str, destination: str = "^all"):
+        self.interface.sendText(message, destinationId=destination)
+
+    def on_receive(self, callback):
+        pub.subscribe(callback, "meshtastic.receive")
+```
+
+---
+
+#### F5.4 Scenario C: Serial Interface for Headless Nodes
+
+##### F5.4.1 Overview
+Connect PyMeshZork running on any computer (laptop, desktop, Raspberry Pi) to a Meshtastic node via USB serial. Ideal for nodes without screens/keyboards like T-Beam, RAK Wireless, or Heltec devices.
+
+##### F5.4.2 Supported Meshtastic Devices
+
+| Device | USB Chip | Device Path | Notes |
+|--------|----------|-------------|-------|
+| T-Beam | CP2102 | /dev/ttyUSB0 | Popular, GPS included |
+| RAK4631 | - | /dev/ttyACM0 | nRF52840 native USB |
+| Heltec V3 | CP2102 | /dev/ttyUSB0 | Built-in OLED |
+| Station G2 | CP2102 | /dev/ttyUSB0 | High power option |
+
+##### F5.4.3 USB Serial Driver Setup
+
+```bash
+# Linux - usually automatic, verify with:
+ls -la /dev/ttyUSB* /dev/ttyACM*
+
+# Add user to dialout group for permission
+sudo usermod -a -G dialout $USER
+# Log out and back in for group change
+
+# macOS - CP2102 driver may be needed
+# Download from Silicon Labs website
+
+# Windows - device shows as COMx
+# May need CP210x driver from Silicon Labs
+```
+
+##### F5.4.4 Python Serial Interface
+
+```python
+# pymeshzork/meshtastic/serial_client.py
+import meshtastic
+import meshtastic.serial_interface
+
+class MeshtasticSerialClient:
+    """Connect to Meshtastic node via USB serial."""
+
+    def __init__(self, port: str = None):
+        # Auto-detect if port not specified
+        self.interface = meshtastic.serial_interface.SerialInterface(
+            devPath=port  # e.g., '/dev/ttyUSB0' or 'COM3'
+        )
+
+    def get_node_info(self):
+        return self.interface.getMyNodeInfo()
+
+    def send_game_message(self, msg_type: str, payload: dict):
+        # Use private app port for game data
+        self.interface.sendData(
+            data=self._encode_payload(msg_type, payload),
+            portNum=portnums_pb2.PortNum.PRIVATE_APP
+        )
+```
+
+##### F5.4.5 Serial Module Configuration on Node
+
+Configure the Meshtastic node for serial communication:
+```bash
+# Set serial module to PROTO mode for full API access
+meshtastic --set serial.enabled true
+meshtastic --set serial.mode PROTO
+meshtastic --set serial.baud BAUD_115200
+
+# Or TEXTMSG mode for simple text relay
+meshtastic --set serial.mode TEXTMSG
+```
+
+---
+
+#### F5.5 Scenario D: LILYGO T-Deck Custom Firmware
+
+##### F5.5.1 Overview
+Develop custom firmware for the LILYGO T-Deck that integrates Meshtastic radio functionality with PyMeshZork game logic, using the built-in keyboard and display.
+
+##### F5.5.2 T-Deck Hardware Specifications
+
+| Component | Specification |
+|-----------|---------------|
+| MCU | ESP32-S3FN16R8 (Dual-core LX7, 240MHz) |
+| Flash | 16MB |
+| PSRAM | 8MB |
+| Display | 2.8" IPS LCD, 320x240, ST7789 |
+| Keyboard | BB Q10 style, I2C interface |
+| Radio | SX1262 LoRa (T-Deck Plus) |
+| GPS | Optional (T-Deck Plus includes GPS) |
+| Battery | 2000mAh built-in (T-Deck Plus) |
+| WiFi | 2.4GHz 802.11 b/g/n |
+| Bluetooth | BLE 5.0 |
+
+##### F5.5.3 Development Environment Setup
+
+```bash
+# Install PlatformIO
+pip install platformio
+
+# Clone T-Deck SDK
+git clone https://github.com/Xinyuan-LilyGO/T-Deck.git
+cd T-Deck
+
+# Or for T-Deck Pro
+git clone https://github.com/Xinyuan-LilyGO/T-Deck-Pro.git
+
+# Build with PlatformIO
+pio run -e t-deck
+
+# Flash firmware
+pio run -e t-deck -t upload
+```
+
+##### F5.5.4 Firmware Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  T-Deck PyMeshZork Firmware                  │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                    Application Layer                 │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │    │
+│  │  │ Game Engine │  │   Parser    │  │  UI/Display │  │    │
+│  │  │ (C++ port)  │  │   Module    │  │   (LVGL)    │  │    │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                   Meshtastic Layer                   │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │    │
+│  │  │   Router    │  │   Crypto    │  │  Channels   │  │    │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │                    Hardware Layer                    │    │
+│  │  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐   │    │
+│  │  │RadioLib │ │  LVGL   │ │Keyboard │ │  GPS    │   │    │
+│  │  │(SX1262) │ │ ~8.3.9  │ │ TCA8418 │ │TinyGPS++│   │    │
+│  │  └─────────┘ └─────────┘ └─────────┘ └─────────┘   │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+##### F5.5.5 Key Libraries
+
+| Library | Version | Purpose |
+|---------|---------|---------|
+| lvgl | ~8.3.9 | Graphics/UI framework |
+| RadioLib | 6.4.2+ | LoRa radio control |
+| TinyGPSPlus | latest | GPS parsing |
+| Adafruit TCA8418 | latest | Keyboard controller |
+| ESP32-audioI2S | latest | Audio feedback (optional) |
+
+##### F5.5.6 Display Layout Design
+
+```
+┌───────────────────────────────────────┐
+│ PyMeshZork v1.0    ▲ 3/8    [⚡][📶] │  <- Status bar
+├───────────────────────────────────────┤
+│                                       │
+│  West of House                        │  <- Room name
+│                                       │
+│  You are standing in an open field    │
+│  west of a white house, with a        │  <- Description
+│  boarded front door.                  │     (scrollable)
+│  There is a small mailbox here.       │
+│                                       │
+│  [AdventurerX is here]                │  <- Other players
+│                                       │
+├───────────────────────────────────────┤
+│ > open mailbox_                       │  <- Input line
+└───────────────────────────────────────┘
+     [Physical BB Q10 Keyboard]
+```
+
+##### F5.5.7 T-Deck Firmware Build Configuration
+
+```ini
+; platformio.ini for T-Deck PyMeshZork
+[env:t-deck-pymeshzork]
+platform = espressif32
+board = esp32-s3-devkitc-1
+framework = arduino
+
+board_build.mcu = esp32s3
+board_build.f_cpu = 240000000L
+board_build.flash_size = 16MB
+board_build.psram = enabled
+
+lib_deps =
+    lvgl/lvgl@~8.3.9
+    jgromes/RadioLib@^6.4.2
+    mikalhart/TinyGPSPlus
+    adafruit/Adafruit TCA8418
+
+build_flags =
+    -DBOARD_HAS_PSRAM
+    -DARDUINO_USB_CDC_ON_BOOT=1
+    -DLV_CONF_INCLUDE_SIMPLE
+    -DMESHTASTIC_EXCLUDE_WIFI=1
+```
+
+---
+
+#### F5.6 Message Protocol (All Scenarios)
+
+##### F5.6.1 Message Types
+
+| Type Code | Name | Payload | Description |
+|-----------|------|---------|-------------|
+| `PJ` | PLAYER_JOIN | player_id, name, room_id | Player enters game |
+| `PL` | PLAYER_LEAVE | player_id | Player exits game |
+| `PM` | PLAYER_MOVE | player_id, from, to | Location change |
+| `PA` | PLAYER_ACTION | player_id, verb, obj | Visible action |
+| `RU` | ROOM_UPDATE | room_id, changes | Room state sync |
+| `OU` | OBJECT_UPDATE | obj_id, loc, state | Object state sync |
+| `CH` | CHAT | player_id, message | Team/room chat |
+| `HB` | HEARTBEAT | player_id, ts | Keep-alive |
+| `SY` | SYNC_REQUEST | player_id, room_id | Request state sync |
+| `SR` | SYNC_RESPONSE | state_data | Full state response |
+
+##### F5.6.2 Compact Message Format
+
+```python
+# Optimized for LoRa bandwidth (max ~237 bytes)
+{
+    "v": 1,           # Protocol version (1 byte)
+    "t": "PM",        # Message type (2 bytes)
+    "p": "a1b2c3",    # Player ID hash (6 bytes)
+    "s": 12345,       # Sequence number (for ordering)
+    "d": {            # Data payload (variable)
+        "f": 1,       # From room (numeric ID)
+        "r": 5        # To room (numeric ID)
+    }
+}
+# Typical message: 40-80 bytes
+```
+
+##### F5.6.3 Room/Object ID Mapping
+
+Use numeric IDs for bandwidth efficiency:
+```python
+ROOM_IDS = {
+    "whous": 1, "lroom": 2, "kitch": 3, "attic": 4,
+    "cella": 5, "mtrol": 6, "maze1": 7, # ...
+}
+# Transmit room 1 instead of "whous" (saves 4 bytes per message)
+```
+
+---
+
+#### F5.7 Multiplayer Game Features
+
+##### F5.7.1 Presence System
+- See other players in room descriptions
+- Player join/leave notifications
+- Heartbeat every 60 seconds (configurable)
+- Timeout after 3 missed heartbeats
+
+##### F5.7.2 Shared World State
+- Object locations synchronized across players
+- Room states (doors, switches) shared
+- First player to take object gets it
+- Dropped objects visible to all
+
+##### F5.7.3 Cooperative Gameplay
+- Multiple players can be in same room
+- Watch other players' actions
+- Help solve puzzles together
+- Shared team inventory (optional)
+
+##### F5.7.4 Conflict Resolution
+- Sequence numbers for ordering
+- First-come-first-served for contested objects
 - State reconciliation on reconnect
-- Message queuing for intermittent connectivity
+- Optimistic local execution with rollback
+
+---
+
+#### F5.8 Offline/Sync Handling
+
+##### F5.8.1 Local-First Design
+- Full gameplay works offline
+- Actions queued when disconnected
+- Automatic sync on reconnect
+
+##### F5.8.2 Conflict Resolution Strategy
+```
+1. Each action has sequence number + timestamp
+2. Server (or first-online node) is authority
+3. Conflicts resolved by:
+   a. Lower sequence number wins
+   b. Tie-breaker: lower player_id hash
+4. Affected players receive correction message
+```
+
+##### F5.8.3 State Reconciliation
+- SYNC_REQUEST on connect/reconnect
+- Authoritative node sends SYNC_RESPONSE
+- Delta updates for efficiency when possible
 
 ---
 
@@ -863,43 +1328,74 @@ pymeshzork/
 
 ---
 
-### Phase 5: Meshtastic Multiplayer (Weeks 13-16)
+### Phase 5: Meshtastic Multiplayer
 
-#### Step 5.1: Meshtastic Integration
-- [ ] Install meshtastic-python library
-- [ ] Implement device discovery
-- [ ] Create connection manager
-- [ ] Handle send/receive basics
+#### Step 5.1: Core Multiplayer Infrastructure
+- [ ] Create `pymeshzork/meshtastic/` module structure
+- [ ] Define message protocol and serialization
+- [ ] Implement base `MeshtasticClient` abstract class
+- [ ] Add numeric room/object ID mapping for bandwidth
+- [ ] Create message queue for offline resilience
 
-#### Step 5.2: Protocol Design
-- [ ] Define compact message format
-- [ ] Implement message serialization
-- [ ] Create message type handlers
-- [ ] Add sequence numbering
+#### Step 5.2: Scenario A - MQTT Integration
+- [ ] Install paho-mqtt library
+- [ ] Create `MQTTClient` class implementing MeshtasticClient
+- [ ] Document Mosquitto broker setup for Raspberry Pi
+- [ ] Implement channel subscription (msh/+/+/json/#)
+- [ ] Test with public mqtt.meshtastic.org broker
+- [ ] Add TLS support for encrypted connections
 
-#### Step 5.3: Presence System
-- [ ] Implement player join/leave
-- [ ] Create heartbeat mechanism
+#### Step 5.3: Scenario B - Direct LoRa (Raspberry Pi HAT)
+- [ ] Document MeshAdv-Pi HAT installation and GPIO pinout
+- [ ] Create meshtasticd configuration templates
+- [ ] Create `LoRaClient` class using meshtasticd TCP interface
+- [ ] Test with MeshAdv-Pi v1.1 HAT
+- [ ] Document alternative HAT options (Adafruit RFM9x, etc.)
+- [ ] Add SPI/UART configuration guides
+
+#### Step 5.4: Scenario C - Serial Interface
+- [ ] Create `SerialClient` class using meshtastic.serial_interface
+- [ ] Implement auto-detection of Meshtastic devices
+- [ ] Document USB driver setup (CP210x, CH9102)
+- [ ] Test with T-Beam, RAK4631, Heltec V3
+- [ ] Add serial module configuration (PROTO/TEXTMSG modes)
+- [ ] Create troubleshooting guide for permissions
+
+#### Step 5.5: Presence and State System
+- [ ] Implement player join/leave broadcasting
+- [ ] Create heartbeat mechanism (60s interval)
 - [ ] Track active players per room
-- [ ] Handle timeout/disconnect
+- [ ] Handle timeout/disconnect (3 missed heartbeats)
+- [ ] Implement object state synchronization
+- [ ] Add room state sync (doors, switches)
+- [ ] Design and implement conflict resolution
 
-#### Step 5.4: State Synchronization
-- [ ] Implement player movement broadcast
-- [ ] Create object state sync
-- [ ] Handle room state updates
-- [ ] Design conflict resolution
+#### Step 5.6: Multiplayer Gameplay Integration
+- [ ] Modify room descriptions to show other players
+- [ ] Display other player actions in output
+- [ ] Integrate with existing SAY/SHOUT/WHO commands
+- [ ] Add player interaction verbs (GIVE, FOLLOW)
+- [ ] Implement shared team inventory option
+- [ ] Test cooperative puzzle solving
 
-#### Step 5.5: Multiplayer Gameplay
-- [ ] Show other players in room descriptions
-- [ ] Display other player actions
-- [ ] Implement SAY/SHOUT commands
-- [ ] Add player interaction verbs
+#### Step 5.7: Scenario D - T-Deck Firmware (Advanced)
+- [ ] Set up PlatformIO development environment
+- [ ] Port game engine core to C++ for ESP32
+- [ ] Integrate LVGL ~8.3.9 for display UI
+- [ ] Implement keyboard input via TCA8418
+- [ ] Integrate RadioLib for SX1262 LoRa
+- [ ] Design 320x240 display layout
+- [ ] Implement Meshtastic protocol compatibility
+- [ ] Create firmware build and flash documentation
+- [ ] Test on T-Deck Plus hardware
 
-#### Step 5.6: Offline Resilience
-- [ ] Implement message queue
-- [ ] Create state reconciliation
-- [ ] Handle partial connectivity
-- [ ] Test intermittent scenarios
+#### Step 5.8: Testing and Documentation
+- [ ] Unit tests for all client types
+- [ ] Integration tests with real hardware
+- [ ] Multi-player scenario testing
+- [ ] Write deployment guides for each scenario
+- [ ] Create troubleshooting documentation
+- [ ] Performance testing on Raspberry Pi Zero 2 W
 
 ---
 
@@ -912,9 +1408,20 @@ pymeshzork/
 | GUI | PyQt6 | Cross-platform, mature, powerful |
 | Data | JSON + jsonschema | Human-readable, editable |
 | Database | SQLite | Lightweight, embedded |
-| Mesh | meshtastic-python | Official Meshtastic API |
 | Testing | pytest | Standard Python testing |
 | Packaging | pyproject.toml | Modern Python packaging |
+
+### Phase 5 Additional Dependencies
+
+| Component | Technology | Justification |
+|-----------|------------|---------------|
+| MQTT Client | paho-mqtt | Standard Python MQTT library |
+| Meshtastic API | meshtastic-python | Official serial/TCP interface |
+| MQTT Broker | Mosquitto | Lightweight, easy to deploy |
+| LoRa Daemon | meshtasticd | Linux-native Meshtastic |
+| T-Deck GUI | LVGL ~8.3.9 | Lightweight embedded graphics |
+| T-Deck Radio | RadioLib 6.4.2+ | SX1262 LoRa control |
+| T-Deck Build | PlatformIO | ESP32 firmware toolchain |
 
 ---
 
@@ -944,13 +1451,23 @@ pymeshzork/
 - [x] Create and play custom worlds
 - [x] Player accounts with persistent progress
 - [x] Force-directed auto-layout for maps
-- [ ] All puzzles solvable with original solutions (needs action handlers)
+- [x] All puzzles solvable with original solutions
 
-### Version 2.0
-- [ ] Meshtastic multiplayer operational
-- [ ] 2+ players can explore together
-- [ ] World state synchronized
-- [ ] Chat functional
+### Version 2.0 (Meshtastic Multiplayer)
+- [ ] Scenario A: MQTT bridge operational on Raspberry Pi
+- [ ] Scenario B: Direct LoRa with MeshAdv-Pi HAT working
+- [ ] Scenario C: Serial interface to Meshtastic nodes functional
+- [ ] 2+ players can explore together via any scenario
+- [ ] World state synchronized across mesh network
+- [ ] SAY/SHOUT chat functional over mesh
+- [ ] Presence system shows players in rooms
+- [ ] Documentation for all deployment scenarios
+
+### Version 2.1 (T-Deck Firmware)
+- [ ] Custom T-Deck firmware builds and flashes
+- [ ] Game playable on T-Deck built-in display/keyboard
+- [ ] T-Deck communicates with other mesh nodes
+- [ ] Firmware compatible with standard Meshtastic network
 
 ---
 
@@ -1001,13 +1518,46 @@ pymeshzork/
 | Game state | ✅ Done | Serializable state with save/load |
 | Text parser | ✅ Done | Natural language with context awareness |
 | World management | ✅ Done | Rooms, exits, navigation |
-| Verb handlers | ✅ Done | 30+ verbs implemented |
-| Event system | ✅ Done | Timers, demons, grue checks |
+| Verb handlers | ✅ Done | 50+ verbs implemented |
+| Event system | ✅ Done | Thief AI, villain demons, combat, light timers, grue |
 | CLI interface | ✅ Done | Interactive game loop |
 | Demo world | ✅ Done | 10 rooms, 10 objects |
 | Unit tests | ✅ Done | 42 tests passing |
 
-**Commits:** Phase 1 complete (4,500+ lines of Python)
+**Files created:**
+- `pymeshzork/engine/game.py` - Main game loop with room actions integration
+- `pymeshzork/engine/parser.py` - Natural language parser with TEXT_VERBS handling
+- `pymeshzork/engine/world.py` - Room/map management with conditional exit evaluation
+- `pymeshzork/engine/verbs.py` - 50+ verb handlers including puzzles
+- `pymeshzork/engine/events.py` - Event system with thief AI, combat, timers
+- `pymeshzork/engine/room_actions.py` - Room-specific puzzle handlers
+- `pymeshzork/engine/state.py` - Game state with puzzle flags
+- `pymeshzork/engine/models.py` - Data models for rooms, objects, actors
+
+**Event System Features:**
+- Thief AI with roaming, stealing, and combat behaviors
+- Troll demon blocking passage until defeated
+- Sword glow demon detecting nearby villains
+- Light source timers (lantern, match, candle)
+- Combat system with player health/wounds
+- Cyclops special defeat (odysseus)
+
+**Puzzle Handlers (room_actions.py):**
+- Carousel Room: Random direction redirection when spinning
+- Loud Room: Say "echo" to get platinum bar
+- Machine Room: Put coal in machine to make diamond
+- Riddle Room: Answer "man" to open east passage
+- Reservoir: Water level controlled by dam
+- Balloon: Launch/land controls for volcano exploration
+
+**Conditional Exits:**
+- Rug moved for trap door access
+- Grating unlocked
+- Rope tied for dome descent
+- Gates opened by ringing bell
+- Troll defeated for passage
+
+**Commits:** Phase 1 complete (5,500+ lines of Python)
 
 ### Phase 2: JSON Data Externalization ✅ COMPLETE
 
@@ -1119,6 +1669,30 @@ pymeshzork/
 
 ### Phase 5: Meshtastic Multiplayer 🔲 NOT STARTED
 
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Core infrastructure | 🔲 Pending | Message protocol, base classes |
+| Scenario A: MQTT | 🔲 Pending | paho-mqtt, Mosquitto broker |
+| Scenario B: LoRa HAT | 🔲 Pending | meshtasticd, MeshAdv-Pi |
+| Scenario C: Serial | 🔲 Pending | USB serial interface |
+| Scenario D: T-Deck | 🔲 Pending | Custom ESP32 firmware |
+| Presence system | 🔲 Pending | Join/leave, heartbeat |
+| State sync | 🔲 Pending | Objects, rooms, conflicts |
+| Multiplayer gameplay | 🔲 Pending | Player visibility, actions |
+| Documentation | 🔲 Pending | Setup guides per scenario |
+
+**Deployment Scenarios:**
+- **A: MQTT** - Raspberry Pi/Linux with Mosquitto broker
+- **B: Direct LoRa** - Raspberry Pi with MeshAdv-Pi HAT + meshtasticd
+- **C: Serial** - Any computer connected to Meshtastic node via USB
+- **D: T-Deck** - Standalone device with custom firmware (LVGL + Meshtastic)
+
+**Hardware Requirements:**
+- Scenario A: Raspberry Pi (any) + network connection
+- Scenario B: Raspberry Pi + MeshAdv-Pi HAT (recommended) or Adafruit RFM9x
+- Scenario C: Any computer + Meshtastic device (T-Beam, RAK, Heltec)
+- Scenario D: LILYGO T-Deck Plus
+
 ---
 
 ## 11. Document History
@@ -1133,6 +1707,8 @@ pymeshzork/
 | 1.5 | 2026-01-22 | Claude | Phase 4 complete - Account/Team system |
 | 1.6 | 2026-01-22 | Claude | Full Zork I migration - 98 rooms, 57 objects |
 | 1.7 | 2026-01-22 | Claude | Auto-layout feature for map editor |
+| 1.8 | 2026-01-23 | Claude | Event system (thief AI, combat), puzzle handlers, conditional exits |
+| 1.9 | 2026-01-23 | Claude | Phase 5 expanded - Four deployment scenarios (MQTT, LoRa HAT, Serial, T-Deck) |
 
 ---
 
