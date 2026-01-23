@@ -475,10 +475,11 @@ class VerbHandler:
                 end_turn=False,
             )
 
-        if not obj.is_open():
+        # Check if this is something that can be opened (container or door)
+        if not obj.is_container() and not obj.is_door():
             return VerbResult(
                 success=False,
-                message=f"The {obj.name} cannot be opened.",
+                message=f"You can't open the {obj.name}.",
                 end_turn=False,
             )
 
@@ -528,10 +529,11 @@ class VerbHandler:
                 end_turn=False,
             )
 
-        if not obj.is_open():
+        # Check if this is something that can be closed (container or door)
+        if not obj.is_container() and not obj.is_door():
             return VerbResult(
                 success=False,
-                message=f"The {obj.name} cannot be closed.",
+                message=f"You can't close the {obj.name}.",
                 end_turn=False,
             )
 

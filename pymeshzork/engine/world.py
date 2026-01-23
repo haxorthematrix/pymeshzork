@@ -222,14 +222,18 @@ class World:
         # Check for light sources in player's inventory
         for obj_id in state.objects_held_by("player"):
             obj = self.get_object(obj_id)
-            if obj and obj.is_light_source() and obj.is_on():
-                return True
+            if obj and obj.is_light_source():
+                obj_state = state.get_object_state(obj_id)
+                if obj.is_on(obj_state):
+                    return True
 
         # Check for light sources in room
         for obj_id in state.objects_in_room(room.id):
             obj = self.get_object(obj_id)
-            if obj and obj.is_light_source() and obj.is_on():
-                return True
+            if obj and obj.is_light_source():
+                obj_state = state.get_object_state(obj_id)
+                if obj.is_on(obj_state):
+                    return True
 
         return False
 
@@ -261,6 +265,7 @@ class World:
         state: GameState,
         search_inventory: bool = True,
         search_room: bool = True,
+        search_containers: bool = True,
     ) -> list[Object]:
         """Find objects matching a name (with synonyms and adjectives)."""
         name_lower = name.lower()
@@ -272,6 +277,18 @@ class World:
             candidate_ids.update(state.objects_held_by("player"))
         if search_room:
             candidate_ids.update(state.objects_in_room(state.current_room))
+
+        # Also search inside open containers in the room and inventory
+        if search_containers:
+            container_ids = list(candidate_ids)  # Copy current candidates
+            for container_id in container_ids:
+                container = self.get_object(container_id)
+                if container and container.is_container():
+                    container_state = state.get_object_state(container_id)
+                    # Check if container is open (or transparent)
+                    if container.is_open(container_state) or container.is_transparent():
+                        # Add objects inside this container
+                        candidate_ids.update(state.objects_in_container(container_id))
 
         for obj_id in candidate_ids:
             obj = self.get_object(obj_id)

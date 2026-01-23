@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-from pymeshzork.engine.game import Game, create_game
+from pymeshzork.engine.game import Game, create_game, load_game_from_json
 
 
 def run_game(game: Game) -> None:
@@ -84,18 +84,18 @@ def main() -> int:
 
     # Create game
     if args.world:
-        # Load custom world
+        # Load custom world from specified path
         try:
-            from pymeshzork.data.loader import WorldLoader
-            loader = WorldLoader()
-            world = loader.load_world(args.world)
-            game = Game(world=world)
+            game = load_game_from_json(str(args.world))
         except Exception as e:
             print(f"Error loading world: {e}", file=sys.stderr)
             return 1
     else:
-        # Use demo world
-        game = create_game()
+        # Try to load from default JSON, fall back to demo world
+        try:
+            game = load_game_from_json()
+        except Exception:
+            game = create_game()
 
     # Load save if specified
     if args.load:

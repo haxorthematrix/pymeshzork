@@ -2,7 +2,10 @@
 
 from dataclasses import dataclass, field
 from enum import IntFlag, auto
-from typing import Callable
+from typing import TYPE_CHECKING, Callable
+
+if TYPE_CHECKING:
+    from pymeshzork.engine.state import ObjectState
 
 
 class RoomFlag(IntFlag):
@@ -183,16 +186,34 @@ class Object:
         """Check if object is a container."""
         return bool(self.flags1 & ObjectFlag1.CONTBT)
 
-    def is_open(self) -> bool:
-        """Check if object is openable."""
+    def is_open(self, state: "ObjectState | None" = None) -> bool:
+        """Check if object is currently open.
+
+        Args:
+            state: Optional ObjectState to check dynamic state.
+                   If None, checks the object's default flags.
+        """
+        if state is not None:
+            return bool(state.flags2 & ObjectFlag2.OPENBT)
         return bool(self.flags2 & ObjectFlag2.OPENBT)
+
+    def is_transparent(self) -> bool:
+        """Check if object is transparent (can see contents when closed)."""
+        return bool(self.flags1 & ObjectFlag1.TRANBT)
 
     def is_light_source(self) -> bool:
         """Check if object provides light."""
         return bool(self.flags1 & ObjectFlag1.LITEBT)
 
-    def is_on(self) -> bool:
-        """Check if light source is on."""
+    def is_on(self, state: "ObjectState | None" = None) -> bool:
+        """Check if light source is on.
+
+        Args:
+            state: Optional ObjectState to check dynamic state.
+                   If None, checks the object's default flags.
+        """
+        if state is not None:
+            return bool(state.flags1 & ObjectFlag1.ONBT)
         return bool(self.flags1 & ObjectFlag1.ONBT)
 
     def is_weapon(self) -> bool:

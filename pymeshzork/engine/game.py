@@ -526,3 +526,60 @@ def create_game() -> Game:
     window_state.flags2 |= ObjectFlag2.OPENBT
 
     return Game(world=world, state=state)
+
+
+def load_game_from_json(world_path: str | None = None) -> Game:
+    """Load a game from JSON world files.
+
+    Args:
+        world_path: Path to world.json or directory containing world files.
+                   If None, loads the built-in classic_zork world.
+
+    Returns:
+        Initialized Game instance.
+    """
+    from pathlib import Path
+    from pymeshzork.data.loader import WorldLoader
+
+    loader = WorldLoader()
+
+    if world_path is None:
+        # Try to find the built-in classic_zork world
+        package_dir = Path(__file__).parent.parent.parent
+        world_path = package_dir / "data" / "worlds" / "classic_zork" / "world.json"
+
+        if not world_path.exists():
+            # Fall back to demo world
+            return create_game()
+
+    world = loader.load_world(Path(world_path))
+    state = GameState()
+
+    # Initialize object states with initial locations
+    for obj_id, obj in world.objects.items():
+        obj_state = state.get_object_state(obj_id)
+        obj_state.flags1 = obj.flags1
+        obj_state.flags2 = obj.flags2
+        obj_state.properties = dict(obj.properties)
+
+        if obj.initial_room:
+            obj_state.room_id = obj.initial_room
+
+    # Handle objects that start in containers
+    # We need to load the JSON to get initial_container info
+    if world_path:
+        import json
+        with open(world_path) as f:
+            world_data = json.load(f)
+
+        for obj_id, obj_data in world_data.get("objects", {}).items():
+            if obj_data.get("initial_container"):
+                container_id = obj_data["initial_container"]
+                state.move_object_to_container(obj_id, container_id)
+
+    # Get starting room from meta
+    if world_path:
+        starting_room = world_data.get("meta", {}).get("starting_room", "whous")
+        state.current_room = starting_room
+
+    return Game(world=world, state=state)

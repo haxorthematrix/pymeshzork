@@ -1,0 +1,351 @@
+{
+  "rooms": {
+    "whous": {
+      "name": "West of House",
+      "description_first": "You are standing in an open field west of a white house, with a boarded front door.",
+      "description_short": "West of House",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "north",
+          "destination": "nhous"
+        },
+        {
+          "direction": "south",
+          "destination": "shous"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "east",
+          "destination": "whous",
+          "type": "no_exit",
+          "message": "The door is boarded and you can't remove the boards."
+        },
+        {
+          "direction": "southwest",
+          "destination": "fore1"
+        },
+        {
+          "direction": "northwest",
+          "destination": "fore1"
+        }
+      ]
+    },
+    "nhous": {
+      "name": "North of House",
+      "description_first": "You are facing the north side of a white house. There is no door here, and all the windows are boarded up. To the north a narrow path winds through the trees.",
+      "description_short": "North of House",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "south",
+          "destination": "whous"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "east",
+          "destination": "ehous"
+        },
+        {
+          "direction": "north",
+          "destination": "fore3"
+        }
+      ]
+    },
+    "shous": {
+      "name": "South of House",
+      "description_first": "You are facing the south side of a white house. There is no door here, and all the windows are boarded.",
+      "description_short": "South of House",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "north",
+          "destination": "whous"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "east",
+          "destination": "ehous"
+        }
+      ]
+    },
+    "ehous": {
+      "name": "Behind House",
+      "description_first": "You are behind the white house. A path leads into the forest to the east. In one corner of the house there is a small window which is slightly ajar.",
+      "description_short": "Behind House",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "north",
+          "destination": "nhous"
+        },
+        {
+          "direction": "south",
+          "destination": "shous"
+        },
+        {
+          "direction": "east",
+          "destination": "clear"
+        },
+        {
+          "direction": "west",
+          "destination": "kitch",
+          "type": "door",
+          "door_object": "windo"
+        },
+        {
+          "direction": "enter",
+          "destination": "kitch",
+          "type": "door",
+          "door_object": "windo"
+        }
+      ]
+    },
+    "kitch": {
+      "name": "Kitchen",
+      "description_first": "You are in the kitchen of the white house. A table seems to have been used recently for the preparation of food. A passage leads to the west and a dark staircase can be seen leading upward. A dark chimney leads down and to the east is a small window which is open.",
+      "description_short": "Kitchen",
+      "flags": [
+        "RLIGHT",
+        "RLAND",
+        "RHOUSE"
+      ],
+      "exits": [
+        {
+          "direction": "east",
+          "destination": "ehous",
+          "type": "door",
+          "door_object": "windo"
+        },
+        {
+          "direction": "west",
+          "destination": "lroom"
+        },
+        {
+          "direction": "up",
+          "destination": "attic"
+        },
+        {
+          "direction": "down",
+          "destination": "cella",
+          "type": "conditional",
+          "message": "Only Santa Claus climbs down chimneys."
+        }
+      ]
+    },
+    "lroom": {
+      "name": "Living Room",
+      "description_first": "You are in the living room. There is a doorway to the east, a wooden door with strange gothic lettering to the west, which appears to be nailed shut, a trophy case, and a large oriental rug in the center of the room.",
+      "description_short": "Living Room",
+      "flags": [
+        "RLIGHT",
+        "RLAND",
+        "RHOUSE"
+      ],
+      "exits": [
+        {
+          "direction": "east",
+          "destination": "kitch"
+        },
+        {
+          "direction": "west",
+          "destination": "lroom",
+          "type": "no_exit",
+          "message": "The door is nailed shut."
+        },
+        {
+          "direction": "down",
+          "destination": "cella",
+          "type": "conditional",
+          "condition": "rug_moved"
+        }
+      ]
+    },
+    "attic": {
+      "name": "Attic",
+      "description_first": "This is the attic. The only exit is a stairway leading down. A large coil of rope is lying in the corner. On a table is a nasty-looking knife.",
+      "description_short": "Attic",
+      "flags": [
+        "RLIGHT",
+        "RLAND",
+        "RHOUSE"
+      ],
+      "exits": [
+        {
+          "direction": "down",
+          "destination": "kitch"
+        }
+      ]
+    },
+    "cella": {
+      "name": "Cellar",
+      "description_first": "You are in a dark and damp cellar with a narrow passageway leading north, and a crawlway to the south. On the west is the bottom of a steep metal ramp which is unclimbable.",
+      "description_short": "Cellar",
+      "flags": [
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "up",
+          "destination": "lroom"
+        },
+        {
+          "direction": "north",
+          "destination": "mtrol"
+        },
+        {
+          "direction": "south",
+          "destination": "estof"
+        },
+        {
+          "direction": "west",
+          "destination": "cella",
+          "type": "no_exit",
+          "message": "The ramp is too steep to climb."
+        }
+      ]
+    },
+    "mtrol": {
+      "name": "Troll Room",
+      "description_first": "This is a small room with passages to the east and south and a forbidding hole leading west. Bloodstains and deep scratches (perhaps made by straining fingers) mar the walls.",
+      "description_short": "Troll Room",
+      "flags": [
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "south",
+          "destination": "cella"
+        },
+        {
+          "direction": "east",
+          "destination": "emaze"
+        },
+        {
+          "direction": "west",
+          "destination": "mtrol",
+          "type": "conditional",
+          "condition": "troll_gone",
+          "message": "The troll fends you off with a menacing gesture."
+        }
+      ]
+    },
+    "fore1": {
+      "name": "Forest",
+      "description_first": "This is a forest, with trees in all directions. To the east, there appears to be sunlight.",
+      "description_short": "Forest",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "east",
+          "destination": "whous"
+        },
+        {
+          "direction": "north",
+          "destination": "fore3"
+        },
+        {
+          "direction": "south",
+          "destination": "fore1"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        }
+      ]
+    },
+    "fore3": {
+      "name": "Forest Path",
+      "description_first": "This is a path winding through a dimly lit forest. The path heads north-south here. One particularly large tree with some low branches stands at the edge of the path.",
+      "description_short": "Forest Path",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "south",
+          "destination": "nhous"
+        },
+        {
+          "direction": "north",
+          "destination": "clear"
+        },
+        {
+          "direction": "east",
+          "destination": "fore1"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "up",
+          "destination": "uptree"
+        }
+      ]
+    },
+    "clear": {
+      "name": "Clearing",
+      "description_first": "You are in a clearing, with a forest surrounding you on all sides. A path leads south.",
+      "description_short": "Clearing",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "south",
+          "destination": "fore3"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "east",
+          "destination": "canyv"
+        }
+      ]
+    },
+    "uptree": {
+      "name": "Up a Tree",
+      "description_first": "You are about 10 feet above the ground nestled among some large branches. The nearest branch above you is above your reach. Beside you on the branch is a small bird's nest.",
+      "description_short": "Up a Tree",
+      "flags": [
+        "RLIGHT",
+        "RAIR"
+      ],
+      "exits": [
+        {
+          "direction": "down",
+          "destination": "fore3"
+        }
+      ]
+    }
+  }
+}

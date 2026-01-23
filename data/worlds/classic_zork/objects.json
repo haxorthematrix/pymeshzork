@@ -1,0 +1,335 @@
+{
+  "objects": {
+    "mailb": {
+      "name": "small mailbox",
+      "synonyms": [
+        "mailbox",
+        "box"
+      ],
+      "adjectives": [
+        "small"
+      ],
+      "description": "There is a small mailbox here.",
+      "examine": "The mailbox is a small mailbox.",
+      "flags": [
+        "VISIBT",
+        "CONTBT",
+        "OPENBT"
+      ],
+      "initial_room": "whous",
+      "capacity": 10
+    },
+    "leafl": {
+      "name": "leaflet",
+      "synonyms": [
+        "paper",
+        "flyer"
+      ],
+      "description": "",
+      "examine": "The leaflet is a small piece of paper.",
+      "read_text": "WELCOME TO ZORK!\n\nZORK is a game of adventure, danger, and low cunning. In it you will explore some of the most amazing territory ever seen by mortals. No computer should be without one!",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "READBT"
+      ],
+      "initial_container": "mailb",
+      "size": 2
+    },
+    "sword": {
+      "name": "elvish sword",
+      "synonyms": [
+        "sword",
+        "blade"
+      ],
+      "adjectives": [
+        "elvish",
+        "antique"
+      ],
+      "description": "Above the trophy case hangs an elvish sword of great antiquity.",
+      "examine": "The sword is of exquisite craftsmanship. It is inscribed with ancient elvish runes.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "initial_room": "lroom",
+      "size": 30
+    },
+    "lamp": {
+      "name": "brass lantern",
+      "synonyms": [
+        "lamp",
+        "lantern",
+        "light"
+      ],
+      "adjectives": [
+        "brass"
+      ],
+      "description": "There is a brass lantern (battery-powered) here.",
+      "examine": "The lamp is a battery-powered brass lantern.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "LITEBT"
+      ],
+      "initial_room": "lroom",
+      "size": 15,
+      "properties": {
+        "light_remaining": 350
+      }
+    },
+    "tcase": {
+      "name": "trophy case",
+      "synonyms": [
+        "case"
+      ],
+      "adjectives": [
+        "trophy"
+      ],
+      "description": "",
+      "examine": "The trophy case is empty.",
+      "flags": [
+        "VISIBT",
+        "CONTBT",
+        "TRANBT",
+        "OPENBT"
+      ],
+      "initial_room": "lroom",
+      "capacity": 100
+    },
+    "rug": {
+      "name": "oriental rug",
+      "synonyms": [
+        "rug",
+        "carpet"
+      ],
+      "adjectives": [
+        "oriental",
+        "large"
+      ],
+      "description": "",
+      "examine": "The rug is extremely beautiful and tightly woven. It does not appear to be attached to the floor.",
+      "flags": [
+        "VISIBT"
+      ],
+      "initial_room": "lroom"
+    },
+    "windo": {
+      "name": "small window",
+      "synonyms": [
+        "window"
+      ],
+      "adjectives": [
+        "small"
+      ],
+      "description": "",
+      "examine": "The window is slightly ajar.",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "OPENBT"
+      ],
+      "initial_room": "ehous"
+    },
+    "rope": {
+      "name": "coil of rope",
+      "synonyms": [
+        "rope",
+        "coil"
+      ],
+      "description": "A large coil of rope is lying in the corner.",
+      "examine": "The rope is strong and about 50 feet long.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TIEBT"
+      ],
+      "initial_room": "attic",
+      "size": 10
+    },
+    "knife": {
+      "name": "nasty knife",
+      "synonyms": [
+        "knife",
+        "blade"
+      ],
+      "adjectives": [
+        "nasty"
+      ],
+      "description": "On a table is a nasty-looking knife.",
+      "examine": "The knife looks very sharp and unpleasant.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "initial_room": "attic",
+      "size": 20
+    },
+    "troll": {
+      "name": "troll",
+      "synonyms": [
+        "troll",
+        "monster"
+      ],
+      "description": "A nasty-looking troll, brandishing a bloody axe, blocks all passages out of the room.",
+      "examine": "The troll is a large, nasty creature that wants nothing more than to kill you.",
+      "flags": [
+        "VISIBT",
+        "ACTRBT",
+        "VILLBT",
+        "FITEBT"
+      ],
+      "initial_room": "mtrol"
+    },
+    "axe": {
+      "name": "bloody axe",
+      "synonyms": [
+        "axe"
+      ],
+      "adjectives": [
+        "bloody"
+      ],
+      "description": "",
+      "examine": "The axe is covered in blood and looks extremely dangerous.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "initial_room": null
+    },
+    "sack": {
+      "name": "brown sack",
+      "synonyms": [
+        "sack",
+        "bag"
+      ],
+      "adjectives": [
+        "brown",
+        "elongated"
+      ],
+      "description": "On the table is an elongated brown sack, smelling of hot peppers.",
+      "examine": "The sack is an ordinary brown sack.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT"
+      ],
+      "initial_room": "kitch",
+      "size": 9,
+      "capacity": 15
+    },
+    "garli": {
+      "name": "clove of garlic",
+      "synonyms": [
+        "garlic",
+        "clove"
+      ],
+      "description": "",
+      "examine": "The garlic is a standard cooking ingredient.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "initial_container": "sack",
+      "size": 4
+    },
+    "food": {
+      "name": "lunch",
+      "synonyms": [
+        "food",
+        "lunch",
+        "sandwich"
+      ],
+      "description": "",
+      "examine": "The lunch looks delicious.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "initial_container": "sack",
+      "size": 6
+    },
+    "bottl": {
+      "name": "glass bottle",
+      "synonyms": [
+        "bottle"
+      ],
+      "adjectives": [
+        "glass"
+      ],
+      "description": "A bottle is sitting on the table.",
+      "examine": "The glass bottle contains a quantity of water.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT",
+        "TRANBT"
+      ],
+      "initial_room": "kitch",
+      "size": 7,
+      "capacity": 5
+    },
+    "water": {
+      "name": "quantity of water",
+      "synonyms": [
+        "water",
+        "liquid"
+      ],
+      "description": "",
+      "examine": "It looks like ordinary water.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "DRNKBT"
+      ],
+      "initial_container": "bottl",
+      "size": 4
+    },
+    "nest": {
+      "name": "bird's nest",
+      "synonyms": [
+        "nest"
+      ],
+      "adjectives": [
+        "bird's",
+        "small"
+      ],
+      "description": "Beside you on the branch is a small bird's nest.",
+      "examine": "The nest looks like it was made by a songbird of some kind.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT"
+      ],
+      "initial_room": "uptree",
+      "size": 5,
+      "capacity": 5
+    },
+    "egg": {
+      "name": "jewel-encrusted egg",
+      "synonyms": [
+        "egg"
+      ],
+      "adjectives": [
+        "jeweled",
+        "jewel-encrusted"
+      ],
+      "description": "",
+      "examine": "The egg is covered with beautiful jewels that glitter in the light.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "VICTBT"
+      ],
+      "initial_container": "nest",
+      "size": 6,
+      "value": 5,
+      "tval": 10
+    }
+  }
+}

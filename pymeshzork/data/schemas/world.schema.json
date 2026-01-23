@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pymeshzork.example/schemas/world.schema.json",
+  "title": "PyMeshZork World",
+  "description": "Schema for a complete PyMeshZork game world",
+  "type": "object",
+  "required": ["meta", "rooms", "objects"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "description": "World metadata",
+      "required": ["id", "name", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this world"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the world"
+        },
+        "version": {
+          "type": "string",
+          "description": "Version string (semver format)"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author or source attribution"
+        },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the world"
+        },
+        "max_score": {
+          "type": "integer",
+          "description": "Maximum achievable score",
+          "default": 350
+        },
+        "starting_room": {
+          "type": "string",
+          "description": "Room ID where player starts",
+          "default": "whous"
+        }
+      }
+    },
+    "rooms": {
+      "type": "object",
+      "description": "Map of room ID to room definition",
+      "additionalProperties": {
+        "$ref": "#/$defs/room"
+      }
+    },
+    "objects": {
+      "type": "object",
+      "description": "Map of object ID to object definition",
+      "additionalProperties": {
+        "$ref": "#/$defs/object"
+      }
+    },
+    "messages": {
+      "type": "object",
+      "description": "Map of message ID to message text",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "events": {
+      "type": "object",
+      "description": "Map of event ID to event definition",
+      "additionalProperties": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "actors": {
+      "type": "object",
+      "description": "Map of actor ID to actor definition",
+      "additionalProperties": {
+        "$ref": "#/$defs/actor"
+      }
+    }
+  },
+  "$defs": {
+    "room": {
+      "type": "object",
+      "required": ["name", "description_first"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the room"
+        },
+        "description_first": {
+          "type": "string",
+          "description": "Full description shown on first visit"
+        },
+        "description_short": {
+          "type": "string",
+          "description": "Brief description for subsequent visits"
+        },
+        "flags": {
+          "type": "array",
+          "description": "Room property flags",
+          "items": {
+            "type": "string",
+            "enum": ["RSEEN", "RLIGHT", "RLAND", "RWATER", "RAIR", "RSACRD", "RFILL", "RMUNG", "RBUCK", "RHOUSE", "RNWALL", "REND"]
+          }
+        },
+        "exits": {
+          "type": "array",
+          "description": "Available exits from this room",
+          "items": {
+            "$ref": "#/$defs/exit"
+          }
+        },
+        "action": {
+          "type": "string",
+          "description": "Special action handler name"
+        },
+        "value": {
+          "type": "integer",
+          "description": "Score value for visiting/completing",
+          "default": 0
+        }
+      }
+    },
+    "exit": {
+      "type": "object",
+      "required": ["direction", "destination"],
+      "properties": {
+        "direction": {
+          "type": "string",
+          "description": "Direction of travel",
+          "enum": ["north", "south", "east", "west", "northeast", "northwest", "southeast", "southwest", "up", "down", "enter", "exit", "land", "launch"]
+        },
+        "destination": {
+          "type": "string",
+          "description": "Target room ID"
+        },
+        "type": {
+          "type": "string",
+          "description": "Exit type",
+          "enum": ["normal", "no_exit", "conditional", "door"],
+          "default": "normal"
+        },
+        "door_object": {
+          "type": "string",
+          "description": "Object ID of door (for door type exits)"
+        },
+        "condition": {
+          "type": "string",
+          "description": "Condition function name (for conditional exits)"
+        },
+        "message": {
+          "type": "string",
+          "description": "Message shown when blocked"
+        }
+      }
+    },
+    "object": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the object"
+        },
+        "adjectives": {
+          "type": "array",
+          "description": "Adjectives that can describe this object",
+          "items": {"type": "string"}
+        },
+        "synonyms": {
+          "type": "array",
+          "description": "Alternative names for the object",
+          "items": {"type": "string"}
+        },
+        "description": {
+          "type": "string",
+          "description": "Description when object is in a room"
+        },
+        "examine": {
+          "type": "string",
+          "description": "Text shown when examining the object"
+        },
+        "read_text": {
+          "type": "string",
+          "description": "Text shown when reading the object"
+        },
+        "flags": {
+          "type": "array",
+          "description": "Object property flags",
+          "items": {
+            "type": "string",
+            "enum": ["VISIBT", "READBT", "TAKEBT", "DOORBT", "TRANBT", "FOODBT", "NDSCBT", "DRNKBT", "CONTBT", "LITEBT", "VICTBT", "BURNBT", "FLAMBT", "TOOLBT", "TURNBT", "ONBT", "FINDBT", "SLEPBT", "SCRDBT", "TIEBT", "CLMBBT", "ACTRBT", "WEAPBT", "FITEBT", "VILLBT", "STAGBT", "TRYBT", "NOCHBT", "OPENBT", "TCHBT", "VEHBT", "SCHBT"]
+          }
+        },
+        "initial_room": {
+          "type": ["string", "null"],
+          "description": "Room ID where object starts (null if carried or contained)"
+        },
+        "initial_container": {
+          "type": ["string", "null"],
+          "description": "Object ID of container that holds this object"
+        },
+        "size": {
+          "type": "integer",
+          "description": "Size/weight for inventory calculations",
+          "default": 0
+        },
+        "capacity": {
+          "type": "integer",
+          "description": "Container capacity (0 if not container)",
+          "default": 0
+        },
+        "value": {
+          "type": "integer",
+          "description": "Treasure value",
+          "default": 0
+        },
+        "tval": {
+          "type": "integer",
+          "description": "Trophy case value",
+          "default": 0
+        },
+        "action": {
+          "type": "string",
+          "description": "Special action handler name"
+        },
+        "properties": {
+          "type": "object",
+          "description": "Custom properties for special objects",
+          "additionalProperties": true
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "required": ["name", "action"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the event"
+        },
+        "ticks": {
+          "type": "integer",
+          "description": "Initial tick count (0 = inactive)",
+          "default": 0
+        },
+        "action": {
+          "type": "string",
+          "description": "Action handler name"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether event is active",
+          "default": false
+        },
+        "repeating": {
+          "type": "boolean",
+          "description": "Whether event repeats after firing",
+          "default": false
+        }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "required": ["name", "initial_room"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Display name of the actor"
+        },
+        "initial_room": {
+          "type": "string",
+          "description": "Starting room ID"
+        },
+        "strength": {
+          "type": "integer",
+          "description": "Combat strength",
+          "default": 0
+        },
+        "action": {
+          "type": "string",
+          "description": "AI action handler name"
+        }
+      }
+    }
+  }
+}

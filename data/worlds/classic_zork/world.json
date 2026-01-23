@@ -1,0 +1,694 @@
+{
+  "meta": {
+    "id": "classic_zork",
+    "name": "Zork I: The Great Underground Empire",
+    "version": "1.0.0",
+    "author": "Infocom (converted by PyMeshZork)",
+    "description": "The classic text adventure game - West of House and surrounding areas",
+    "max_score": 350,
+    "starting_room": "whous"
+  },
+  "rooms": {
+    "whous": {
+      "name": "West of House",
+      "description_first": "You are standing in an open field west of a white house, with a boarded front door.",
+      "description_short": "West of House",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "north",
+          "destination": "nhous"
+        },
+        {
+          "direction": "south",
+          "destination": "shous"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "east",
+          "destination": "whous",
+          "type": "no_exit",
+          "message": "The door is boarded and you can't remove the boards."
+        },
+        {
+          "direction": "southwest",
+          "destination": "fore1"
+        },
+        {
+          "direction": "northwest",
+          "destination": "fore1"
+        }
+      ]
+    },
+    "nhous": {
+      "name": "North of House",
+      "description_first": "You are facing the north side of a white house. There is no door here, and all the windows are boarded up. To the north a narrow path winds through the trees.",
+      "description_short": "North of House",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "south",
+          "destination": "whous"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "east",
+          "destination": "ehous"
+        },
+        {
+          "direction": "north",
+          "destination": "fore3"
+        }
+      ]
+    },
+    "shous": {
+      "name": "South of House",
+      "description_first": "You are facing the south side of a white house. There is no door here, and all the windows are boarded.",
+      "description_short": "South of House",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "north",
+          "destination": "whous"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "east",
+          "destination": "ehous"
+        }
+      ]
+    },
+    "ehous": {
+      "name": "Behind House",
+      "description_first": "You are behind the white house. A path leads into the forest to the east. In one corner of the house there is a small window which is slightly ajar.",
+      "description_short": "Behind House",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "north",
+          "destination": "nhous"
+        },
+        {
+          "direction": "south",
+          "destination": "shous"
+        },
+        {
+          "direction": "east",
+          "destination": "clear"
+        },
+        {
+          "direction": "west",
+          "destination": "kitch",
+          "type": "door",
+          "door_object": "windo"
+        },
+        {
+          "direction": "enter",
+          "destination": "kitch",
+          "type": "door",
+          "door_object": "windo"
+        }
+      ]
+    },
+    "kitch": {
+      "name": "Kitchen",
+      "description_first": "You are in the kitchen of the white house. A table seems to have been used recently for the preparation of food. A passage leads to the west and a dark staircase can be seen leading upward. A dark chimney leads down and to the east is a small window which is open.",
+      "description_short": "Kitchen",
+      "flags": [
+        "RLIGHT",
+        "RLAND",
+        "RHOUSE"
+      ],
+      "exits": [
+        {
+          "direction": "east",
+          "destination": "ehous",
+          "type": "door",
+          "door_object": "windo"
+        },
+        {
+          "direction": "west",
+          "destination": "lroom"
+        },
+        {
+          "direction": "up",
+          "destination": "attic"
+        },
+        {
+          "direction": "down",
+          "destination": "cella",
+          "type": "conditional",
+          "message": "Only Santa Claus climbs down chimneys."
+        }
+      ]
+    },
+    "lroom": {
+      "name": "Living Room",
+      "description_first": "You are in the living room. There is a doorway to the east, a wooden door with strange gothic lettering to the west, which appears to be nailed shut, a trophy case, and a large oriental rug in the center of the room.",
+      "description_short": "Living Room",
+      "flags": [
+        "RLIGHT",
+        "RLAND",
+        "RHOUSE"
+      ],
+      "exits": [
+        {
+          "direction": "east",
+          "destination": "kitch"
+        },
+        {
+          "direction": "west",
+          "destination": "lroom",
+          "type": "no_exit",
+          "message": "The door is nailed shut."
+        },
+        {
+          "direction": "down",
+          "destination": "cella",
+          "type": "conditional",
+          "condition": "rug_moved"
+        }
+      ]
+    },
+    "attic": {
+      "name": "Attic",
+      "description_first": "This is the attic. The only exit is a stairway leading down. A large coil of rope is lying in the corner. On a table is a nasty-looking knife.",
+      "description_short": "Attic",
+      "flags": [
+        "RLIGHT",
+        "RLAND",
+        "RHOUSE"
+      ],
+      "exits": [
+        {
+          "direction": "down",
+          "destination": "kitch"
+        }
+      ]
+    },
+    "cella": {
+      "name": "Cellar",
+      "description_first": "You are in a dark and damp cellar with a narrow passageway leading north, and a crawlway to the south. On the west is the bottom of a steep metal ramp which is unclimbable.",
+      "description_short": "Cellar",
+      "flags": [
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "up",
+          "destination": "lroom"
+        },
+        {
+          "direction": "north",
+          "destination": "mtrol"
+        },
+        {
+          "direction": "south",
+          "destination": "estof"
+        },
+        {
+          "direction": "west",
+          "destination": "cella",
+          "type": "no_exit",
+          "message": "The ramp is too steep to climb."
+        }
+      ]
+    },
+    "mtrol": {
+      "name": "Troll Room",
+      "description_first": "This is a small room with passages to the east and south and a forbidding hole leading west. Bloodstains and deep scratches (perhaps made by straining fingers) mar the walls.",
+      "description_short": "Troll Room",
+      "flags": [
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "south",
+          "destination": "cella"
+        },
+        {
+          "direction": "east",
+          "destination": "emaze"
+        },
+        {
+          "direction": "west",
+          "destination": "mtrol",
+          "type": "conditional",
+          "condition": "troll_gone",
+          "message": "The troll fends you off with a menacing gesture."
+        }
+      ]
+    },
+    "fore1": {
+      "name": "Forest",
+      "description_first": "This is a forest, with trees in all directions. To the east, there appears to be sunlight.",
+      "description_short": "Forest",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "east",
+          "destination": "whous"
+        },
+        {
+          "direction": "north",
+          "destination": "fore3"
+        },
+        {
+          "direction": "south",
+          "destination": "fore1"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        }
+      ]
+    },
+    "fore3": {
+      "name": "Forest Path",
+      "description_first": "This is a path winding through a dimly lit forest. The path heads north-south here. One particularly large tree with some low branches stands at the edge of the path.",
+      "description_short": "Forest Path",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "south",
+          "destination": "nhous"
+        },
+        {
+          "direction": "north",
+          "destination": "clear"
+        },
+        {
+          "direction": "east",
+          "destination": "fore1"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "up",
+          "destination": "uptree"
+        }
+      ]
+    },
+    "clear": {
+      "name": "Clearing",
+      "description_first": "You are in a clearing, with a forest surrounding you on all sides. A path leads south.",
+      "description_short": "Clearing",
+      "flags": [
+        "RLIGHT",
+        "RLAND"
+      ],
+      "exits": [
+        {
+          "direction": "south",
+          "destination": "fore3"
+        },
+        {
+          "direction": "west",
+          "destination": "fore1"
+        },
+        {
+          "direction": "east",
+          "destination": "canyv"
+        }
+      ]
+    },
+    "uptree": {
+      "name": "Up a Tree",
+      "description_first": "You are about 10 feet above the ground nestled among some large branches. The nearest branch above you is above your reach. Beside you on the branch is a small bird's nest.",
+      "description_short": "Up a Tree",
+      "flags": [
+        "RLIGHT",
+        "RAIR"
+      ],
+      "exits": [
+        {
+          "direction": "down",
+          "destination": "fore3"
+        }
+      ]
+    }
+  },
+  "objects": {
+    "mailb": {
+      "name": "small mailbox",
+      "synonyms": [
+        "mailbox",
+        "box"
+      ],
+      "adjectives": [
+        "small"
+      ],
+      "description": "There is a small mailbox here.",
+      "examine": "The mailbox is a small mailbox.",
+      "flags": [
+        "VISIBT",
+        "CONTBT",
+        "OPENBT"
+      ],
+      "initial_room": "whous",
+      "capacity": 10
+    },
+    "leafl": {
+      "name": "leaflet",
+      "synonyms": [
+        "paper",
+        "flyer"
+      ],
+      "description": "",
+      "examine": "The leaflet is a small piece of paper.",
+      "read_text": "WELCOME TO ZORK!\n\nZORK is a game of adventure, danger, and low cunning. In it you will explore some of the most amazing territory ever seen by mortals. No computer should be without one!",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "READBT"
+      ],
+      "initial_container": "mailb",
+      "size": 2
+    },
+    "sword": {
+      "name": "elvish sword",
+      "synonyms": [
+        "sword",
+        "blade"
+      ],
+      "adjectives": [
+        "elvish",
+        "antique"
+      ],
+      "description": "Above the trophy case hangs an elvish sword of great antiquity.",
+      "examine": "The sword is of exquisite craftsmanship. It is inscribed with ancient elvish runes.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "initial_room": "lroom",
+      "size": 30
+    },
+    "lamp": {
+      "name": "brass lantern",
+      "synonyms": [
+        "lamp",
+        "lantern",
+        "light"
+      ],
+      "adjectives": [
+        "brass"
+      ],
+      "description": "There is a brass lantern (battery-powered) here.",
+      "examine": "The lamp is a battery-powered brass lantern.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "LITEBT"
+      ],
+      "initial_room": "lroom",
+      "size": 15,
+      "properties": {
+        "light_remaining": 350
+      }
+    },
+    "tcase": {
+      "name": "trophy case",
+      "synonyms": [
+        "case"
+      ],
+      "adjectives": [
+        "trophy"
+      ],
+      "description": "",
+      "examine": "The trophy case is empty.",
+      "flags": [
+        "VISIBT",
+        "CONTBT",
+        "TRANBT",
+        "OPENBT"
+      ],
+      "initial_room": "lroom",
+      "capacity": 100
+    },
+    "rug": {
+      "name": "oriental rug",
+      "synonyms": [
+        "rug",
+        "carpet"
+      ],
+      "adjectives": [
+        "oriental",
+        "large"
+      ],
+      "description": "",
+      "examine": "The rug is extremely beautiful and tightly woven. It does not appear to be attached to the floor.",
+      "flags": [
+        "VISIBT"
+      ],
+      "initial_room": "lroom"
+    },
+    "windo": {
+      "name": "small window",
+      "synonyms": [
+        "window"
+      ],
+      "adjectives": [
+        "small"
+      ],
+      "description": "",
+      "examine": "The window is slightly ajar.",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "OPENBT"
+      ],
+      "initial_room": "ehous"
+    },
+    "rope": {
+      "name": "coil of rope",
+      "synonyms": [
+        "rope",
+        "coil"
+      ],
+      "description": "A large coil of rope is lying in the corner.",
+      "examine": "The rope is strong and about 50 feet long.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TIEBT"
+      ],
+      "initial_room": "attic",
+      "size": 10
+    },
+    "knife": {
+      "name": "nasty knife",
+      "synonyms": [
+        "knife",
+        "blade"
+      ],
+      "adjectives": [
+        "nasty"
+      ],
+      "description": "On a table is a nasty-looking knife.",
+      "examine": "The knife looks very sharp and unpleasant.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "initial_room": "attic",
+      "size": 20
+    },
+    "troll": {
+      "name": "troll",
+      "synonyms": [
+        "troll",
+        "monster"
+      ],
+      "description": "A nasty-looking troll, brandishing a bloody axe, blocks all passages out of the room.",
+      "examine": "The troll is a large, nasty creature that wants nothing more than to kill you.",
+      "flags": [
+        "VISIBT",
+        "ACTRBT",
+        "VILLBT",
+        "FITEBT"
+      ],
+      "initial_room": "mtrol"
+    },
+    "axe": {
+      "name": "bloody axe",
+      "synonyms": [
+        "axe"
+      ],
+      "adjectives": [
+        "bloody"
+      ],
+      "description": "",
+      "examine": "The axe is covered in blood and looks extremely dangerous.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "initial_room": null
+    },
+    "sack": {
+      "name": "brown sack",
+      "synonyms": [
+        "sack",
+        "bag"
+      ],
+      "adjectives": [
+        "brown",
+        "elongated"
+      ],
+      "description": "On the table is an elongated brown sack, smelling of hot peppers.",
+      "examine": "The sack is an ordinary brown sack.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT"
+      ],
+      "initial_room": "kitch",
+      "size": 9,
+      "capacity": 15
+    },
+    "garli": {
+      "name": "clove of garlic",
+      "synonyms": [
+        "garlic",
+        "clove"
+      ],
+      "description": "",
+      "examine": "The garlic is a standard cooking ingredient.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "initial_container": "sack",
+      "size": 4
+    },
+    "food": {
+      "name": "lunch",
+      "synonyms": [
+        "food",
+        "lunch",
+        "sandwich"
+      ],
+      "description": "",
+      "examine": "The lunch looks delicious.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "initial_container": "sack",
+      "size": 6
+    },
+    "bottl": {
+      "name": "glass bottle",
+      "synonyms": [
+        "bottle"
+      ],
+      "adjectives": [
+        "glass"
+      ],
+      "description": "A bottle is sitting on the table.",
+      "examine": "The glass bottle contains a quantity of water.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT",
+        "TRANBT"
+      ],
+      "initial_room": "kitch",
+      "size": 7,
+      "capacity": 5
+    },
+    "water": {
+      "name": "quantity of water",
+      "synonyms": [
+        "water",
+        "liquid"
+      ],
+      "description": "",
+      "examine": "It looks like ordinary water.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "DRNKBT"
+      ],
+      "initial_container": "bottl",
+      "size": 4
+    },
+    "nest": {
+      "name": "bird's nest",
+      "synonyms": [
+        "nest"
+      ],
+      "adjectives": [
+        "bird's",
+        "small"
+      ],
+      "description": "Beside you on the branch is a small bird's nest.",
+      "examine": "The nest looks like it was made by a songbird of some kind.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT"
+      ],
+      "initial_room": "uptree",
+      "size": 5,
+      "capacity": 5
+    },
+    "egg": {
+      "name": "jewel-encrusted egg",
+      "synonyms": [
+        "egg"
+      ],
+      "adjectives": [
+        "jeweled",
+        "jewel-encrusted"
+      ],
+      "description": "",
+      "examine": "The egg is covered with beautiful jewels that glitter in the light.",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "VICTBT"
+      ],
+      "initial_container": "nest",
+      "size": 6,
+      "value": 5,
+      "tval": 10
+    }
+  },
+  "messages": {}
+}
