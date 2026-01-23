@@ -225,6 +225,7 @@ class MainWindow(QMainWindow):
         view_menu.addSeparator()
 
         self.action_auto_layout = QAction("&Auto Layout", self)
+        self.action_auto_layout.setShortcut(QKeySequence("Ctrl+L"))
         self.action_auto_layout.triggered.connect(self._auto_layout)
         view_menu.addAction(self.action_auto_layout)
 
@@ -270,6 +271,7 @@ class MainWindow(QMainWindow):
         toolbar.addAction(self.action_zoom_in)
         toolbar.addAction(self.action_zoom_out)
         toolbar.addAction(self.action_zoom_fit)
+        toolbar.addAction(self.action_auto_layout)
         toolbar.addSeparator()
         toolbar.addAction(self.action_validate)
         toolbar.addAction(self.action_test_play)
@@ -529,11 +531,18 @@ class MainWindow(QMainWindow):
         self.status_zoom.setText(f"Zoom: {zoom}%")
 
     def _auto_layout(self) -> None:
-        """Automatically arrange rooms."""
+        """Automatically arrange rooms using force-directed layout."""
         if self.world:
+            room_count = len(self.world.rooms)
+            self.statusbar.showMessage(f"Applying auto layout to {room_count} rooms...")
+            self.setCursor(Qt.CursorShape.WaitCursor)
+
+            # Run the layout algorithm
             self.map_canvas.auto_layout()
+
+            self.setCursor(Qt.CursorShape.ArrowCursor)
             self._mark_modified()
-            self.statusbar.showMessage("Auto layout applied")
+            self.statusbar.showMessage(f"Auto layout complete - {room_count} rooms arranged")
 
     # === Tools ===
 

@@ -231,23 +231,152 @@ class MapCanvas(QWidget):
 
         self.update()
 
-    def auto_layout(self) -> None:
-        """Automatically arrange rooms in a grid-like layout."""
+    def auto_layout(self, iterations: int = 100) -> None:
+        """Automatically arrange rooms using force-directed graph layout.
+
+        Uses a physics simulation where:
+        - Connected rooms attract each other (springs)
+        - All rooms repel each other (electrostatic)
+        - The layout stabilizes over iterations
+        """
         if not self.world or not self.world.rooms:
             return
 
-        # Simple grid layout
-        cols = max(3, int(math.sqrt(len(self.world.rooms))))
-        spacing_x = self.ROOM_WIDTH + 80
-        spacing_y = self.ROOM_HEIGHT + 60
+        rooms = list(self.world.rooms.values())
+        room_ids = list(self.world.rooms.keys())
+        n = len(rooms)
 
-        for i, (room_id, room) in enumerate(self.world.rooms.items()):
-            col = i % cols
-            row = i // cols
-            room.x = 100 + col * spacing_x
-            room.y = 100 + row * spacing_y
+        if n == 0:
+            return
+
+        # Initialize positions - start from current or spread in circle
+        positions: dict[str, list[float]] = {}
+        starting_room = self.world.meta.get("starting_room", room_ids[0] if room_ids else None)
+
+        for i, room_id in enumerate(room_ids):
+            room = self.world.rooms[room_id]
+            # If room has no position yet, place in circle
+            if room.x == 0 and room.y == 0:
+                angle = 2 * math.pi * i / n
+                radius = 300 + n * 10
+                positions[room_id] = [
+                    500 + radius * math.cos(angle),
+                    400 + radius * math.sin(angle)
+                ]
+            else:
+                positions[room_id] = [room.x, room.y]
+
+        # Build connection graph
+        connections: set[tuple[str, str]] = set()
+        for room_id, room in self.world.rooms.items():
+            for exit in room.exits:
+                dest = exit.get("destination")
+                if dest and dest in self.world.rooms:
+                    # Use sorted tuple to avoid duplicates
+                    connections.add(tuple(sorted([room_id, dest])))
+
+        # Force-directed layout parameters
+        k_repel = 50000.0  # Repulsion constant
+        k_attract = 0.05   # Attraction constant (spring)
+        ideal_length = 200  # Ideal edge length
+        damping = 0.85     # Velocity damping
+        min_dist = 50      # Minimum distance between rooms
+
+        # Velocity storage
+        velocities: dict[str, list[float]] = {rid: [0.0, 0.0] for rid in room_ids}
+
+        # Run simulation
+        for iteration in range(iterations):
+            forces: dict[str, list[float]] = {rid: [0.0, 0.0] for rid in room_ids}
+
+            # Calculate repulsion between all pairs
+            for i, id1 in enumerate(room_ids):
+                for j, id2 in enumerate(room_ids):
+                    if i >= j:
+                        continue
+
+                    dx = positions[id2][0] - positions[id1][0]
+                    dy = positions[id2][1] - positions[id1][1]
+                    dist = math.sqrt(dx * dx + dy * dy)
+
+                    if dist < min_dist:
+                        dist = min_dist
+
+                    # Repulsion force (inverse square law)
+                    force = k_repel / (dist * dist)
+
+                    # Normalize and apply
+                    if dist > 0:
+                        fx = (dx / dist) * force
+                        fy = (dy / dist) * force
+                        forces[id1][0] -= fx
+                        forces[id1][1] -= fy
+                        forces[id2][0] += fx
+                        forces[id2][1] += fy
+
+            # Calculate attraction for connected rooms (springs)
+            for id1, id2 in connections:
+                dx = positions[id2][0] - positions[id1][0]
+                dy = positions[id2][1] - positions[id1][1]
+                dist = math.sqrt(dx * dx + dy * dy)
+
+                if dist < 1:
+                    dist = 1
+
+                # Spring force (Hooke's law)
+                displacement = dist - ideal_length
+                force = k_attract * displacement
+
+                # Normalize and apply
+                fx = (dx / dist) * force
+                fy = (dy / dist) * force
+                forces[id1][0] += fx
+                forces[id1][1] += fy
+                forces[id2][0] -= fx
+                forces[id2][1] -= fy
+
+            # Apply forces with damping
+            max_displacement = 0
+            for room_id in room_ids:
+                # Update velocity
+                velocities[room_id][0] = (velocities[room_id][0] + forces[room_id][0]) * damping
+                velocities[room_id][1] = (velocities[room_id][1] + forces[room_id][1]) * damping
+
+                # Limit velocity
+                speed = math.sqrt(velocities[room_id][0]**2 + velocities[room_id][1]**2)
+                max_speed = 50
+                if speed > max_speed:
+                    velocities[room_id][0] *= max_speed / speed
+                    velocities[room_id][1] *= max_speed / speed
+
+                # Update position
+                positions[room_id][0] += velocities[room_id][0]
+                positions[room_id][1] += velocities[room_id][1]
+
+                displacement = math.sqrt(velocities[room_id][0]**2 + velocities[room_id][1]**2)
+                max_displacement = max(max_displacement, displacement)
+
+            # Early termination if stable
+            if max_displacement < 0.5 and iteration > 20:
+                break
+
+        # Apply final positions, snapped to grid
+        for room_id, pos in positions.items():
+            room = self.world.rooms[room_id]
+            room.x = round(pos[0] / self.GRID_SIZE) * self.GRID_SIZE
+            room.y = round(pos[1] / self.GRID_SIZE) * self.GRID_SIZE
+
+        # Center the starting room if it exists
+        if starting_room and starting_room in positions:
+            start_room = self.world.rooms[starting_room]
+            offset_x = 400 - start_room.x
+            offset_y = 300 - start_room.y
+            for room in self.world.rooms.values():
+                room.x += offset_x
+                room.y += offset_y
 
         self.update()
+        self.zoom_fit()
 
     # === Coordinate Conversion ===
 
