@@ -1,129 +1,272 @@
+# PyMeshZork
+
+A modern Python implementation of the classic Zork text adventure game, featuring a GUI map editor and designed for future Meshtastic mesh network multiplayer support.
+
 ```
-Welcome to Dungeon.			This version created 11-MAR-91.
-You are in an open field west of a big white house with a boarded
-front door.
+ZORK I: The Great Underground Empire
+PyMeshZork Version 0.1.0
+
+West of House
+You are standing in an open field west of a white house, with a boarded front door.
 There is a small mailbox here.
+
 >
 ```
-# DUNGEON (Zork I)
 
-Public Domain source code to the original DUNGEON game (Zork I). Released to the PD by Infocom. Includes 
-source files, headers, and information.
+## Features
+
+- **Complete Zork I Implementation** - 98 rooms, 57 objects, all classic puzzles
+- **JSON-Based World Data** - Easily editable game content
+- **GUI Map Editor** - Visual world building with drag-and-drop rooms
+- **Player Accounts** - Persistent progress with save/load support
+- **Team System** - Create teams with roles, invites, and shared progress
+- **Extensible Architecture** - Add custom worlds and puzzles
+
+## Installation
+
+### Prerequisites
+
+- Python 3.10 or higher
+- pip package manager
+
+### Quick Install
+
+```bash
+# Clone the repository
+git clone https://github.com/haxorthematrix/pymeshzork.git
+cd pymeshzork
+
+# Create virtual environment (recommended)
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install the package
+pip install -e .
+
+# For GUI map editor support
+pip install -e ".[editor]"
+```
+
+### Dependencies
+
+Core dependencies are installed automatically:
+- `rich` - Beautiful terminal formatting
+- `prompt_toolkit` - Enhanced input handling
+- `bcrypt` - Secure password hashing
+
+Optional for GUI editor:
+- `PyQt6` - Cross-platform GUI framework
+
+## Usage
+
+### Playing Zork
+
+Start the game from the command line:
+
+```bash
+# Using the installed command
+zork
+
+# Or run directly with Python
+python -m pymeshzork.cli
+```
+
+#### Basic Commands
+
+| Command | Description |
+|---------|-------------|
+| `look` (or `l`) | Describe current room |
+| `inventory` (or `i`) | Show carried items |
+| `take <item>` | Pick up an item |
+| `drop <item>` | Put down an item |
+| `open <object>` | Open a container or door |
+| `examine <object>` | Look closely at something |
+| `go <direction>` | Move (n, s, e, w, up, down) |
+| `save` | Save your game |
+| `restore` | Load a saved game |
+| `quit` | Exit the game |
+
+#### Movement
+
+Use compass directions or shortcuts:
+- `north` / `n`
+- `south` / `s`
+- `east` / `e`
+- `west` / `w`
+- `up` / `u`
+- `down` / `d`
+- `northeast` / `ne`
+- `northwest` / `nw`
+- `southeast` / `se`
+- `southwest` / `sw`
+
+### GUI Map Editor
+
+Launch the visual map editor:
+
+```bash
+# Using the installed command
+zork-editor
+
+# Or run directly with Python
+python -m pymeshzork.editor.main
+```
+
+#### Editor Features
+
+- **Visual Map Display** - Rooms as draggable nodes with connection lines
+- **Room Editor Panel** - Edit names, descriptions, flags, and exits
+- **Object Editor Panel** - Manage items, containers, and properties
+- **Auto-Layout** - Automatically arrange rooms (Ctrl+L)
+- **Connection Tool** - Click and drag to create exits between rooms
+- **Validation** - Detect orphan rooms and missing exits
+
+#### Editor Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+N` | New world |
+| `Ctrl+O` | Open world |
+| `Ctrl+S` | Save world |
+| `Ctrl+L` | Auto-layout rooms |
+| `C` | Start connection from selected room |
+| `Escape` | Cancel / Deselect |
+| `Ctrl+0` | Fit map to window |
+| `Mouse wheel` | Zoom in/out |
+| `Middle-click drag` | Pan the map |
+
+### Player Accounts
+
+Create and manage player accounts in-game:
 
 ```
-$ make
+> account create myname
+> account login myname
+> account info
+> account list
 ```
 
-## History of the C Implementation of Dungeon
+### Teams
 
-This version of dungeon has been modified from FORTRAN to C.  The
-original was written in DEC FORTRAN, translated from MDL.  It was then
-translated to f77 for UN*X systems, from which it was translated to C.
-The C translation was done with the help of f2c, the FORTRAN to C
-translator written by David Gay (AT&T Bell Labs), Stu Feldman
-(Bellcore), Mark Maimone (Carnegie-Mellon University), and Norm
-Schryer (AT&T Bell Labs).
+Form teams for collaborative play:
 
-I. From the original documentation...
+```
+> team create "Grue Hunters"
+> team invite playername
+> team join "Grue Hunters"
+> team info
+```
 
-To: Dungeon Players
-From: "The Translator"
-Subj: Game Information
-Date: 8-OCT-80
+## Project Structure
 
+```
+pymeshzork/
+├── pymeshzork/
+│   ├── engine/          # Core game engine
+│   │   ├── game.py      # Main game loop
+│   │   ├── parser.py    # Natural language parser
+│   │   ├── verbs.py     # Command handlers
+│   │   ├── world.py     # Room/map management
+│   │   ├── events.py    # Timed events and demons
+│   │   └── room_actions.py  # Puzzle mechanics
+│   ├── editor/          # GUI map editor
+│   │   ├── main_window.py
+│   │   ├── map_canvas.py
+│   │   └── room_editor.py
+│   ├── accounts/        # Player account system
+│   ├── data/            # JSON loaders
+│   └── cli.py           # Command-line interface
+├── data/
+│   └── worlds/
+│       └── classic_zork/  # Zork I game data
+├── tests/               # Test suite
+└── SPECIFICATION.md     # Technical specification
+```
 
-This is the first (and last) source release of the PDP-11 version of 
-Dungeon.
+## Creating Custom Worlds
 
-Please note that Dungeon has been superceded by the game ZORK(tm).
-The following is an extract from the new product announcement for
-ZORK in the September, 1980 issue of the RT-11 SIG newsletter:
+Create your own adventures by editing the JSON world files:
 
-  "'ZORK:  The Great Underground Empire - Part I' ...was developed
-   by the original authors based on their ZORK (Dungeon) game for
-   the PDP-10.  It features a greatly improved parser;  command
-   input and transcript output files;  SAVEs to any device and
-   file name;  and adaptation to different terminal types,
-   including a status line on VT100s.  Note:  this is not the
-   FORTRAN version that has been available through DECUS.  This
-   version has been completely rewritten to run efficiently on
-   small machines - up to 10 times as fast as the DECUS version.
+### Room Format
 
-   ...ZORK runs under RT-ll, HT-ll, or RSTS/E and requires as
-   little as 20K words of memory and a single floppy disk drive.
-   The game package, consisting of an RX01-format diskette and
-   an instruction booklet, is available from Infocom, Inc.,
-   P.O. Box 120, Kendall Station, Cambridge, Ma. 02142."
+```json
+{
+  "rooms": {
+    "my_room": {
+      "name": "My Custom Room",
+      "description_first": "A detailed description for first visit...",
+      "description_short": "My Custom Room",
+      "flags": ["RLIGHT", "RLAND"],
+      "exits": [
+        {"direction": "north", "destination": "other_room"},
+        {"direction": "east", "destination": "locked_room", "type": "door", "door_object": "my_door"}
+      ]
+    }
+  }
+}
+```
 
-ZORK(tm) is a trademark of Infocom, Inc.  It is available for several
-popular personal computers as well as for the PDP-ll.
+### Object Format
 
+```json
+{
+  "objects": {
+    "my_item": {
+      "name": "shiny key",
+      "description": "There is a shiny key here.",
+      "examine": "A small brass key with intricate engravings.",
+      "flags": ["TAKEBT", "VISIBT"],
+      "initial_room": "my_room",
+      "synonyms": ["key", "brass key"]
+    }
+  }
+}
+```
 
-## Summary
+## Running Tests
 
-   Welcome to Dungeon!
+```bash
+# Run all tests
+pytest
 
-   Dungeon is a game of adventure, danger, and low cunning.  In it
-you will explore some of the most amazing territory ever seen by mortal
-man.  Hardened adventurers have run screaming from the terrors contained
-within.
+# Run with verbose output
+pytest -v
 
-   In Dungeon, the intrepid explorer delves into the forgotten secrets
-of a lost labyrinth deep in the bowels of the earth, searching for
-vast treasures long hidden from prying eyes, treasures guarded by
-fearsome monsters and diabolical traps!
+# Run specific test file
+pytest tests/test_engine.py
+```
 
-   No DECsystem should be without one!
+## Roadmap
 
-   Dungeon was created at the Programming Technology Division of the MIT
-Laboratory for Computer Science by Tim Anderson, Marc Blank, Bruce
-Daniels, and Dave Lebling.  It was inspired by the Adventure game of
-Crowther and Woods, and the Dungeons and Dragons game of Gygax
-and Arneson.  The original version was written in MDL (alias MUDDLE).
-The current version was translated from MDL into FORTRAN IV by
-a somewhat paranoid DEC engineer who prefers to remain anonymous.
+- [x] Phase 1: Python Core Engine
+- [x] Phase 2: JSON Data Externalization
+- [x] Phase 3: GUI Map Editor
+- [x] Phase 4: Player Account System
+- [ ] Phase 5: Meshtastic Multiplayer
 
-   On-line information may be obtained with the commands HELP and INFO.
+See [SPECIFICATION.md](SPECIFICATION.md) for detailed technical documentation.
 
-II. DEC FORTRAN to f77 Conversion (17-nov-81)
+## Historical Note
 
-The conversion from DEC FORTRAN to Unix f77 was done by Randy
-Dietrich, Lynn Cochran and Sig Peterson.  Much hacking was done to get
-it to fit in the limited address space of a PDP-11/44 (split I/D).
-Suffice it to say that by leaving out the debugging package and not
-linking in the f77 i/o library they managed to get it to run.
+This project is a modern reimplementation based on the classic Zork/Dungeon game. The original Dungeon was created at MIT by Tim Anderson, Marc Blank, Bruce Daniels, and Dave Lebling, inspired by Crowther and Woods' Adventure game and Gygax and Arneson's Dungeons & Dragons.
 
-III. PDP to VAX (dec-85)
+The original source code went through several transformations:
+- MDL (1977-1979) - Original implementation
+- FORTRAN (1980) - DEC translation
+- f77 (1981) - Unix port
+- C (1991) - f2c translation by Ian Lance Taylor
+- **Python (2026)** - This implementation with JSON externalization
 
-Based on the work of Randy, Lynn and Sig, Bill Randle folded in the
-full save/restore functions and the game debugging package (gdt) into
-the pdp version to create a Vax/Unix version.  This version also uses
-f77 i/o, thus eliminating the extra speak and listen processes needed
-on the pdp.
+## License
 
-IV. Cleanup I (11-dec-86)
+This project contains reimplemented game logic for educational purposes. The original Zork is a trademark of Infocom, Inc. (now Activision).
 
-John Gilmore (hoptoad!gnu) cleaned up the source files by moving
-most of the common declarations into include files and added
-comments from the original (FORTRAN or MDL?) source.  His efforts
-are greatly appreciated.
+## Contributing
 
-V. Cleanup II (9-feb-87)
+Contributions are welcome! Please feel free to submit issues and pull requests.
 
-Bill Randle (billr@tekred.tek.com) added the pdp dependencies back
-into the Vax source files with #ifdefs in order to have just one
-set of sources.  Previously, there were two sets of source: one for
-the pdp and one for the Vax.  In addition, a shell escape of the
-form !cmd was added and the wizard can enter the gdt without having
-to recompile the source.  Finally, a man page was generated, based
-on the dungeon.doc file.
-
-VI. f77 to C (11-mar-91)
-
-Ian Lance Taylor (ian@airs.com or uunet!airs!ian) used the f2c
-translator to generate C source code.  The resulting code was modified
-to remove the FORTRAN I/O library, to add simple more processing, and
-to change the format of the database file.  Andre Srinivasan
-(andre@cs.pitt.edu) help test it.  Jonathan Mark
-(uunet!microsoft!jonm) made it work under MS-DOS and Microsoft C.
-
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
