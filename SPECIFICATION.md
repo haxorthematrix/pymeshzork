@@ -934,15 +934,17 @@ pymeshzork/
 
 ### Minimum Viable Product (MVP)
 - [x] Play classic Zork to completion in Python
-- [ ] All puzzles solvable with original solutions (partial - core area complete)
+- [x] All rooms migrated from original (98 rooms)
+- [x] All key objects migrated (57 objects)
 - [x] Rooms/objects loaded from JSON
 - [x] Save/load game state works
 
 ### Version 1.0
-- [ ] GUI map editor functional
-- [ ] Create and play custom worlds
-- [ ] Player accounts with persistent progress
-- [ ] Single-player fully featured
+- [x] GUI map editor functional
+- [x] Create and play custom worlds
+- [x] Player accounts with persistent progress
+- [x] Force-directed auto-layout for maps
+- [ ] All puzzles solvable with original solutions (needs action handlers)
 
 ### Version 2.0
 - [ ] Meshtastic multiplayer operational
@@ -1003,7 +1005,7 @@ pymeshzork/
 | Event system | ✅ Done | Timers, demons, grue checks |
 | CLI interface | ✅ Done | Interactive game loop |
 | Demo world | ✅ Done | 10 rooms, 10 objects |
-| Unit tests | ✅ Done | 18 tests passing |
+| Unit tests | ✅ Done | 42 tests passing |
 
 **Commits:** Phase 1 complete (4,500+ lines of Python)
 
@@ -1013,19 +1015,31 @@ pymeshzork/
 |-----------|--------|-------|
 | JSON schema | ✅ Done | world.schema.json |
 | World loader | ✅ Done | Loads rooms, objects, messages |
-| Data extraction | ✅ Done | 13 rooms, 18 objects from classic Zork |
+| Data extraction | ✅ Done | 98 rooms, 57 objects - full Zork I |
 | Room connectivity | ✅ Done | All exits with conditional/door types |
 | Container system | ✅ Done | Nested objects, open/close state |
 | Object search | ✅ Done | Finds objects in open containers |
 | Light system | ✅ Done | Dynamic lamp on/off state |
 | Validation tests | ✅ Done | Full gameplay testing |
+| Extraction tool | ✅ Done | Binary dtextc.dat parser (reference) |
 
 **Files created:**
-- `data/worlds/classic_zork/world.json` - Complete world definition
-- `data/worlds/classic_zork/rooms.json` - Room definitions
-- `data/worlds/classic_zork/objects.json` - Object definitions
+- `data/worlds/classic_zork/world.json` - Complete world definition (98 rooms, 57 objects)
+- `tools/extract_zork_data.py` - Binary data extraction tool
 - `pymeshzork/data/loader.py` - JSON loader
 - `pymeshzork/data/schemas/world.schema.json` - JSON schema
+
+**Game Areas Included:**
+- House area (kitchen, living room, attic)
+- Forest and clearing
+- Canyon and river areas (Frigid River, Aragain Falls)
+- Flood Control Dam #3
+- Underground caves (round room, dome, torch room)
+- Maze (5 maze rooms)
+- Temple, altar, and Hades
+- Coal mine and machine room
+- Volcano with balloon areas
+- Bank with vault and safety deposit boxes
 
 ### Phase 3: GUI Map Editor ✅ COMPLETE
 
@@ -1035,23 +1049,39 @@ pymeshzork/
 | Main window | ✅ Done | Menus, toolbar, status bar, splitter layout |
 | Map canvas | ✅ Done | Zoomable, pannable, grid background |
 | Room nodes | ✅ Done | Draggable, selectable, colored by type |
-| Connections | ✅ Done | Lines with direction arrows |
+| Connections | ✅ Done | Lines with direction arrows, one-way indicators |
 | Room editor | ✅ Done | Name, descriptions, flags, exits |
 | Object editor | ✅ Done | All properties, flags, locations |
 | File operations | ✅ Done | New, Open, Save, Save As |
 | Validation | ✅ Done | Orphan detection, exit validation |
 | World model | ✅ Done | Load/save with editor metadata |
+| Auto-layout | ✅ Done | Force-directed graph layout algorithm |
+| Connection tool | ✅ Done | Direction picker with auto-suggest |
+| macOS fixes | ✅ Done | Native menubar disabled for visibility |
 
 **Files created:**
 - `pymeshzork/editor/__init__.py` - Editor module
 - `pymeshzork/editor/main.py` - Application entry point
 - `pymeshzork/editor/main_window.py` - Main window with menus and layout
-- `pymeshzork/editor/map_canvas.py` - Zoomable map visualization
+- `pymeshzork/editor/map_canvas.py` - Zoomable map visualization with auto-layout
 - `pymeshzork/editor/room_editor.py` - Room properties panel
 - `pymeshzork/editor/object_editor.py` - Object properties panel
 - `pymeshzork/editor/world_model.py` - Editor world model with positions
 
 **Entry point:** `zork-editor` (or `python -m pymeshzork.editor.main`)
+
+**Keyboard Shortcuts:**
+- `Ctrl+L` - Auto-layout rooms based on connections
+- `C` - Start connection from selected room
+- `Escape` - Cancel connection/deselect
+- `Ctrl+0` - Fit to window
+
+**Auto-Layout Algorithm:**
+- Force-directed graph layout using physics simulation
+- Connected rooms attract each other (spring forces)
+- All rooms repel each other (electrostatic forces)
+- ~100 iterations until stable
+- Starting room centered, results snapped to grid
 
 ### Phase 4: Player Account System ✅ COMPLETE
 
@@ -1101,6 +1131,8 @@ pymeshzork/
 | 1.3 | 2026-01-22 | Claude | Phase 4 expanded - Teams, player limits, management |
 | 1.4 | 2026-01-22 | Claude | Phase 3 complete - GUI Map Editor |
 | 1.5 | 2026-01-22 | Claude | Phase 4 complete - Account/Team system |
+| 1.6 | 2026-01-22 | Claude | Full Zork I migration - 98 rooms, 57 objects |
+| 1.7 | 2026-01-22 | Claude | Auto-layout feature for map editor |
 
 ---
 
