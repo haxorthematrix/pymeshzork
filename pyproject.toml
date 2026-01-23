@@ -47,6 +47,7 @@ mesh = [
 
 [project.scripts]
 zork = "pymeshzork.cli:main"
+zork-editor = "pymeshzork.editor.main:main"
 
 [project.urls]
 Homepage = "https://github.com/haxorthematrix/pymeshzork"

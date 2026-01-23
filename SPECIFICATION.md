@@ -1027,7 +1027,31 @@ pymeshzork/
 - `pymeshzork/data/loader.py` - JSON loader
 - `pymeshzork/data/schemas/world.schema.json` - JSON schema
 
-### Phase 3: GUI Map Editor 🔲 NOT STARTED
+### Phase 3: GUI Map Editor ✅ COMPLETE
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| PyQt6 setup | ✅ Done | Added to optional dependencies |
+| Main window | ✅ Done | Menus, toolbar, status bar, splitter layout |
+| Map canvas | ✅ Done | Zoomable, pannable, grid background |
+| Room nodes | ✅ Done | Draggable, selectable, colored by type |
+| Connections | ✅ Done | Lines with direction arrows |
+| Room editor | ✅ Done | Name, descriptions, flags, exits |
+| Object editor | ✅ Done | All properties, flags, locations |
+| File operations | ✅ Done | New, Open, Save, Save As |
+| Validation | ✅ Done | Orphan detection, exit validation |
+| World model | ✅ Done | Load/save with editor metadata |
+
+**Files created:**
+- `pymeshzork/editor/__init__.py` - Editor module
+- `pymeshzork/editor/main.py` - Application entry point
+- `pymeshzork/editor/main_window.py` - Main window with menus and layout
+- `pymeshzork/editor/map_canvas.py` - Zoomable map visualization
+- `pymeshzork/editor/room_editor.py` - Room properties panel
+- `pymeshzork/editor/object_editor.py` - Object properties panel
+- `pymeshzork/editor/world_model.py` - Editor world model with positions
+
+**Entry point:** `zork-editor` (or `python -m pymeshzork.editor.main`)
 
 ### Phase 4: Player Account System 🔲 NOT STARTED
 
@@ -1043,6 +1067,7 @@ pymeshzork/
 | 1.1 | 2026-01-22 | Claude | Phase 1 complete - Python core engine |
 | 1.2 | 2026-01-22 | Claude | Phase 2 complete - JSON externalization |
 | 1.3 | 2026-01-22 | Claude | Phase 4 expanded - Teams, player limits, management |
+| 1.4 | 2026-01-22 | Claude | Phase 3 complete - GUI Map Editor |
 
 ---
 
