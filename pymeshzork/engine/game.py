@@ -1,7 +1,7 @@
 """Main game engine for PyMeshZork."""
 
 from dataclasses import dataclass, field
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
 
 from pymeshzork.engine.events import EventManager, check_grue
 from pymeshzork.engine.models import ObjectFlag2
@@ -10,6 +10,9 @@ from pymeshzork.engine.room_actions import RoomActions
 from pymeshzork.engine.state import GameState
 from pymeshzork.engine.verbs import VerbHandler, VerbResult
 from pymeshzork.engine.world import World
+
+if TYPE_CHECKING:
+    from pymeshzork.meshtastic.multiplayer import MultiplayerManager
 
 
 @dataclass
@@ -29,6 +32,7 @@ class Game:
         self,
         world: World | None = None,
         state: GameState | None = None,
+        multiplayer: "MultiplayerManager | None" = None,
     ) -> None:
         """Initialize game with world and state."""
         self.world = world or World()
@@ -38,11 +42,21 @@ class Game:
         self.events = EventManager(self)
         self.room_actions = RoomActions(self)
 
+        # Multiplayer support
+        self.multiplayer = multiplayer
+        if self.multiplayer:
+            self.multiplayer.set_game(self)
+
         # Hooks for extensibility
-        self.pre_turn_hooks: list[Callable[[], str | None]] = []
+        self.pre_turn_hooks: list[Callable[[], str | None]] = [
+            self._get_multiplayer_messages,
+        ]
         self.post_turn_hooks: list[Callable[[], str | None]] = [
             self._check_underground,
         ]
+
+        # Track last room for movement detection
+        self._last_room: str | None = None
 
     def _check_underground(self) -> str | None:
         """Check if player entered underground area and activate thief."""
@@ -74,6 +88,31 @@ class Game:
 
         return None
 
+    def _get_multiplayer_messages(self) -> str | None:
+        """Get any pending multiplayer messages."""
+        if not self.multiplayer:
+            return None
+
+        messages = self.multiplayer.get_pending_messages()
+        if messages:
+            return "\n".join(messages)
+        return None
+
+    def _send_multiplayer_move(self, from_room: str, to_room: str) -> None:
+        """Send movement notification to multiplayer."""
+        if self.multiplayer and self.multiplayer.is_connected:
+            self.multiplayer.send_move(from_room, to_room)
+
+    def _send_multiplayer_action(self, verb: str, obj_id: str | None = None) -> None:
+        """Send action notification to multiplayer."""
+        if self.multiplayer and self.multiplayer.is_connected:
+            self.multiplayer.send_action(verb, obj_id)
+
+    def _update_multiplayer_room(self, room_id: str) -> None:
+        """Update multiplayer with current room context."""
+        if self.multiplayer:
+            self.multiplayer.update_room(room_id)
+
     def start(self) -> str:
         """Start a new game. Returns opening text."""
         # Initialize object states from world definitions
@@ -88,6 +127,9 @@ class Game:
         room_state = self.state.get_room_state(room.id)
         room_state.mark_visited()
 
+        # Track for movement detection
+        self._last_room = self.state.current_room
+
         # Build opening message
         lines = [
             "ZORK I: The Great Underground Empire",
@@ -97,9 +139,29 @@ class Game:
             "",
         ]
 
+        # Multiplayer status
+        if self.multiplayer and self.multiplayer.is_connected:
+            player_count = self.multiplayer.get_player_count()
+            if player_count > 0:
+                lines.append(f"[Multiplayer: {player_count} other player(s) online]")
+            else:
+                lines.append("[Multiplayer: Connected]")
+            lines.append("")
+
+            # Announce joining the game and set initial room
+            self.multiplayer.send_join(self.state.current_room)
+            self.multiplayer.update_room(self.state.current_room)
+
         # Add room description
         description = self.world.describe_room(self.state, room)
         lines.append(description)
+
+        # Add other players in room
+        if self.multiplayer:
+            players_text = self.multiplayer.format_players_in_room(self.state.current_room)
+            if players_text:
+                lines.append("")
+                lines.append(players_text)
 
         return "\n".join(lines)
 
@@ -112,6 +174,9 @@ class Game:
             msg = hook()
             if msg:
                 result.messages.append(msg)
+
+        # Track room before command for movement detection
+        room_before = self.state.current_room
 
         # Parse input
         command = self.parser.parse(input_text, self.world, self.state)
@@ -126,6 +191,22 @@ class Game:
                 result.messages.append("Goodbye!")
             else:
                 result.messages.append(verb_result.message)
+
+        # Check for room change and notify multiplayer
+        room_after = self.state.current_room
+        if room_before != room_after:
+            self._send_multiplayer_move(room_before, room_after)
+            self._update_multiplayer_room(room_after)
+
+            # Add other players in new room to output
+            if self.multiplayer:
+                players_text = self.multiplayer.format_players_in_room(room_after)
+                if players_text:
+                    result.messages.append(players_text)
+        else:
+            # Broadcast action for non-movement commands
+            if verb_result.end_turn and command.verb:
+                self._send_multiplayer_action(command.verb, command.direct_object)
 
         # Track score changes
         if verb_result.score_change:

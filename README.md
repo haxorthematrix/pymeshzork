@@ -157,6 +157,85 @@ Form teams for collaborative play:
 > team info
 ```
 
+### Multiplayer (MQTT)
+
+PyMeshZork supports multiplayer via MQTT, allowing players to see each other in the game world, observe actions, and chat.
+
+#### Configuration
+
+Create a configuration file at `~/.pymeshzork/config.json`:
+
+```json
+{
+  "mqtt": {
+    "enabled": true,
+    "broker": "your-mqtt-server.example.com",
+    "port": 1883,
+    "username": "your-username",
+    "password": "your-password",
+    "channel": "pymeshzork",
+    "use_tls": false
+  },
+  "game": {
+    "player_name": "YourName",
+    "brief_mode": false,
+    "auto_save": true
+  }
+}
+```
+
+Or use environment variables:
+
+```bash
+export PYMESHZORK_MQTT_ENABLED=true
+export PYMESHZORK_MQTT_BROKER=your-mqtt-server.example.com
+export PYMESHZORK_MQTT_PORT=1883
+export PYMESHZORK_MQTT_USERNAME=your-username
+export PYMESHZORK_MQTT_PASSWORD=your-password
+export PYMESHZORK_MQTT_CHANNEL=pymeshzork
+export PYMESHZORK_PLAYER_NAME=YourName
+```
+
+#### Command Line Options
+
+```bash
+# Enable multiplayer (if configured)
+zork --multiplayer
+
+# Disable multiplayer even if configured
+zork --no-multiplayer
+
+# Set player name for this session
+zork --player-name "Adventurer"
+```
+
+#### Multiplayer Features
+
+- **Player Presence** - See other players in rooms ("Bob is here.")
+- **Movement Notifications** - See when players enter/leave rooms
+- **Action Broadcasting** - See what others are doing ("Alice takes the lamp.")
+- **Chat** - Send messages to other players (coming soon)
+
+#### Setting Up Your Own MQTT Server
+
+For private multiplayer, you can set up a Mosquitto MQTT broker:
+
+```bash
+# Ubuntu/Debian
+sudo apt install mosquitto mosquitto-clients
+
+# Create password file
+sudo mosquitto_passwd -c /etc/mosquitto/passwd pymeshzork
+
+# Configure /etc/mosquitto/mosquitto.conf:
+listener 1883
+allow_anonymous false
+password_file /etc/mosquitto/passwd
+
+# Restart service
+sudo systemctl restart mosquitto
+```
+
 ## Project Structure
 
 ```
@@ -173,8 +252,15 @@ pymeshzork/
 │   │   ├── main_window.py
 │   │   ├── map_canvas.py
 │   │   └── room_editor.py
+│   ├── meshtastic/      # Multiplayer support
+│   │   ├── protocol.py  # Message encoding/decoding
+│   │   ├── client.py    # Base client interface
+│   │   ├── mqtt_client.py  # MQTT implementation
+│   │   ├── presence.py  # Player presence tracking
+│   │   └── multiplayer.py  # Game integration
 │   ├── accounts/        # Player account system
 │   ├── data/            # JSON loaders
+│   ├── config.py        # Configuration management
 │   └── cli.py           # Command-line interface
 ├── data/
 │   └── worlds/
