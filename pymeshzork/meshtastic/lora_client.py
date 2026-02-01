@@ -206,25 +206,23 @@ class LoRaClient(MeshtasticClient):
         self._state = ConnectionState.DISCONNECTED
         logger.info("LoRa radio disconnected")
 
-    def _send_message(self, message: GameMessage) -> bool:
-        """Send a message over LoRa.
+    def _send_raw(self, data: str) -> None:
+        """Send raw data over LoRa.
 
         Args:
-            message: Game message to send.
+            data: JSON-encoded message string.
 
-        Returns:
-            True if message was transmitted.
+        Raises:
+            RuntimeError: If radio not connected or transmission fails.
         """
         if not self._rfm9x or self._state != ConnectionState.CONNECTED:
-            return False
+            raise RuntimeError("LoRa radio not connected")
 
         try:
-            # Encode message
-            data = encode_message(message)
-
             # Add simple frame header: length + player_id prefix
             # This helps receiving nodes identify message boundaries
-            frame = struct.pack(">BH", len(data), self._get_node_id()) + data.encode()
+            data_bytes = data.encode('utf-8')
+            frame = struct.pack(">BH", len(data_bytes), self._get_node_id()) + data_bytes
 
             # Check if channel is clear (simple CSMA)
             # Wait for channel to be free before transmitting
@@ -236,14 +234,12 @@ class LoRaClient(MeshtasticClient):
             # Transmit
             self._rfm9x.send(frame)
 
-            logger.debug(f"LoRa TX: {len(frame)} bytes, type={message.msg_type.value}")
+            logger.debug(f"LoRa TX: {len(frame)} bytes")
             self._update_display(tx=True)
-
-            return True
 
         except Exception as e:
             logger.error(f"LoRa TX error: {e}")
-            return False
+            raise
 
     def _receive_loop(self) -> None:
         """Background thread to receive LoRa packets."""
