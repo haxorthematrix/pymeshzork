@@ -45,6 +45,12 @@ mesh = [
     "paho-mqtt>=2.0.0",
     "meshtastic>=2.0.0",
 ]
+lora = [
+    "adafruit-circuitpython-rfm9x>=2.0.0",
+    "adafruit-circuitpython-ssd1306>=2.0.0",
+    "adafruit-blinka>=8.0.0",
+    "Pillow>=10.0.0",
+]
 
 [project.scripts]
 zork = "pymeshzork.cli:main"

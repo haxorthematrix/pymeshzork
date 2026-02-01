@@ -236,6 +236,88 @@ password_file /etc/mosquitto/passwd
 sudo systemctl restart mosquitto
 ```
 
+### LoRa Radio (Raspberry Pi)
+
+For off-grid multiplayer without internet, use a Raspberry Pi with the Adafruit Radio + OLED Bonnet.
+
+#### Hardware Required
+
+- Raspberry Pi 4 (or 3B+, Zero 2W)
+- [Adafruit LoRa Radio Bonnet with OLED](https://www.adafruit.com/product/4074) (RFM95W @ 915MHz)
+- Antenna (required - never transmit without antenna!)
+
+#### Quick Setup
+
+```bash
+# On your Raspberry Pi:
+curl -sSL https://raw.githubusercontent.com/haxorthematrix/pymeshzork/scenario-b-lora-hat/scripts/setup_pi_lora.sh | sudo bash
+```
+
+Or manually:
+
+```bash
+# Clone and install
+git clone https://github.com/haxorthematrix/pymeshzork.git
+cd pymeshzork
+git checkout scenario-b-lora-hat
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[lora]"
+
+# Run with LoRa
+zork --lora --player-name "YourName"
+```
+
+#### LoRa Configuration
+
+Edit `~/.pymeshzork/config.json`:
+
+```json
+{
+  "lora": {
+    "enabled": true,
+    "frequency": 915.0,
+    "tx_power": 23
+  },
+  "game": {
+    "player_name": "Adventurer"
+  }
+}
+```
+
+| Setting | Description |
+|---------|-------------|
+| `frequency` | 915.0 MHz (US) or 868.0 MHz (EU) |
+| `tx_power` | Transmit power 5-23 dBm |
+
+#### Command Line Options
+
+```bash
+# Use LoRa radio
+zork --lora
+
+# Specify frequency (EU)
+zork --lora --lora-freq 868.0
+
+# Set player name
+zork --lora --player-name "Explorer"
+```
+
+#### OLED Display
+
+The bonnet's OLED display shows:
+- Player name and game status
+- TX/RX activity indicators
+- Signal strength (RSSI) of received messages
+- Current room name
+
+#### Hardware Notes
+
+- **Always attach antenna before powering on** - transmitting without an antenna can damage the radio
+- Range: ~1km line-of-sight, less in buildings/forests
+- Multiple Pi nodes can play together within radio range
+- Works completely offline - no WiFi or internet needed
+
 ## Project Structure
 
 ```

@@ -5,12 +5,17 @@ Bridges the Meshtastic client with the game engine to enable:
 - Broadcasting actions to other players
 - Receiving and displaying remote player actions
 - Chat functionality
+
+Supports multiple backends:
+- MQTT: For Raspberry Pi/Linux with network access
+- LoRa: For Raspberry Pi with Adafruit Radio Bonnet (direct RF)
 """
 
 import logging
+from enum import Enum
 from typing import TYPE_CHECKING, Callable
 
-from pymeshzork.config import get_config, MQTTConfig
+from pymeshzork.config import get_config
 from pymeshzork.meshtastic.client import MeshtasticClient, ConnectionState
 from pymeshzork.meshtastic.mqtt_client import MQTTClient
 from pymeshzork.meshtastic.presence import PresenceManager, PlayerInfo
@@ -22,21 +27,46 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+class MultiplayerBackend(Enum):
+    """Available multiplayer backends."""
+    MQTT = "mqtt"
+    LORA = "lora"
+
+
 class MultiplayerManager:
     """Manages multiplayer functionality for the game.
 
     Handles connection, presence tracking, and message routing.
+    Supports multiple backends (MQTT, LoRa).
     """
 
-    def __init__(self, player_name: str | None = None):
+    def __init__(
+        self,
+        player_name: str | None = None,
+        backend: MultiplayerBackend | str | None = None,
+    ):
         """Initialize multiplayer manager.
 
         Args:
             player_name: Player display name. If None, uses config.
+            backend: Which backend to use (mqtt, lora). If None, auto-detects.
         """
         config = get_config()
         self.player_name = player_name or config.game.player_name
         self.mqtt_config = config.mqtt
+        self.lora_config = config.lora
+
+        # Determine backend
+        if backend is None:
+            # Auto-detect: prefer LoRa if enabled, fall back to MQTT
+            if self.lora_config.enabled:
+                self._backend = MultiplayerBackend.LORA
+            else:
+                self._backend = MultiplayerBackend.MQTT
+        elif isinstance(backend, str):
+            self._backend = MultiplayerBackend(backend.lower())
+        else:
+            self._backend = backend
 
         self._client: MeshtasticClient | None = None
         self._presence: PresenceManager | None = None
@@ -53,9 +83,17 @@ class MultiplayerManager:
         self._pending_messages: list[str] = []
 
     @property
+    def backend(self) -> MultiplayerBackend:
+        """Get the current backend type."""
+        return self._backend
+
+    @property
     def is_enabled(self) -> bool:
         """Check if multiplayer is enabled in config."""
-        return self.mqtt_config.enabled and self.mqtt_config.is_configured()
+        if self._backend == MultiplayerBackend.LORA:
+            return self.lora_config.enabled
+        else:
+            return self.mqtt_config.enabled and self.mqtt_config.is_configured()
 
     @property
     def is_connected(self) -> bool:
@@ -84,16 +122,14 @@ class MultiplayerManager:
             return True
 
         try:
-            # Create MQTT client
-            self._client = MQTTClient(
-                player_name=self.player_name,
-                broker=self.mqtt_config.broker,
-                port=self.mqtt_config.port,
-                username=self.mqtt_config.username or None,
-                password=self.mqtt_config.password or None,
-                use_tls=self.mqtt_config.use_tls,
-                channel=self.mqtt_config.channel,
-            )
+            # Create appropriate client based on backend
+            if self._backend == MultiplayerBackend.LORA:
+                self._client = self._create_lora_client()
+            else:
+                self._client = self._create_mqtt_client()
+
+            if self._client is None:
+                return False
 
             # Set up presence manager
             self._presence = PresenceManager(self._client.player_id)
@@ -110,15 +146,42 @@ class MultiplayerManager:
 
             # Connect
             if self._client.connect():
-                logger.info(f"Connected to multiplayer as {self.player_name}")
+                backend_name = self._backend.value.upper()
+                logger.info(f"Connected to multiplayer ({backend_name}) as {self.player_name}")
                 return True
             else:
-                logger.error("Failed to connect to multiplayer server")
+                logger.error("Failed to connect to multiplayer")
                 return False
 
         except Exception as e:
             logger.error(f"Multiplayer connection error: {e}")
             return False
+
+    def _create_mqtt_client(self) -> MQTTClient:
+        """Create an MQTT client."""
+        return MQTTClient(
+            player_name=self.player_name,
+            broker=self.mqtt_config.broker,
+            port=self.mqtt_config.port,
+            username=self.mqtt_config.username or None,
+            password=self.mqtt_config.password or None,
+            use_tls=self.mqtt_config.use_tls,
+            channel=self.mqtt_config.channel,
+        )
+
+    def _create_lora_client(self) -> "MeshtasticClient | None":
+        """Create a LoRa client."""
+        try:
+            from pymeshzork.meshtastic.lora_client import LoRaClient
+            return LoRaClient(
+                player_name=self.player_name,
+                frequency=self.lora_config.frequency,
+                tx_power=self.lora_config.tx_power,
+            )
+        except ImportError as e:
+            logger.error(f"LoRa client not available: {e}")
+            logger.error("Install with: pip install 'pymeshzork[lora]'")
+            return None
 
     def disconnect(self) -> None:
         """Disconnect from multiplayer server."""

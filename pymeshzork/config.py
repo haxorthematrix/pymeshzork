@@ -45,6 +45,21 @@ class MQTTConfig:
 
 
 @dataclass
+class LoRaConfig:
+    """LoRa radio configuration for direct RF communication."""
+
+    enabled: bool = False
+    frequency: float = 915.0  # MHz (915.0 for US, 868.0 for EU)
+    tx_power: int = 23  # dBm (5-23)
+    spreading_factor: int = 7  # SF7-SF12
+    bandwidth: int = 125000  # Hz
+
+    def is_configured(self) -> bool:
+        """Check if LoRa is enabled."""
+        return self.enabled
+
+
+@dataclass
 class GameConfig:
     """Game configuration."""
 
@@ -59,12 +74,14 @@ class Config:
     """Main configuration container."""
 
     mqtt: MQTTConfig = field(default_factory=MQTTConfig)
+    lora: LoRaConfig = field(default_factory=LoRaConfig)
     game: GameConfig = field(default_factory=GameConfig)
 
     def to_dict(self) -> dict:
         """Convert to dictionary for saving."""
         return {
             "mqtt": asdict(self.mqtt),
+            "lora": asdict(self.lora),
             "game": asdict(self.game),
         }
 
@@ -74,6 +91,8 @@ class Config:
         config = cls()
         if "mqtt" in data:
             config.mqtt = MQTTConfig(**data["mqtt"])
+        if "lora" in data:
+            config.lora = LoRaConfig(**data["lora"])
         if "game" in data:
             config.game = GameConfig(**data["game"])
         return config
@@ -131,6 +150,17 @@ def load_config() -> Config:
         config.mqtt.use_tls = _get_env_bool("PYMESHZORK_MQTT_TLS")
     if "PYMESHZORK_PLAYER_NAME" in os.environ:
         config.game.player_name = os.environ["PYMESHZORK_PLAYER_NAME"]
+
+    # LoRa environment variables
+    if "PYMESHZORK_LORA_ENABLED" in os.environ:
+        config.lora.enabled = _get_env_bool("PYMESHZORK_LORA_ENABLED")
+    if "PYMESHZORK_LORA_FREQUENCY" in os.environ:
+        try:
+            config.lora.frequency = float(os.environ["PYMESHZORK_LORA_FREQUENCY"])
+        except ValueError:
+            pass
+    if "PYMESHZORK_LORA_TX_POWER" in os.environ:
+        config.lora.tx_power = _get_env_int("PYMESHZORK_LORA_TX_POWER", 23)
 
     return config
 

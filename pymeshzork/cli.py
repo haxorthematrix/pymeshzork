@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pymeshzork.config import get_config
 from pymeshzork.engine.game import Game, create_game, load_game_from_json
-from pymeshzork.meshtastic.multiplayer import MultiplayerManager
+from pymeshzork.meshtastic.multiplayer import MultiplayerManager, MultiplayerBackend
 
 
 def run_game(game: Game) -> None:
@@ -100,6 +100,19 @@ def main() -> int:
     )
 
     parser.add_argument(
+        "--lora",
+        action="store_true",
+        help="Use LoRa radio for multiplayer (Adafruit Radio Bonnet)",
+    )
+
+    parser.add_argument(
+        "--lora-freq",
+        type=float,
+        default=915.0,
+        help="LoRa frequency in MHz (915.0 for US, 868.0 for EU)",
+    )
+
+    parser.add_argument(
         "--player-name",
         type=str,
         help="Player name for multiplayer",
@@ -111,22 +124,32 @@ def main() -> int:
     multiplayer = None
     config = get_config()
 
-    # Check if multiplayer should be enabled
-    use_multiplayer = (
-        (args.multiplayer or config.mqtt.enabled)
-        and not args.no_multiplayer
-        and config.mqtt.is_configured()
-    )
+    # Determine backend
+    if args.lora:
+        backend = MultiplayerBackend.LORA
+        # Override config frequency if specified
+        if args.lora_freq != 915.0:
+            config.lora.frequency = args.lora_freq
+        config.lora.enabled = True
+        use_multiplayer = not args.no_multiplayer
+    else:
+        backend = MultiplayerBackend.MQTT
+        use_multiplayer = (
+            (args.multiplayer or config.mqtt.enabled)
+            and not args.no_multiplayer
+            and config.mqtt.is_configured()
+        )
 
     if use_multiplayer:
         player_name = args.player_name or config.game.player_name
-        multiplayer = MultiplayerManager(player_name)
+        multiplayer = MultiplayerManager(player_name, backend=backend)
 
-        print(f"Connecting to multiplayer as {player_name}...")
+        backend_name = "LoRa radio" if args.lora else "MQTT"
+        print(f"Connecting to multiplayer ({backend_name}) as {player_name}...")
         if multiplayer.connect():
             print("Connected!")
         else:
-            print("Failed to connect to multiplayer server. Playing offline.")
+            print(f"Failed to connect to {backend_name}. Playing offline.")
             multiplayer = None
 
     # Create game

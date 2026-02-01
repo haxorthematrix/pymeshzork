@@ -17,6 +17,15 @@ from pymeshzork.meshtastic.multiplayer import (
     init_multiplayer,
 )
 
+# LoRa client is optional (requires hardware)
+try:
+    from pymeshzork.meshtastic.lora_client import LoRaClient, create_lora_client
+    LORA_AVAILABLE = True
+except ImportError:
+    LoRaClient = None  # type: ignore
+    create_lora_client = None  # type: ignore
+    LORA_AVAILABLE = False
+
 __all__ = [
     # Protocol
     "MessageType",
@@ -29,6 +38,10 @@ __all__ = [
     "MeshtasticClient",
     "ConnectionState",
     "MQTTClient",
+    # LoRa Client
+    "LoRaClient",
+    "create_lora_client",
+    "LORA_AVAILABLE",
     # Presence
     "PresenceManager",
     "PlayerInfo",
