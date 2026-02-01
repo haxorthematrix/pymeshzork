@@ -226,10 +226,12 @@ class LoRaClient(MeshtasticClient):
 
             # Check if channel is clear (simple CSMA)
             # Wait for channel to be free before transmitting
-            for _ in range(5):
-                if not self._rfm9x.cad_detected():
-                    break
-                time.sleep(0.05 + (self._get_node_id() % 50) / 1000)  # Random backoff
+            # Note: cad_detected may not be available in all library versions
+            if hasattr(self._rfm9x, 'cad_detected'):
+                for _ in range(5):
+                    if not self._rfm9x.cad_detected():
+                        break
+                    time.sleep(0.05 + (self._get_node_id() % 50) / 1000)  # Random backoff
 
             # Transmit
             self._rfm9x.send(frame)
@@ -301,13 +303,50 @@ class LoRaClient(MeshtasticClient):
     def _init_display(self) -> None:
         """Initialize the OLED display on the bonnet."""
         try:
-            import board
-            import busio
             import adafruit_ssd1306
             from PIL import Image, ImageDraw, ImageFont
 
-            # I2C for OLED
-            i2c = busio.I2C(board.SCL, board.SDA)
+            # Try multiple I2C initialization methods for compatibility
+            i2c = None
+
+            # Method 1: Try board.I2C() which auto-detects
+            try:
+                import board
+                i2c = board.I2C()
+            except Exception:
+                pass
+
+            # Method 2: Try explicit busio with board pins
+            if i2c is None:
+                try:
+                    import board
+                    import busio
+                    i2c = busio.I2C(board.SCL, board.SDA)
+                except Exception:
+                    pass
+
+            # Method 3: Try direct I2C bus numbers (for Pi 5 / newer systems)
+            if i2c is None:
+                try:
+                    import busio
+                    from microcontroller import pin
+                    # Try common bus numbers
+                    for bus_num in [1, 20, 21]:
+                        try:
+                            import os
+                            if os.path.exists(f"/dev/i2c-{bus_num}"):
+                                from adafruit_blinka.microcontroller.generic_linux.i2c import I2C as LinuxI2C
+                                i2c = LinuxI2C(bus_num)
+                                break
+                        except Exception:
+                            continue
+                except Exception:
+                    pass
+
+            if i2c is None:
+                logger.warning("Could not initialize I2C for OLED display")
+                self._display_enabled = False
+                return
 
             # 128x32 OLED on the bonnet
             self._display = adafruit_ssd1306.SSD1306_I2C(128, 32, i2c)
