@@ -132,15 +132,6 @@ class LoRaClient(MeshtasticClient):
                     cs = digitalio.DigitalInOut(board.CE1)
                     reset = digitalio.DigitalInOut(board.D25)
 
-                    # Manual reset with extended delays for reliability
-                    reset.direction = digitalio.Direction.OUTPUT
-                    reset.value = True
-                    time.sleep(0.1)
-                    reset.value = False
-                    time.sleep(0.1)
-                    reset.value = True
-                    time.sleep(0.5)  # Extended delay for radio to stabilize
-
                     # Initialize radio with slower baudrate for reliability
                     self._rfm9x = adafruit_rfm9x.RFM9x(
                         spi, cs, reset,
@@ -152,14 +143,15 @@ class LoRaClient(MeshtasticClient):
 
                 except RuntimeError as e:
                     logger.debug(f"Init attempt {attempt + 1} failed: {e}")
-                    # Clean up and retry
+                    # Clean up and retry with increasing delay
                     try:
                         cs.deinit()
                         reset.deinit()
                         spi.deinit()
                     except Exception:
                         pass
-                    time.sleep(0.5)  # Longer delay between retries
+                    # Exponential backoff
+                    time.sleep(0.2 * (attempt + 1))
 
             if self._rfm9x is None:
                 raise RuntimeError(f"Failed to initialize LoRa radio after {max_retries} attempts")
