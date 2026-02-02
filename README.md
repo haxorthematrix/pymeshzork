@@ -318,6 +318,21 @@ The bonnet's OLED display shows:
 - Multiple Pi nodes can play together within radio range
 - Works completely offline - no WiFi or internet needed
 
+#### Pi 4 Specific Configuration
+
+On Raspberry Pi 4, additional configuration is needed for reliable SPI communication:
+
+```bash
+# Edit /boot/firmware/config.txt and add:
+dtoverlay=spi0-0cs
+
+# Also disable vc4-kms-v3d if present (it conflicts with SPI):
+# Change: dtoverlay=vc4-kms-v3d
+# To:     #dtoverlay=vc4-kms-v3d
+```
+
+The setup script handles this automatically, but if you're configuring manually, these changes are required for the LoRa radio to work reliably.
+
 ## Project Structure
 
 ```

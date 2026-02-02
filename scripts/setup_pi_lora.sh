@@ -42,7 +42,7 @@ apt-get install -y \
     fonts-dejavu
 
 # Enable I2C and SPI
-echo "[3/6] Enabling I2C and SPI interfaces..."
+echo "[3/7] Enabling I2C and SPI interfaces..."
 if ! grep -q "^dtparam=i2c_arm=on" /boot/config.txt 2>/dev/null && \
    ! grep -q "^dtparam=i2c_arm=on" /boot/firmware/config.txt 2>/dev/null; then
     raspi-config nonint do_i2c 0
@@ -53,12 +53,37 @@ if ! grep -q "^dtparam=spi=on" /boot/config.txt 2>/dev/null && \
     raspi-config nonint do_spi 0
 fi
 
+# Apply Pi 4 specific SPI fixes
+echo "[4/7] Applying Pi 4 SPI fixes..."
+CONFIG_TXT=""
+if [ -f /boot/firmware/config.txt ]; then
+    CONFIG_TXT="/boot/firmware/config.txt"
+elif [ -f /boot/config.txt ]; then
+    CONFIG_TXT="/boot/config.txt"
+fi
+
+if [ -n "$CONFIG_TXT" ]; then
+    # Add spi0-0cs overlay to disable kernel chip select management
+    # This allows software control of the CS pin (needed for RFM95W)
+    if ! grep -q "^dtoverlay=spi0-0cs" "$CONFIG_TXT"; then
+        echo "Adding dtoverlay=spi0-0cs for software CS control..."
+        echo "dtoverlay=spi0-0cs" >> "$CONFIG_TXT"
+    fi
+
+    # Disable vc4-kms-v3d on Pi 4 as it interferes with SPI timing
+    # This is necessary for reliable SPI communication with the LoRa radio
+    if grep -q "^dtoverlay=vc4-kms-v3d" "$CONFIG_TXT"; then
+        echo "Disabling vc4-kms-v3d (conflicts with SPI on Pi 4)..."
+        sed -i 's/^dtoverlay=vc4-kms-v3d/#dtoverlay=vc4-kms-v3d  # Disabled for LoRa SPI/' "$CONFIG_TXT"
+    fi
+fi
+
 # Add user to required groups
-echo "[4/6] Adding user to gpio, i2c, spi groups..."
+echo "[5/7] Adding user to gpio, i2c, spi groups..."
 usermod -a -G gpio,i2c,spi $REAL_USER
 
 # Clone or update PyMeshZork
-echo "[5/6] Setting up PyMeshZork..."
+echo "[6/7] Setting up PyMeshZork..."
 INSTALL_DIR="$REAL_HOME/pymeshzork"
 
 if [ -d "$INSTALL_DIR" ]; then
@@ -77,7 +102,7 @@ if git branch -r | grep -q "scenario-b-lora-hat"; then
 fi
 
 # Create virtual environment and install
-echo "[6/6] Installing Python dependencies..."
+echo "[7/7] Installing Python dependencies..."
 sudo -u $REAL_USER python3 -m venv "$INSTALL_DIR/.venv"
 sudo -u $REAL_USER "$INSTALL_DIR/.venv/bin/pip" install --upgrade pip
 sudo -u $REAL_USER "$INSTALL_DIR/.venv/bin/pip" install -e "$INSTALL_DIR[lora]"
