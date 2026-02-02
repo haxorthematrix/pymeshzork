@@ -119,19 +119,41 @@ class LoRaClient(MeshtasticClient):
             import digitalio
             import adafruit_rfm9x
 
-            # Configure SPI
-            spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+            # Retry initialization multiple times - some bonnets have flaky connections
+            max_retries = 10
+            self._rfm9x = None
 
-            # Configure radio pins (Adafruit Bonnet defaults)
-            cs = digitalio.DigitalInOut(board.CE1)
-            reset = digitalio.DigitalInOut(board.D25)
+            for attempt in range(max_retries):
+                try:
+                    # Configure SPI
+                    spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
-            # Initialize radio
-            self._rfm9x = adafruit_rfm9x.RFM9x(
-                spi, cs, reset,
-                self.frequency,
-                baudrate=1000000,
-            )
+                    # Configure radio pins (Adafruit Bonnet defaults)
+                    cs = digitalio.DigitalInOut(board.CE1)
+                    reset = digitalio.DigitalInOut(board.D25)
+
+                    # Initialize radio
+                    self._rfm9x = adafruit_rfm9x.RFM9x(
+                        spi, cs, reset,
+                        self.frequency,
+                        baudrate=1000000,
+                    )
+                    logger.info(f"LoRa radio initialized on attempt {attempt + 1}")
+                    break
+
+                except RuntimeError as e:
+                    logger.debug(f"Init attempt {attempt + 1} failed: {e}")
+                    # Clean up and retry
+                    try:
+                        cs.deinit()
+                        reset.deinit()
+                        spi.deinit()
+                    except Exception:
+                        pass
+                    time.sleep(0.2)
+
+            if self._rfm9x is None:
+                raise RuntimeError(f"Failed to initialize LoRa radio after {max_retries} attempts")
 
             # Configure radio parameters
             self._rfm9x.tx_power = self.tx_power
