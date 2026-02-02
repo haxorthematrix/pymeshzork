@@ -77,6 +77,7 @@ class LoRaClient(MeshtasticClient):
         self._rfm9x = None
         self._receive_thread: threading.Thread | None = None
         self._running = False
+        self._radio_lock = threading.Lock()  # Protects access to _rfm9x
 
         # OLED display (optional)
         self._display = None
@@ -247,17 +248,19 @@ class LoRaClient(MeshtasticClient):
             data_bytes = data.encode('utf-8')
             frame = struct.pack(">BH", len(data_bytes), self._get_node_id()) + data_bytes
 
-            # Check if channel is clear (simple CSMA)
-            # Wait for channel to be free before transmitting
-            # Note: cad_detected may not be available in all library versions
-            if hasattr(self._rfm9x, 'cad_detected'):
-                for _ in range(5):
-                    if not self._rfm9x.cad_detected():
-                        break
-                    time.sleep(0.05 + (self._get_node_id() % 50) / 1000)  # Random backoff
+            # Acquire lock before accessing radio (thread safety with receive loop)
+            with self._radio_lock:
+                # Check if channel is clear (simple CSMA)
+                # Wait for channel to be free before transmitting
+                # Note: cad_detected may not be available in all library versions
+                if hasattr(self._rfm9x, 'cad_detected'):
+                    for _ in range(5):
+                        if not self._rfm9x.cad_detected():
+                            break
+                        time.sleep(0.05 + (self._get_node_id() % 50) / 1000)  # Random backoff
 
-            # Transmit
-            self._rfm9x.send(frame)
+                # Transmit
+                self._rfm9x.send(frame)
 
             logger.debug(f"LoRa TX: {len(frame)} bytes")
             self._update_display(tx=True)
@@ -273,7 +276,10 @@ class LoRaClient(MeshtasticClient):
         while self._running:
             try:
                 # Check for incoming packet with timeout
-                packet = self._rfm9x.receive(timeout=RECEIVE_TIMEOUT)
+                # Acquire lock briefly for thread safety with send
+                with self._radio_lock:
+                    packet = self._rfm9x.receive(timeout=RECEIVE_TIMEOUT)
+                    last_rssi = self._rfm9x.last_rssi if packet else None
 
                 if packet is None:
                     continue
@@ -297,10 +303,10 @@ class LoRaClient(MeshtasticClient):
                     if message:
                         logger.debug(
                             f"LoRa RX: {len(packet)} bytes from {sender_id:04x}, "
-                            f"type={message.msg_type.value}, RSSI={self._rfm9x.last_rssi}dBm"
+                            f"type={message.msg_type.value}, RSSI={last_rssi}dBm"
                         )
 
-                        self._update_display(rx=True, rssi=self._rfm9x.last_rssi)
+                        self._update_display(rx=True, rssi=last_rssi)
 
                         # Dispatch to callbacks
                         for callback in self._message_callbacks:
