@@ -394,6 +394,21 @@ class Parser:
 
         result.verb = first.value
 
+        # Handle communication verbs that take literal text
+        if result.verb in self.TEXT_VERBS:
+            # Extract raw text after the verb
+            verb_word = first.word if hasattr(first, 'word') else first.value
+            # Find where the verb ends in the original input
+            lower_input = input_text.lower()
+            verb_pos = lower_input.find(verb_word.lower())
+            if verb_pos >= 0:
+                text_start = verb_pos + len(verb_word)
+                raw_text = input_text[text_start:].strip()
+                if raw_text:
+                    result.direct_object = raw_text
+            self.last_command = result
+            return result
+
         # Handle verb-only commands
         if len(meaningful_tokens) == 1:
             self.last_command = result
@@ -445,7 +460,7 @@ class Parser:
 
     # Verbs that take literal text arguments, not object references
     TEXT_VERBS = frozenset([
-        "say", "yell", "shout", "tell", "answer", "incant",
+        "say", "yell", "shout", "tell", "answer", "incant", "chat", "broadcast",
     ])
 
     def _resolve_objects(
