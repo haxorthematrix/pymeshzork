@@ -1,7 +1,7 @@
 # PyMeshZork: Zork Conversion & Multiplayer Specification
 
-**Version:** 1.9
-**Date:** January 2026
+**Version:** 2.0
+**Date:** February 2026
 **Project:** Python Zork with GUI Map Editor and Meshtastic Multiplayer
 
 ---
@@ -1454,14 +1454,15 @@ pymeshzork/
 - [x] All puzzles solvable with original solutions
 
 ### Version 2.0 (Meshtastic Multiplayer)
-- [ ] Scenario A: MQTT bridge operational on Raspberry Pi
-- [ ] Scenario B: Direct LoRa with MeshAdv-Pi HAT working
+- [x] Scenario A: MQTT bridge operational on Raspberry Pi
+- [x] Scenario B: Direct LoRa with Adafruit Radio Bonnet working
 - [ ] Scenario C: Serial interface to Meshtastic nodes functional
-- [ ] 2+ players can explore together via any scenario
-- [ ] World state synchronized across mesh network
-- [ ] SAY/SHOUT chat functional over mesh
-- [ ] Presence system shows players in rooms
-- [ ] Documentation for all deployment scenarios
+- [x] 2+ players can explore together via any scenario
+- [x] World state synchronized across mesh network
+- [x] SAY/SHOUT/CHAT commands functional over mesh
+- [x] Presence system shows players in rooms
+- [x] WHO command shows online players and locations
+- [ ] Documentation for all deployment scenarios (partial)
 
 ### Version 2.1 (T-Deck Firmware)
 - [ ] Custom T-Deck firmware builds and flashes
@@ -1667,29 +1668,71 @@ pymeshzork/
 - Time-limited invite codes with use tracking
 - Full in-game command interface for account/team management
 
-### Phase 5: Meshtastic Multiplayer 🔲 NOT STARTED
+### Phase 5: Meshtastic Multiplayer ✅ MOSTLY COMPLETE
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Core infrastructure | 🔲 Pending | Message protocol, base classes |
-| Scenario A: MQTT | 🔲 Pending | paho-mqtt, Mosquitto broker |
-| Scenario B: LoRa HAT | 🔲 Pending | meshtasticd, MeshAdv-Pi |
+| Core infrastructure | ✅ Done | Message protocol, base client, message queuing |
+| Scenario A: MQTT | ✅ Done | paho-mqtt client, tested with private broker |
+| Scenario B: LoRa HAT | ✅ Done | Adafruit RFM9x Radio Bonnet, thread-safe |
 | Scenario C: Serial | 🔲 Pending | USB serial interface |
 | Scenario D: T-Deck | 🔲 Pending | Custom ESP32 firmware |
-| Presence system | 🔲 Pending | Join/leave, heartbeat |
-| State sync | 🔲 Pending | Objects, rooms, conflicts |
-| Multiplayer gameplay | 🔲 Pending | Player visibility, actions |
-| Documentation | 🔲 Pending | Setup guides per scenario |
+| Presence system | ✅ Done | Join/leave, heartbeat, player tracking |
+| State sync | ✅ Done | Object updates, room state, player locations |
+| Multiplayer gameplay | ✅ Done | Chat commands, player visibility, WHO |
+| Documentation | ⏳ Partial | Setup script, config files created |
+
+**Files created:**
+- `pymeshzork/meshtastic/__init__.py` - Module exports
+- `pymeshzork/meshtastic/protocol.py` - Compact message format, room/object ID mapping
+- `pymeshzork/meshtastic/client.py` - Abstract base client with message queuing
+- `pymeshzork/meshtastic/mqtt_client.py` - MQTT client using paho-mqtt
+- `pymeshzork/meshtastic/lora_client.py` - Direct LoRa with Adafruit RFM9x bonnet
+- `pymeshzork/meshtastic/presence.py` - Player presence tracking, join/leave/move handlers
+- `pymeshzork/meshtastic/multiplayer.py` - High-level multiplayer manager
+- `pymeshzork/config.py` - Configuration management (env vars, config file)
+- `scripts/setup_pi_lora.sh` - Raspberry Pi setup script
+
+**Chat Commands Implemented:**
+- `chat <message>` - Broadcast message to all players
+- `say <message>` - Say to players in current room (sends via multiplayer)
+- `yell <message>` - Shout with [YELLING] prefix to all players
+- `who` - Show online players and their locations
+- `help` - Shows multiplayer commands section when connected
+
+**Protocol Features:**
+- Compact JSON format optimized for LoRa (~40-80 bytes per message)
+- Numeric room/object IDs for bandwidth efficiency
+- Player name included in move and chat messages
+- Sequence numbers for ordering/deduplication
+- Heartbeat every 60 seconds
+
+**LoRa Implementation (Scenario B):**
+- Supports Adafruit Radio Bonnet with OLED (RFM9x + SSD1306)
+- Thread-safe with radio lock for concurrent send/receive
+- Pi 4 SPI fixes: `dtoverlay=spi0-0cs`, disable `vc4-kms-v3d`
+- 915 MHz US frequency (configurable for EU 868 MHz)
+- OLED display shows player name, room, and recent messages
+
+**MQTT Implementation (Scenario A):**
+- Works with private MQTT brokers (tested with Mosquitto)
+- Configurable via environment variables or config file
+- TLS support available
+
+**Tested Configurations:**
+- Two Raspberry Pi 4s with Adafruit Radio Bonnets (LoRa)
+- Two Raspberry Pi 4s with MQTT to private broker
+- Chat, WHO, movement, and presence all verified working
 
 **Deployment Scenarios:**
-- **A: MQTT** - Raspberry Pi/Linux with Mosquitto broker
-- **B: Direct LoRa** - Raspberry Pi with MeshAdv-Pi HAT + meshtasticd
-- **C: Serial** - Any computer connected to Meshtastic node via USB
-- **D: T-Deck** - Standalone device with custom firmware (LVGL + Meshtastic)
+- **A: MQTT** - ✅ Complete - Raspberry Pi/Linux with Mosquitto broker
+- **B: Direct LoRa** - ✅ Complete - Raspberry Pi with Adafruit Radio Bonnet
+- **C: Serial** - 🔲 Pending - Any computer connected to Meshtastic node via USB
+- **D: T-Deck** - 🔲 Pending - Standalone device with custom firmware (LVGL + Meshtastic)
 
 **Hardware Requirements:**
-- Scenario A: Raspberry Pi (any) + network connection
-- Scenario B: Raspberry Pi + MeshAdv-Pi HAT (recommended) or Adafruit RFM9x
+- Scenario A: Raspberry Pi (any) + network connection + MQTT broker
+- Scenario B: Raspberry Pi 4 + Adafruit Radio Bonnet (RFM9x + OLED)
 - Scenario C: Any computer + Meshtastic device (T-Beam, RAK, Heltec)
 - Scenario D: LILYGO T-Deck Plus
 
@@ -1709,6 +1752,7 @@ pymeshzork/
 | 1.7 | 2026-01-22 | Claude | Auto-layout feature for map editor |
 | 1.8 | 2026-01-23 | Claude | Event system (thief AI, combat), puzzle handlers, conditional exits |
 | 1.9 | 2026-01-23 | Claude | Phase 5 expanded - Four deployment scenarios (MQTT, LoRa HAT, Serial, T-Deck) |
+| 2.0 | 2026-02-03 | Claude | Phase 5 implementation - MQTT and LoRa multiplayer complete, chat commands |
 
 ---
 
