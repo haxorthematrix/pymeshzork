@@ -214,7 +214,50 @@ zork --player-name "Adventurer"
 - **Player Presence** - See other players in rooms ("Bob is here.")
 - **Movement Notifications** - See when players enter/leave rooms
 - **Action Broadcasting** - See what others are doing ("Alice takes the lamp.")
-- **Chat** - Send messages to other players (coming soon)
+- **Chat Commands** - Send messages to other players
+
+#### Multiplayer Commands
+
+When connected to multiplayer (MQTT or LoRa), additional commands are available:
+
+| Command | Description |
+|---------|-------------|
+| `chat <message>` | Broadcast a message to all players |
+| `say <message>` | Say something to players in your current room |
+| `yell <message>` | Shout a message to all players (shown with [YELLING]) |
+| `who` | Show all online players and their locations |
+| `help` | Shows multiplayer commands when connected |
+
+**Examples:**
+
+```
+> chat Hello everyone!
+You broadcast: "Hello everyone!"
+
+> say Anyone found the lamp yet?
+You say "Anyone found the lamp yet?"
+
+> yell Watch out for grues!
+You yell "Watch out for grues!"
+
+> who
+Players online (2):
+  Alice (here)
+  Bob (in lroom)
+```
+
+**Receiving Messages:**
+
+Messages from other players appear when you enter your next command:
+
+```
+> look
+
+Alice says: "Hello Bob!"
+
+West of House
+You are standing in an open field...
+```
 
 #### Setting Up Your Own MQTT Server
 
@@ -242,9 +285,9 @@ For off-grid multiplayer without internet, use a Raspberry Pi with the Adafruit 
 
 #### Hardware Required
 
-- Raspberry Pi 4 (or 3B+, Zero 2W)
+- Raspberry Pi 4 (recommended), 3B+, or Zero 2W
 - [Adafruit LoRa Radio Bonnet with OLED](https://www.adafruit.com/product/4074) (RFM95W @ 915MHz)
-- Antenna (required - never transmit without antenna!)
+- Antenna (required - **never transmit without antenna!**)
 
 #### Quick Setup (Automated)
 
@@ -253,36 +296,60 @@ For off-grid multiplayer without internet, use a Raspberry Pi with the Adafruit 
 curl -sSL https://raw.githubusercontent.com/haxorthematrix/pymeshzork/master/scripts/setup_pi_lora.sh | sudo bash
 ```
 
+The script will:
+1. Install all required system packages
+2. Enable I2C and SPI interfaces
+3. Apply Pi 4 SPI fixes (if needed)
+4. Clone and install PyMeshZork with LoRa support
+5. Create a config file template
+6. Prompt to reboot
+
+After reboot, run:
+```bash
+cd ~/pymeshzork
+./run_zork_lora.sh
+```
+
 #### Manual Installation
 
 ```bash
 # 1. Install system dependencies
 sudo apt update
-sudo apt install -y python3-pip python3-venv python3-dev git i2c-tools fonts-dejavu
+sudo apt install -y python3-pip python3-venv python3-dev git i2c-tools libgpiod2 fonts-dejavu
 
-# 2. Clone the repository
+# 2. Enable I2C and SPI
+sudo raspi-config nonint do_i2c 0
+sudo raspi-config nonint do_spi 0
+
+# 3. Add user to required groups
+sudo usermod -a -G gpio,i2c,spi $USER
+
+# 4. Apply Pi 4 SPI fixes (REQUIRED for Pi 4)
+# Edit /boot/firmware/config.txt:
+sudo nano /boot/firmware/config.txt
+
+# Add this line:
+dtoverlay=spi0-0cs
+
+# Comment out this line (if present):
+#dtoverlay=vc4-kms-v3d
+
+# 5. Reboot for changes to take effect
+sudo reboot
+
+# 6. After reboot, clone the repository
 git clone https://github.com/haxorthematrix/pymeshzork.git
 cd pymeshzork
 
-# 3. Create virtual environment and install
+# 7. Create virtual environment and install
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[lora]"
 
-# 4. Install MQTT support (optional, for internet multiplayer)
+# 8. Install MQTT support (optional, for internet multiplayer)
 pip install paho-mqtt
 
-# 5. Apply Pi 4 SPI fixes (REQUIRED for Pi 4)
-# Edit /boot/firmware/config.txt and add:
-#   dtoverlay=spi0-0cs
-# Also comment out (add # before):
-#   #dtoverlay=vc4-kms-v3d
-
-# 6. Reboot to apply changes
-sudo reboot
-
-# 7. Run with LoRa
-source ~/pymeshzork/.venv/bin/activate
+# 9. Run with LoRa
 zork --lora --player-name "YourName"
 ```
 
@@ -298,11 +365,11 @@ Create `~/.pymeshzork/config.json`:
     "tx_power": 23
   },
   "mqtt": {
-    "enabled": true,
+    "enabled": false,
     "broker": "your-mqtt-server.example.com",
     "port": 1883,
-    "username": "your-username",
-    "password": "your-password",
+    "username": "",
+    "password": "",
     "channel": "pymeshzork"
   },
   "game": {
@@ -315,8 +382,9 @@ Create `~/.pymeshzork/config.json`:
 
 | Setting | Description |
 |---------|-------------|
-| `frequency` | 915.0 MHz (US) or 868.0 MHz (EU) |
-| `tx_power` | Transmit power 5-23 dBm |
+| `lora.frequency` | 915.0 MHz (US) or 868.0 MHz (EU) |
+| `lora.tx_power` | Transmit power 5-23 dBm |
+| `game.player_name` | Your name shown to other players |
 
 #### Command Line Options
 
@@ -327,17 +395,17 @@ zork --lora
 # Specify frequency (EU)
 zork --lora --lora-freq 868.0
 
-# Set player name
+# Set player name for this session
 zork --lora --player-name "Explorer"
 ```
 
 #### OLED Display
 
 The bonnet's OLED display shows:
-- Player name and game status
+- Player name and current room
 - TX/RX activity indicators
 - Signal strength (RSSI) of received messages
-- Current room name
+- Recent chat messages
 
 #### Hardware Notes
 
@@ -348,18 +416,48 @@ The bonnet's OLED display shows:
 
 #### Pi 4 Specific Configuration
 
-On Raspberry Pi 4, additional configuration is needed for reliable SPI communication:
+On Raspberry Pi 4, the GPU overlay `vc4-kms-v3d` interferes with SPI timing, causing unreliable radio communication. The fix requires two changes to `/boot/firmware/config.txt`:
 
 ```bash
-# Edit /boot/firmware/config.txt and add:
+# Add this line to enable software chip-select:
 dtoverlay=spi0-0cs
 
-# Also disable vc4-kms-v3d if present (it conflicts with SPI):
-# Change: dtoverlay=vc4-kms-v3d
-# To:     #dtoverlay=vc4-kms-v3d
+# Comment out or remove this line:
+#dtoverlay=vc4-kms-v3d
 ```
 
-The setup script handles this automatically, but if you're configuring manually, these changes are required for the LoRa radio to work reliably.
+The automated setup script applies these fixes automatically.
+
+#### Troubleshooting
+
+**"No module named 'board'" error:**
+```bash
+pip install -e ".[lora]"
+```
+
+**Radio not responding / SPI errors:**
+1. Check that antenna is attached
+2. Verify SPI is enabled: `ls /dev/spi*` should show devices
+3. On Pi 4, ensure `dtoverlay=spi0-0cs` is in config.txt
+4. On Pi 4, ensure `vc4-kms-v3d` is commented out
+5. Reboot after config changes
+
+**"Permission denied" on /dev/spidev:**
+```bash
+sudo usermod -a -G spi,gpio $USER
+# Log out and back in
+```
+
+**Messages not being received:**
+- Check both radios are on the same frequency (915.0 MHz default)
+- Ensure antennas are attached on both devices
+- Try moving devices closer together for testing
+- Check OLED display for TX/RX indicators
+
+**OLED display blank:**
+1. Verify I2C is enabled: `ls /dev/i2c*` should show devices
+2. Check I2C address: `i2cdetect -y 1` should show device at 0x3C
+3. Ensure user is in i2c group: `groups` should include "i2c"
 
 ## Project Structure
 
@@ -381,6 +479,7 @@ pymeshzork/
 │   │   ├── protocol.py  # Message encoding/decoding
 │   │   ├── client.py    # Base client interface
 │   │   ├── mqtt_client.py  # MQTT implementation
+│   │   ├── lora_client.py  # LoRa radio implementation
 │   │   ├── presence.py  # Player presence tracking
 │   │   └── multiplayer.py  # Game integration
 │   ├── accounts/        # Player account system
@@ -453,7 +552,7 @@ pytest tests/test_engine.py
 - [x] Phase 2: JSON Data Externalization
 - [x] Phase 3: GUI Map Editor
 - [x] Phase 4: Player Account System
-- [ ] Phase 5: Meshtastic Multiplayer
+- [x] Phase 5: Meshtastic Multiplayer (MQTT + LoRa complete)
 
 See [SPECIFICATION.md](SPECIFICATION.md) for detailed technical documentation.
 
