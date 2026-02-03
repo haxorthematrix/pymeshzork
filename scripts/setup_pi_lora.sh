@@ -96,11 +96,6 @@ else
     cd "$INSTALL_DIR"
 fi
 
-# Check out the LoRa branch if it exists
-if git branch -r | grep -q "scenario-b-lora-hat"; then
-    sudo -u $REAL_USER git checkout scenario-b-lora-hat
-fi
-
 # Create virtual environment and install
 echo "[7/7] Installing Python dependencies..."
 sudo -u $REAL_USER python3 -m venv "$INSTALL_DIR/.venv"
@@ -121,6 +116,15 @@ if [ ! -f "$CONFIG_FILE" ]; then
     "frequency": 915.0,
     "tx_power": 23
   },
+  "mqtt": {
+    "enabled": false,
+    "broker": "your-mqtt-server.example.com",
+    "port": 1883,
+    "username": "",
+    "password": "",
+    "channel": "pymeshzork",
+    "use_tls": false
+  },
   "game": {
     "player_name": "Adventurer",
     "brief_mode": false,
@@ -130,6 +134,10 @@ if [ ! -f "$CONFIG_FILE" ]; then
 EOF
     echo "Config created at: $CONFIG_FILE"
 fi
+
+# Install paho-mqtt for MQTT multiplayer support
+echo "Installing MQTT support..."
+sudo -u $REAL_USER "$INSTALL_DIR/.venv/bin/pip" install paho-mqtt -q
 
 # Create launch script
 LAUNCH_SCRIPT="$INSTALL_DIR/run_zork_lora.sh"

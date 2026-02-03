@@ -246,31 +246,49 @@ For off-grid multiplayer without internet, use a Raspberry Pi with the Adafruit 
 - [Adafruit LoRa Radio Bonnet with OLED](https://www.adafruit.com/product/4074) (RFM95W @ 915MHz)
 - Antenna (required - never transmit without antenna!)
 
-#### Quick Setup
+#### Quick Setup (Automated)
 
 ```bash
 # On your Raspberry Pi:
-curl -sSL https://raw.githubusercontent.com/haxorthematrix/pymeshzork/scenario-b-lora-hat/scripts/setup_pi_lora.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/haxorthematrix/pymeshzork/master/scripts/setup_pi_lora.sh | sudo bash
 ```
 
-Or manually:
+#### Manual Installation
 
 ```bash
-# Clone and install
+# 1. Install system dependencies
+sudo apt update
+sudo apt install -y python3-pip python3-venv python3-dev git i2c-tools fonts-dejavu
+
+# 2. Clone the repository
 git clone https://github.com/haxorthematrix/pymeshzork.git
 cd pymeshzork
-git checkout scenario-b-lora-hat
+
+# 3. Create virtual environment and install
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[lora]"
 
-# Run with LoRa
+# 4. Install MQTT support (optional, for internet multiplayer)
+pip install paho-mqtt
+
+# 5. Apply Pi 4 SPI fixes (REQUIRED for Pi 4)
+# Edit /boot/firmware/config.txt and add:
+#   dtoverlay=spi0-0cs
+# Also comment out (add # before):
+#   #dtoverlay=vc4-kms-v3d
+
+# 6. Reboot to apply changes
+sudo reboot
+
+# 7. Run with LoRa
+source ~/pymeshzork/.venv/bin/activate
 zork --lora --player-name "YourName"
 ```
 
-#### LoRa Configuration
+#### Configuration
 
-Edit `~/.pymeshzork/config.json`:
+Create `~/.pymeshzork/config.json`:
 
 ```json
 {
@@ -279,8 +297,18 @@ Edit `~/.pymeshzork/config.json`:
     "frequency": 915.0,
     "tx_power": 23
   },
+  "mqtt": {
+    "enabled": true,
+    "broker": "your-mqtt-server.example.com",
+    "port": 1883,
+    "username": "your-username",
+    "password": "your-password",
+    "channel": "pymeshzork"
+  },
   "game": {
-    "player_name": "Adventurer"
+    "player_name": "Adventurer",
+    "brief_mode": false,
+    "auto_save": true
   }
 }
 ```
