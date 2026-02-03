@@ -303,7 +303,7 @@ class LoRaClient(MeshtasticClient):
                     if message:
                         logger.debug(
                             f"LoRa RX: {len(packet)} bytes from {sender_id:04x}, "
-                            f"type={message.msg_type.value}, RSSI={last_rssi}dBm"
+                            f"type={message.type.value}, RSSI={last_rssi}dBm"
                         )
 
                         self._update_display(rx=True, rssi=last_rssi)

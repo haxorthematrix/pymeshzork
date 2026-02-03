@@ -1,0 +1,2403 @@
+{
+  "meta": {
+    "id": "classic_zork",
+    "name": "Zork I: The Great Underground Empire",
+    "version": "1.0.0",
+    "author": "Infocom (converted by PyMeshZork)",
+    "description": "The complete classic text adventure game",
+    "max_score": 585,
+    "starting_room": "whous"
+  },
+  "rooms": {},
+  "objects": {
+    "obj1": {
+      "name": "obj1",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT",
+        "BURNBT"
+      ],
+      "size": 3,
+      "capacity": 15
+    },
+    "garli": {
+      "name": "garli",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "size": 5
+    },
+    "food": {
+      "name": "food",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "size": 5
+    },
+    "gunk": {
+      "name": "gunk",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TRYBT"
+      ],
+      "size": 10
+    },
+    "coal": {
+      "name": "coal",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 20
+    },
+    "obj6": {
+      "name": "obj6",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 10,
+      "value": 5,
+      "tval": 5
+    },
+    "machi": {
+      "name": "machi",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "CONTBT"
+      ],
+      "initial_room": "mmach",
+      "size": 10000,
+      "capacity": 50
+    },
+    "diamo": {
+      "name": "diamo",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 5,
+      "value": 10,
+      "tval": 6
+    },
+    "tcase": {
+      "name": "tcase",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TRANBT",
+        "CONTBT"
+      ],
+      "initial_room": "lroom",
+      "size": 10000,
+      "capacity": 10000
+    },
+    "bottl": {
+      "name": "bottl",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TRANBT",
+        "CONTBT"
+      ],
+      "size": 5,
+      "capacity": 4
+    },
+    "water": {
+      "name": "water",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "DRNKBT",
+        "TRYBT"
+      ],
+      "initial_container": "bottl",
+      "size": 4
+    },
+    "rope": {
+      "name": "rope",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TIEBT"
+      ],
+      "size": 10
+    },
+    "knife": {
+      "name": "knife",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "size": 5
+    },
+    "sword": {
+      "name": "sword",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "initial_room": "lroom",
+      "size": 30
+    },
+    "lamp": {
+      "name": "lamp",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "LITEBT"
+      ],
+      "initial_room": "lroom",
+      "size": 15
+    },
+    "blamp": {
+      "name": "blamp",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 5
+    },
+    "rug": {
+      "name": "rug",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "TRYBT"
+      ],
+      "initial_room": "lroom",
+      "size": 10000
+    },
+    "leave": {
+      "name": "leave",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "initial_room": "clear",
+      "size": 25
+    },
+    "troll": {
+      "name": "troll",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT",
+        "VILLBT"
+      ],
+      "initial_room": "mtrol",
+      "size": 10000,
+      "capacity": 2
+    },
+    "axe": {
+      "name": "axe",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "WEAPBT"
+      ],
+      "initial_container": "troll",
+      "size": 25
+    },
+    "rknif": {
+      "name": "rknif",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "WEAPBT"
+      ],
+      "size": 20
+    },
+    "obj22": {
+      "name": "obj22",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 20
+    },
+    "keys": {
+      "name": "keys",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TOOLBT"
+      ],
+      "size": 10
+    },
+    "obj24": {
+      "name": "obj24",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TRYBT"
+      ],
+      "size": 10000
+    },
+    "obj25": {
+      "name": "obj25",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 15,
+      "value": 10,
+      "tval": 5
+    },
+    "bar": {
+      "name": "bar",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "SCRDBT"
+      ],
+      "initial_room": "echor",
+      "size": 20,
+      "value": 12,
+      "tval": 10
+    },
+    "obj27": {
+      "name": "obj27",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 10,
+      "value": 9,
+      "tval": 5
+    },
+    "obj28": {
+      "name": "obj28",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "VICTBT",
+        "TRYBT"
+      ],
+      "size": 10000
+    },
+    "obj29": {
+      "name": "obj29",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "VICTBT",
+        "TRYBT"
+      ],
+      "size": 10000
+    },
+    "ice": {
+      "name": "ice",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT"
+      ],
+      "size": 10000
+    },
+    "obj31": {
+      "name": "obj31",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 5,
+      "value": 15,
+      "tval": 8
+    },
+    "obj32": {
+      "name": "obj32",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 20,
+      "value": 4,
+      "tval": 11
+    },
+    "coffi": {
+      "name": "coffi",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT",
+        "SCRDBT"
+      ],
+      "initial_room": "egypt",
+      "size": 55,
+      "capacity": 35,
+      "value": 3,
+      "tval": 7
+    },
+    "torch": {
+      "name": "torch",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "LITEBT",
+        "FLAMBT",
+        "TOOLBT",
+        "ONBT"
+      ],
+      "initial_room": "mtorc",
+      "size": 20,
+      "value": 14,
+      "tval": 6
+    },
+    "tbask": {
+      "name": "tbask",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TRANBT",
+        "TRYBT",
+        "OPENBT"
+      ],
+      "initial_room": "tshaf",
+      "size": 10000,
+      "capacity": 50
+    },
+    "fbask": {
+      "name": "fbask",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "bshaf",
+      "size": 10000
+    },
+    "obj37": {
+      "name": "obj37",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 10,
+      "value": 5,
+      "tval": 3
+    },
+    "obj38": {
+      "name": "obj38",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 50
+    },
+    "obj40": {
+      "name": "obj40",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "initial_container": "irbox",
+      "size": 10,
+      "value": 10,
+      "tval": 10
+    },
+    "obj41": {
+      "name": "obj41",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "SCRDBT"
+      ],
+      "size": 5
+    },
+    "ghost": {
+      "name": "ghost",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "VICTBT"
+      ],
+      "size": 10000
+    },
+    "obj43": {
+      "name": "obj43",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT"
+      ],
+      "size": 10,
+      "capacity": 5,
+      "value": 2,
+      "tval": 5
+    },
+    "obj44": {
+      "name": "obj44",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "NDSCBT",
+        "SCRDBT"
+      ],
+      "initial_room": "temp1",
+      "size": 5
+    },
+    "bell": {
+      "name": "bell",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "initial_room": "temp1",
+      "size": 5
+    },
+    "book": {
+      "name": "book",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "CONTBT",
+        "BURNBT"
+      ],
+      "initial_room": "temp2",
+      "size": 5
+    },
+    "candl": {
+      "name": "candl",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "LITEBT",
+        "FLAMBT",
+        "ONBT"
+      ],
+      "initial_room": "temp2",
+      "size": 10
+    },
+    "obj49": {
+      "name": "obj49",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 5
+    },
+    "obj50": {
+      "name": "obj50",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "initial_room": "lroom",
+      "size": 2
+    },
+    "match": {
+      "name": "match",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT"
+      ],
+      "size": 2
+    },
+    "obj52": {
+      "name": "obj52",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 2
+    },
+    "obj53": {
+      "name": "obj53",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "CONTBT"
+      ],
+      "initial_room": "whous",
+      "size": 10000,
+      "capacity": 10
+    },
+    "tube": {
+      "name": "tube",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "CONTBT"
+      ],
+      "initial_room": "maint",
+      "size": 10,
+      "capacity": 7
+    },
+    "putty": {
+      "name": "putty",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TOOLBT"
+      ],
+      "initial_container": "tube",
+      "size": 6
+    },
+    "wrenc": {
+      "name": "wrenc",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TOOLBT"
+      ],
+      "initial_room": "maint",
+      "size": 10
+    },
+    "screw": {
+      "name": "screw",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TOOLBT"
+      ],
+      "initial_room": "maint",
+      "size": 5
+    },
+    "cyclo": {
+      "name": "cyclo",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT",
+        "VILLBT"
+      ],
+      "initial_room": "mcycl",
+      "size": 10000,
+      "capacity": 10000
+    },
+    "chali": {
+      "name": "chali",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT"
+      ],
+      "initial_room": "treas",
+      "size": 10,
+      "capacity": 5,
+      "value": 10,
+      "tval": 10
+    },
+    "obj60": {
+      "name": "obj60",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 15,
+      "value": 4,
+      "tval": 7
+    },
+    "thief": {
+      "name": "thief",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT",
+        "VILLBT"
+      ],
+      "initial_room": "cpuzz",
+      "size": 10000,
+      "capacity": 5
+    },
+    "still": {
+      "name": "still",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "WEAPBT"
+      ],
+      "initial_container": "thief",
+      "size": 10
+    },
+    "windo": {
+      "name": "windo",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "size": 5
+    },
+    "obj64": {
+      "name": "obj64",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "TURNBT"
+      ],
+      "size": 5
+    },
+    "grate": {
+      "name": "grate",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "initial_room": "mgrat",
+      "size": 5
+    },
+    "obj67": {
+      "name": "obj67",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "initial_room": "lroom",
+      "size": 5
+    },
+    "obj68": {
+      "name": "obj68",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "initial_room": "whous",
+      "size": 5
+    },
+    "obj69": {
+      "name": "obj69",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "initial_room": "riddl",
+      "size": 5
+    },
+    "obj70": {
+      "name": "obj70",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "TURNBT"
+      ],
+      "initial_room": "mmach",
+      "size": 5
+    },
+    "hpole": {
+      "name": "hpole",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ],
+      "size": 5
+    },
+    "obj72": {
+      "name": "obj72",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ],
+      "size": 5
+    },
+    "obj73": {
+      "name": "obj73",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "TRYBT"
+      ],
+      "initial_room": "lld2",
+      "size": 5
+    },
+    "obj74": {
+      "name": "obj74",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "size": 5
+    },
+    "raili": {
+      "name": "raili",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "dome",
+      "size": 5
+    },
+    "obj76": {
+      "name": "obj76",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "size": 5
+    },
+    "obj77": {
+      "name": "obj77",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "size": 5
+    },
+    "leak": {
+      "name": "leak",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "maint",
+      "size": 5
+    },
+    "rbutt": {
+      "name": "rbutt",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "maint",
+      "size": 5
+    },
+    "obj80": {
+      "name": "obj80",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "maint",
+      "size": 5
+    },
+    "obj81": {
+      "name": "obj81",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "maint",
+      "size": 5
+    },
+    "obj82": {
+      "name": "obj82",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "maint",
+      "size": 5
+    },
+    "obj83": {
+      "name": "obj83",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "TRYBT"
+      ],
+      "size": 5
+    },
+    "obj84": {
+      "name": "obj84",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "CLMBBT"
+      ],
+      "initial_room": "falls",
+      "size": 5
+    },
+    "iboat": {
+      "name": "iboat",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 20
+    },
+    "dboat": {
+      "name": "dboat",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 20
+    },
+    "pump": {
+      "name": "pump",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TOOLBT"
+      ],
+      "size": 5
+    },
+    "rboat": {
+      "name": "rboat",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "BURNBT",
+        "OPENBT",
+        "VEHBT"
+      ],
+      "size": 20,
+      "capacity": 100
+    },
+    "obj91": {
+      "name": "obj91",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "initial_container": "rboat",
+      "size": 2
+    },
+    "stick": {
+      "name": "stick",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 3
+    },
+    "obj93": {
+      "name": "obj93",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ],
+      "initial_room": "falls",
+      "size": 5
+    },
+    "buoy": {
+      "name": "buoy",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT",
+        "FINDBT"
+      ],
+      "initial_room": "rivr4",
+      "size": 10,
+      "capacity": 20
+    },
+    "obj95": {
+      "name": "obj95",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "initial_container": "buoy",
+      "size": 5,
+      "value": 5,
+      "tval": 10
+    },
+    "shove": {
+      "name": "shove",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TOOLBT"
+      ],
+      "size": 15
+    },
+    "guano": {
+      "name": "guano",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 20
+    },
+    "ballo": {
+      "name": "ballo",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "OPENBT",
+        "VEHBT"
+      ],
+      "initial_room": "vlbot",
+      "size": 70,
+      "capacity": 100
+    },
+    "recep": {
+      "name": "recep",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "CONTBT",
+        "SCHBT"
+      ],
+      "initial_container": "ballo",
+      "size": 10000,
+      "capacity": 6
+    },
+    "obj100": {
+      "name": "obj100",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ],
+      "initial_container": "ballo",
+      "size": 10000
+    },
+    "brope": {
+      "name": "brope",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TIEBT"
+      ],
+      "initial_container": "ballo",
+      "size": 10000
+    },
+    "hook1": {
+      "name": "hook1",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ],
+      "initial_room": "ledg2",
+      "size": 10000
+    },
+    "hook2": {
+      "name": "hook2",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ],
+      "initial_room": "ledg4",
+      "size": 10000
+    },
+    "obj104": {
+      "name": "obj104",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT"
+      ],
+      "initial_room": "ledg2",
+      "size": 10,
+      "value": 10,
+      "tval": 12
+    },
+    "safe": {
+      "name": "safe",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "CONTBT"
+      ],
+      "initial_room": "msafe",
+      "size": 10000,
+      "capacity": 15
+    },
+    "obj106": {
+      "name": "obj106",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "initial_container": "safe",
+      "size": 1
+    },
+    "sslot": {
+      "name": "sslot",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "OPENBT"
+      ],
+      "initial_room": "msafe",
+      "size": 10000,
+      "capacity": 10
+    },
+    "obj108": {
+      "name": "obj108",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "initial_container": "safe",
+      "size": 10,
+      "value": 15,
+      "tval": 10
+    },
+    "brick": {
+      "name": "brick",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "OPENBT",
+        "SCHBT"
+      ],
+      "size": 9,
+      "capacity": 2
+    },
+    "fuse": {
+      "name": "fuse",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "initial_room": "strea",
+      "size": 1
+    },
+    "gnome": {
+      "name": "gnome",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT"
+      ],
+      "size": 10000
+    },
+    "blabe": {
+      "name": "blabe",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 1
+    },
+    "dball": {
+      "name": "dball",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 40
+    },
+    "obj114": {
+      "name": "obj114",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "CONTBT",
+        "BURNBT"
+      ],
+      "size": 10,
+      "capacity": 2
+    },
+    "obj115": {
+      "name": "obj115",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "CONTBT",
+        "BURNBT"
+      ],
+      "size": 10,
+      "capacity": 2
+    },
+    "obj116": {
+      "name": "obj116",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "CONTBT",
+        "BURNBT"
+      ],
+      "size": 10,
+      "capacity": 2
+    },
+    "obj117": {
+      "name": "obj117",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "CONTBT",
+        "BURNBT"
+      ],
+      "size": 10,
+      "capacity": 2
+    },
+    "obj118": {
+      "name": "obj118",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 1,
+      "value": 4,
+      "tval": 10
+    },
+    "tomb": {
+      "name": "tomb",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "DOORBT",
+        "NDSCBT",
+        "TRYBT"
+      ],
+      "size": 5
+    },
+    "obj120": {
+      "name": "obj120",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "SCRDBT",
+        "TRYBT"
+      ],
+      "size": 5
+    },
+    "obj121": {
+      "name": "obj121",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 15
+    },
+    "obj122": {
+      "name": "obj122",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 70
+    },
+    "lcase": {
+      "name": "lcase",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TRANBT"
+      ],
+      "size": 10000,
+      "capacity": 10000
+    },
+    "cage": {
+      "name": "cage",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 60
+    },
+    "rcage": {
+      "name": "rcage",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "caged"
+    },
+    "spher": {
+      "name": "spher",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "SCRDBT",
+        "TRYBT"
+      ],
+      "initial_room": "cager",
+      "size": 10,
+      "value": 6,
+      "tval": 6
+    },
+    "sqbut": {
+      "name": "sqbut",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "size": 5
+    },
+    "obj128": {
+      "name": "obj128",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "size": 5
+    },
+    "obj129": {
+      "name": "obj129",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "size": 5
+    },
+    "obj130": {
+      "name": "obj130",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "NDSCBT",
+        "FINDBT"
+      ],
+      "initial_room": "bwell",
+      "size": 5
+    },
+    "obj131": {
+      "name": "obj131",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "NDSCBT",
+        "FINDBT"
+      ],
+      "initial_room": "twell",
+      "size": 5
+    },
+    "flask": {
+      "name": "flask",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "TRANBT"
+      ],
+      "initial_room": "alitr",
+      "size": 10,
+      "capacity": 5
+    },
+    "pool": {
+      "name": "pool",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT"
+      ],
+      "initial_room": "alitr"
+    },
+    "obj135": {
+      "name": "obj135",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ],
+      "initial_room": "alice",
+      "size": 10000
+    },
+    "obj136": {
+      "name": "obj136",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ],
+      "initial_room": "alism",
+      "size": 10000
+    },
+    "bucke": {
+      "name": "bucke",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "OPENBT",
+        "VEHBT"
+      ],
+      "initial_room": "bwell",
+      "size": 100,
+      "capacity": 100
+    },
+    "ecake": {
+      "name": "ecake",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "initial_room": "alice",
+      "size": 10
+    },
+    "orice": {
+      "name": "orice",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "initial_room": "alice",
+      "size": 4
+    },
+    "rdice": {
+      "name": "rdice",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "initial_room": "alice",
+      "size": 4
+    },
+    "blice": {
+      "name": "blice",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "FOODBT"
+      ],
+      "initial_room": "alice",
+      "size": 4
+    },
+    "robot": {
+      "name": "robot",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT",
+        "SCRDBT",
+        "ACTRBT"
+      ]
+    },
+    "obj143": {
+      "name": "obj143",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "size": 3
+    },
+    "obj144": {
+      "name": "obj144",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "CLMBBT"
+      ],
+      "initial_room": "mtree",
+      "size": 5
+    },
+    "ftree": {
+      "name": "ftree",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "CLMBBT"
+      ],
+      "initial_room": "fore3",
+      "size": 5
+    },
+    "obj146": {
+      "name": "obj146",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "CLMBBT"
+      ],
+      "size": 5
+    },
+    "obj147": {
+      "name": "obj147",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "CLMBBT"
+      ],
+      "size": 5
+    },
+    "bills": {
+      "name": "bills",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT",
+        "SCRDBT"
+      ],
+      "initial_room": "bkvau",
+      "size": 10,
+      "value": 10,
+      "tval": 15
+    },
+    "portr": {
+      "name": "portr",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT",
+        "SCRDBT"
+      ],
+      "size": 25,
+      "value": 10,
+      "tval": 5
+    },
+    "obj150": {
+      "name": "obj150",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "NDSCBT"
+      ],
+      "initial_room": "bkbox",
+      "size": 5
+    },
+    "scol": {
+      "name": "scol",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "bkbox",
+      "size": 5
+    },
+    "zgnom": {
+      "name": "zgnom",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT",
+        "VILLBT"
+      ],
+      "size": 5
+    },
+    "obj153": {
+      "name": "obj153",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "BURNBT",
+        "OPENBT"
+      ],
+      "initial_room": "mtree",
+      "size": 20,
+      "capacity": 20
+    },
+    "egg": {
+      "name": "egg",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT"
+      ],
+      "size": 6,
+      "capacity": 6,
+      "value": 5,
+      "tval": 5
+    },
+    "begg": {
+      "name": "begg",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "CONTBT",
+        "OPENBT"
+      ],
+      "size": 6,
+      "capacity": 6
+    },
+    "baubl": {
+      "name": "baubl",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "size": 5,
+      "value": 1,
+      "tval": 1
+    },
+    "canar": {
+      "name": "canar",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "initial_container": "egg",
+      "size": 5,
+      "value": 6,
+      "tval": 2
+    },
+    "bcana": {
+      "name": "bcana",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT"
+      ],
+      "initial_container": "begg",
+      "size": 5
+    },
+    "ylwal": {
+      "name": "ylwal",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj160": {
+      "name": "obj160",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "rdwal": {
+      "name": "rdwal",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj162": {
+      "name": "obj162",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj163": {
+      "name": "obj163",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "pindr": {
+      "name": "pindr",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj165": {
+      "name": "obj165",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj166": {
+      "name": "obj166",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj167": {
+      "name": "obj167",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj168": {
+      "name": "obj168",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj169": {
+      "name": "obj169",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "inmir",
+      "size": 5
+    },
+    "obj170": {
+      "name": "obj170",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "mrant",
+      "size": 5
+    },
+    "rbeam": {
+      "name": "rbeam",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "OPENBT"
+      ],
+      "initial_room": "mreye",
+      "size": 5,
+      "capacity": 1000
+    },
+    "qdoor": {
+      "name": "qdoor",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "initial_room": "fdoor",
+      "size": 5
+    },
+    "obj174": {
+      "name": "obj174",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "initial_room": "pcell",
+      "size": 5
+    },
+    "cdoor": {
+      "name": "cdoor",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "DOORBT",
+        "NDSCBT"
+      ],
+      "initial_room": "ncorr",
+      "size": 5
+    },
+    "obj176": {
+      "name": "obj176",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "obj177": {
+      "name": "obj177",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "num1": {
+      "name": "num1",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "obj179": {
+      "name": "obj179",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "obj180": {
+      "name": "obj180",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "obj181": {
+      "name": "obj181",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "obj182": {
+      "name": "obj182",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "obj183": {
+      "name": "obj183",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "obj184": {
+      "name": "obj184",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "num8": {
+      "name": "num8",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "initial_room": "parap",
+      "size": 5
+    },
+    "warni": {
+      "name": "warni",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT",
+        "BURNBT"
+      ],
+      "initial_room": "cpant",
+      "size": 4
+    },
+    "cslit": {
+      "name": "cslit",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "OPENBT"
+      ],
+      "size": 5,
+      "capacity": 4
+    },
+    "gcard": {
+      "name": "gcard",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "READBT",
+        "TAKEBT"
+      ],
+      "size": 4,
+      "value": 15,
+      "tval": 10
+    },
+    "stldr": {
+      "name": "stldr",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ],
+      "size": 5
+    },
+    "itobj": {
+      "name": "itobj",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "oplay": {
+      "name": "oplay",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "VILLBT"
+      ]
+    },
+    "every": {
+      "name": "every",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "NDSCBT",
+        "NOCHBT"
+      ]
+    },
+    "valua": {
+      "name": "valua",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TAKEBT",
+        "NDSCBT",
+        "NOCHBT"
+      ]
+    },
+    "sailo": {
+      "name": "sailo",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "teeth": {
+      "name": "teeth",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "wall": {
+      "name": "wall",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj199": {
+      "name": "obj199",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT"
+      ]
+    },
+    "hands": {
+      "name": "hands",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "TOOLBT"
+      ]
+    },
+    "lungs": {
+      "name": "lungs",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "TOOLBT"
+      ]
+    },
+    "aviat": {
+      "name": "aviat",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj203": {
+      "name": "obj203",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj204": {
+      "name": "obj204",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "wnort": {
+      "name": "wnort",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj206": {
+      "name": "obj206",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj207": {
+      "name": "obj207",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj208": {
+      "name": "obj208",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "gwate": {
+      "name": "gwate",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "TRANBT"
+      ]
+    },
+    "obj210": {
+      "name": "obj210",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT",
+        "VICTBT",
+        "VILLBT"
+      ]
+    },
+    "obj211": {
+      "name": "obj211",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj212": {
+      "name": "obj212",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj213": {
+      "name": "obj213",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "obj214": {
+      "name": "obj214",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    },
+    "master": {
+      "name": "master",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "VICTBT",
+        "SCRDBT",
+        "ACTRBT"
+      ]
+    },
+    "obj216": {
+      "name": "obj216",
+      "description": "",
+      "examine": "",
+      "flags": [
+        "VISIBT",
+        "NDSCBT"
+      ]
+    }
+  },
+  "messages": {}
+}
