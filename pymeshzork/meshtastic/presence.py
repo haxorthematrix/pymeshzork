@@ -226,18 +226,23 @@ class PresenceManager:
         """Handle chat message."""
         message = msg.data.get("m", "")
         is_team = msg.type == MessageType.TEAM_CHAT
+        player_name = msg.data.get("n")  # Name included in chat messages
 
         with self._lock:
             player = self._players.get(msg.player_id)
             if player:
                 player.update_seen()
+                # Update name if we learned it
+                if player_name and player.name == player.player_id:
+                    player.name = player_name
             else:
-                # Create temporary player info for chat
+                # Create player info from chat
                 player = PlayerInfo(
                     player_id=msg.player_id,
-                    name=msg.player_id,
+                    name=player_name or msg.player_id,
                     room_id=ROOM_NAMES.get(msg.data.get("r", 0), ""),
                 )
+                self._players[msg.player_id] = player
 
         for callback in self._on_chat:
             try:

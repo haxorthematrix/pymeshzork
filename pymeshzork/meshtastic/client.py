@@ -295,6 +295,7 @@ class MeshtasticClient(ABC):
             message,
             self._current_room,
             is_team,
+            self.player_name,
         )
         return self.send(msg)
 

@@ -331,12 +331,15 @@ def create_chat_message(
     message: str,
     room_id: str | None = None,
     is_team: bool = False,
+    player_name: str | None = None,
     seq: int = 0
 ) -> GameMessage:
     """Create a chat message."""
     data: dict[str, Any] = {"m": message[:128]}  # Message truncated
     if room_id:
         data["r"] = ROOM_IDS.get(room_id, 0)
+    if player_name:
+        data["n"] = player_name[:12]  # Include name for display
 
     return GameMessage(
         type=MessageType.TEAM_CHAT if is_team else MessageType.CHAT,
