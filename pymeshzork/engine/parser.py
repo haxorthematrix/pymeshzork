@@ -175,6 +175,8 @@ class Parser:
         "yell": "yell", "scream": "yell", "shout": "yell",
         "hello": "hello", "hi": "hello",
         "pray": "pray",
+        "chat": "chat", "broadcast": "chat",
+        "who": "who", "players": "who", "online": "who",
 
         # Special/meta
         "inventory": "inventory", "i": "inventory", "invent": "inventory",
@@ -522,12 +524,16 @@ class Parser:
             "requires_direction": verb in {"walk", "go", "run", "move"},
         }
 
-    def format_help(self) -> str:
-        """Return help text for available commands."""
+    def format_help(self, multiplayer_connected: bool = False) -> str:
+        """Return help text for available commands.
+
+        Args:
+            multiplayer_connected: Whether multiplayer is active (shows chat commands).
+        """
         verbs = sorted(set(self.VERBS.values()))
         directions = sorted(set(self.DIRECTIONS.values()))
 
-        return (
+        help_text = (
             "Available commands:\n"
             f"  Verbs: {', '.join(verbs[:20])}...\n"
             f"  Directions: {', '.join(directions)}\n"
@@ -535,3 +541,14 @@ class Parser:
             "  go north, n, take lamp, examine sword\n"
             "  put book in case, attack troll with sword"
         )
+
+        if multiplayer_connected:
+            help_text += (
+                "\n\nMultiplayer commands:\n"
+                "  say <message>  - Say something to players in your room\n"
+                "  yell <message> - Shout to all players\n"
+                "  chat <message> - Broadcast to all players\n"
+                "  who            - See who's online and where"
+            )
+
+        return help_text

@@ -92,6 +92,8 @@ class VerbHandler:
             "yell": self.do_yell,
             "say": self.do_say,
             "shout": self.do_yell,
+            "chat": self.do_chat,
+            "who": self.do_who,
 
             # Special object interactions
             "tie": self.do_tie,
@@ -692,9 +694,13 @@ class VerbHandler:
 
     def do_help(self, cmd: ParsedCommand) -> VerbResult:
         """Handle HELP command."""
+        multiplayer_connected = (
+            self.game.multiplayer is not None
+            and self.game.multiplayer.is_connected
+        )
         return VerbResult(
             success=True,
-            message=self.game.parser.format_help(),
+            message=self.game.parser.format_help(multiplayer_connected),
             end_turn=False,
         )
 
@@ -1062,6 +1068,22 @@ class VerbHandler:
 
     def do_yell(self, cmd: ParsedCommand) -> VerbResult:
         """Handle YELL command."""
+        if cmd.direct_object:
+            # Yelling a specific message
+            message = cmd.direct_object
+            # Send to multiplayer if connected
+            if self.game.multiplayer and self.game.multiplayer.is_connected:
+                self.game.multiplayer.send_chat(f"[YELLING] {message}")
+                return VerbResult(
+                    success=True,
+                    message=f'You yell "{message}"',
+                    end_turn=False,
+                )
+            return VerbResult(
+                success=True,
+                message=f'You yell "{message}" but no one is around to hear.',
+                end_turn=False,
+            )
         return VerbResult(
             success=True,
             message="Aaaarrrrgggghhhh!",
@@ -1982,9 +2004,76 @@ class VerbHandler:
                 score_change=room_result.score_change,
             )
 
+        # Send to multiplayer if connected
+        if self.game.multiplayer and self.game.multiplayer.is_connected:
+            self.game.multiplayer.send_chat(cmd.direct_object)
+            return VerbResult(
+                success=True,
+                message=f'You say "{cmd.direct_object}"',
+                end_turn=False,
+            )
+
         return VerbResult(
             success=True,
             message=f'You say "{cmd.direct_object}" but nothing happens.',
+            end_turn=False,
+        )
+
+    def do_chat(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle CHAT command for multiplayer communication."""
+        if not self.game.multiplayer or not self.game.multiplayer.is_connected:
+            return VerbResult(
+                success=False,
+                message="Chat is only available in multiplayer mode.",
+                end_turn=False,
+            )
+
+        if not cmd.direct_object:
+            return VerbResult(
+                success=False,
+                message="What do you want to say? Try: chat Hello everyone!",
+                end_turn=False,
+            )
+
+        self.game.multiplayer.send_chat(cmd.direct_object)
+        return VerbResult(
+            success=True,
+            message=f'You broadcast: "{cmd.direct_object}"',
+            end_turn=False,
+        )
+
+    def do_who(self, cmd: ParsedCommand) -> VerbResult:
+        """Handle WHO command to show online players."""
+        if not self.game.multiplayer or not self.game.multiplayer.is_connected:
+            return VerbResult(
+                success=False,
+                message="Player list is only available in multiplayer mode.",
+                end_turn=False,
+            )
+
+        player_count = self.game.multiplayer.get_player_count()
+        if player_count == 0:
+            return VerbResult(
+                success=True,
+                message="You appear to be alone in this world.",
+                end_turn=False,
+            )
+
+        # Get players in current room
+        current_room = self.game.state.current_room
+        players_here = self.game.multiplayer.format_players_in_room(current_room)
+
+        # Get all players
+        all_players = self.game.multiplayer.get_all_players()
+        player_list = []
+        for p in all_players:
+            location = f" (in {p.room_id})" if p.room_id != current_room else " (here)"
+            player_list.append(f"  {p.name}{location}")
+
+        msg = f"Players online ({player_count}):\n" + "\n".join(player_list)
+        return VerbResult(
+            success=True,
+            message=msg,
             end_turn=False,
         )
 
