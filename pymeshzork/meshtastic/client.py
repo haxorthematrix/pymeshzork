@@ -270,7 +270,7 @@ class MeshtasticClient(ABC):
     def send_move(self, from_room: str, to_room: str) -> bool:
         """Announce moving to a new room."""
         self._current_room = to_room
-        msg = create_move_message(self.player_id, from_room, to_room)
+        msg = create_move_message(self.player_id, from_room, to_room, self.player_name)
         return self.send(msg)
 
     def send_action(

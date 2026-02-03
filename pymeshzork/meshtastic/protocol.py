@@ -286,17 +286,21 @@ def create_move_message(
     player_id: str,
     from_room: str,
     to_room: str,
+    player_name: str | None = None,
     seq: int = 0
 ) -> GameMessage:
     """Create a player move message."""
+    data = {
+        "f": ROOM_IDS.get(from_room, 0),
+        "r": ROOM_IDS.get(to_room, 0),
+    }
+    if player_name:
+        data["n"] = player_name[:12]  # Include name for late joiners
     return GameMessage(
         type=MessageType.PLAYER_MOVE,
         player_id=player_id,
         sequence=seq,
-        data={
-            "f": ROOM_IDS.get(from_room, 0),
-            "r": ROOM_IDS.get(to_room, 0),
-        },
+        data=data,
     )
 
 

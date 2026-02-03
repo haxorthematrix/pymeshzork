@@ -166,17 +166,21 @@ class PresenceManager:
         """Handle player move message."""
         from_room = ROOM_NAMES.get(msg.data.get("f", 0), "")
         to_room = ROOM_NAMES.get(msg.data.get("r", 0), "whous")
+        player_name = msg.data.get("n")  # Name included in move messages
 
         with self._lock:
             player = self._players.get(msg.player_id)
             if player:
                 player.room_id = to_room
                 player.update_seen()
+                # Update name if we learned it
+                if player_name and player.name == player.player_id:
+                    player.name = player_name
             else:
                 # New player we haven't seen - create entry
                 player = PlayerInfo(
                     player_id=msg.player_id,
-                    name=msg.player_id,  # Unknown name
+                    name=player_name or msg.player_id,  # Use name if available
                     room_id=to_room,
                 )
                 self._players[msg.player_id] = player
