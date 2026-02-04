@@ -113,6 +113,24 @@ def main() -> int:
     )
 
     parser.add_argument(
+        "--serial",
+        action="store_true",
+        help="Use USB serial connection to Meshtastic device (T-Beam, Heltec, etc.)",
+    )
+
+    parser.add_argument(
+        "--serial-port",
+        type=str,
+        help="Serial port for Meshtastic device (e.g., /dev/ttyUSB0, COM3). Auto-detects if not specified.",
+    )
+
+    parser.add_argument(
+        "--native",
+        action="store_true",
+        help="Use meshtasticd (Meshtastic Native) on Raspberry Pi with Radio Bonnet",
+    )
+
+    parser.add_argument(
         "--player-name",
         type=str,
         help="Player name for multiplayer",
@@ -125,7 +143,16 @@ def main() -> int:
     config = get_config()
 
     # Determine backend
-    if args.lora:
+    if args.native:
+        backend = MultiplayerBackend.NATIVE
+        use_multiplayer = not args.no_multiplayer
+    elif args.serial:
+        backend = MultiplayerBackend.SERIAL
+        config.serial.enabled = True
+        if args.serial_port:
+            config.serial.port = args.serial_port
+        use_multiplayer = not args.no_multiplayer
+    elif args.lora:
         backend = MultiplayerBackend.LORA
         # Override config frequency if specified
         if args.lora_freq != 915.0:
@@ -144,7 +171,14 @@ def main() -> int:
         player_name = args.player_name or config.game.player_name
         multiplayer = MultiplayerManager(player_name, backend=backend)
 
-        backend_name = "LoRa radio" if args.lora else "MQTT"
+        if args.native:
+            backend_name = "Meshtastic Native (meshtasticd)"
+        elif args.serial:
+            backend_name = "Meshtastic serial"
+        elif args.lora:
+            backend_name = "LoRa radio (legacy)"
+        else:
+            backend_name = "MQTT"
         print(f"Connecting to multiplayer ({backend_name}) as {player_name}...")
         if multiplayer.connect():
             print("Connected!")

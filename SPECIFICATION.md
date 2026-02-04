@@ -492,59 +492,198 @@ TEAM SAY <message>             - Message all team members
 
 ### 3.5 Phase 5: Meshtastic Multiplayer
 
-Phase 5 supports four deployment scenarios for multiplayer gameplay over Meshtastic mesh networks.
+Phase 5 supports multiple deployment scenarios for multiplayer gameplay. The key design goal is **unified Meshtastic protocol compatibility** across all LoRa-capable devices, with **MQTT as a WiFi/internet fallback** option.
 
-#### F5.1 Deployment Scenarios Overview
+#### F5.1 Unified Architecture Overview
+
+All LoRa-capable devices use the Meshtastic protocol for mesh communication, ensuring interoperability:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        PyMeshZork Deployment Options                         │
+│                    Unified Meshtastic Mesh Network                          │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Scenario A: MQTT Bridge          Scenario B: Direct LoRa                   │
-│  ┌─────────────────────┐          ┌─────────────────────┐                   │
-│  │  Raspberry Pi/Linux │          │  Raspberry Pi/Linux │                   │
-│  │  ┌───────────────┐  │          │  ┌───────────────┐  │                   │
-│  │  │   PyMeshZork  │  │          │  │   PyMeshZork  │  │                   │
-│  │  └───────┬───────┘  │          │  └───────┬───────┘  │                   │
-│  │          │          │          │          │          │                   │
-│  │  ┌───────▼───────┐  │          │  ┌───────▼───────┐  │                   │
-│  │  │  paho-mqtt    │  │          │  │  meshtasticd  │  │                   │
-│  │  └───────┬───────┘  │          │  └───────┬───────┘  │                   │
-│  │          │          │          │          │          │                   │
-│  │  ┌───────▼───────┐  │          │  ┌───────▼───────┐  │                   │
-│  │  │   Mosquitto   │  │          │  │  LoRa HAT     │  │                   │
-│  │  │   (local)     │  │          │  │  (SX1262)     │  │                   │
-│  │  └───────┬───────┘  │          │  └───────┬───────┘  │                   │
-│  └──────────┼──────────┘          └──────────┼──────────┘                   │
-│             │                                │                               │
-│             ▼                                ▼                               │
-│      ┌──────────────┐                 ┌──────────────┐                      │
-│      │  Internet/   │                 │   LoRa RF    │                      │
-│      │  MQTT Broker │                 │   915MHz     │                      │
-│      └──────────────┘                 └──────────────┘                      │
-│                                                                             │
-│  Scenario C: Serial Node          Scenario D: T-Deck Standalone             │
-│  ┌─────────────────────┐          ┌─────────────────────┐                   │
-│  │    Any Computer     │          │   LILYGO T-Deck     │                   │
-│  │  ┌───────────────┐  │          │  ┌───────────────┐  │                   │
-│  │  │   PyMeshZork  │  │          │  │  Custom       │  │                   │
-│  │  │   (CLI)       │  │          │  │  Firmware     │  │                   │
-│  │  └───────┬───────┘  │          │  │  (ESP32-S3)   │  │                   │
-│  │          │          │          │  │               │  │                   │
-│  │  ┌───────▼───────┐  │          │  │  Meshtastic   │  │                   │
-│  │  │ SerialInterface│  │          │  │  + PyMeshZork │  │                   │
-│  │  │ (USB Serial)  │  │          │  │  (LVGL UI)    │  │                   │
-│  │  └───────┬───────┘  │          │  └───────┬───────┘  │                   │
-│  └──────────┼──────────┘          │          │          │                   │
-│             │ USB                 │  ┌───────▼───────┐  │                   │
-│  ┌──────────▼──────────┐          │  │  Built-in     │  │                   │
-│  │  Meshtastic Node    │          │  │  LoRa Radio   │  │                   │
-│  │  (T-Beam, RAK, etc) │          │  └───────────────┘  │                   │
-│  │  No screen/keyboard │          │  Built-in keyboard  │                   │
-│  └─────────────────────┘          │  320x240 screen     │                   │
-│                                   └─────────────────────┘                   │
+│    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐       │
+│    │ Pi + Radio      │    │ Pi + Heltec     │    │ Pi + T-Beam     │       │
+│    │ Bonnet          │    │ (USB Serial)    │    │ (USB Serial)    │       │
+│    │ ┌─────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │       │
+│    │ │ PyMeshZork  │ │    │ │ PyMeshZork  │ │    │ │ PyMeshZork  │ │       │
+│    │ └──────┬──────┘ │    │ └──────┬──────┘ │    │ └──────┬──────┘ │       │
+│    │        │        │    │        │        │    │        │        │       │
+│    │ ┌──────▼──────┐ │    │ ┌──────▼──────┐ │    │ ┌──────▼──────┐ │       │
+│    │ │ Meshtastic  │ │    │ │ Meshtastic  │ │    │ │ Meshtastic  │ │       │
+│    │ │ Native      │ │    │ │ Firmware    │ │    │ │ Firmware    │ │       │
+│    │ │ (portduino) │ │    │ │ (ESP32)     │ │    │ │ (ESP32)     │ │       │
+│    │ └──────┬──────┘ │    │ └──────┬──────┘ │    │ └──────┬──────┘ │       │
+│    │        │        │    │        │        │    │        │        │       │
+│    │ ┌──────▼──────┐ │    │ ┌──────▼──────┐ │    │ ┌──────▼──────┐ │       │
+│    │ │ RFM95W/SX127│ │    │ │ SX1262      │ │    │ │ SX1276      │ │       │
+│    │ │ (SPI)       │ │    │ │ (Built-in)  │ │    │ │ (Built-in)  │ │       │
+│    │ └──────┬──────┘ │    │ └──────┬──────┘ │    │ └──────┬──────┘ │       │
+│    └────────┼────────┘    └────────┼────────┘    └────────┼────────┘       │
+│             │                      │                      │                 │
+│             └──────────────────────┼──────────────────────┘                 │
+│                                    │                                        │
+│                          ┌─────────▼─────────┐                              │
+│                          │   LoRa Mesh RF    │                              │
+│                          │   915MHz / 868MHz │                              │
+│                          │   (All devices    │                              │
+│                          │    interoperate)  │                              │
+│                          └───────────────────┘                              │
 └─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    MQTT Fallback (WiFi/Internet)                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  When LoRa is unavailable or for hybrid connectivity:                       │
+│                                                                             │
+│    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐       │
+│    │ Any Device      │    │ Any Device      │    │ Any Device      │       │
+│    │ ┌─────────────┐ │    │ ┌─────────────┐ │    │ ┌─────────────┐ │       │
+│    │ │ PyMeshZork  │ │    │ │ PyMeshZork  │ │    │ │ PyMeshZork  │ │       │
+│    │ └──────┬──────┘ │    │ └──────┬──────┘ │    │ └──────┬──────┘ │       │
+│    │        │        │    │        │        │    │        │        │       │
+│    │ ┌──────▼──────┐ │    │ ┌──────▼──────┐ │    │ ┌──────▼──────┐ │       │
+│    │ │ paho-mqtt   │ │    │ │ paho-mqtt   │ │    │ │ paho-mqtt   │ │       │
+│    │ └──────┬──────┘ │    │ └──────┬──────┘ │    │ └──────┬──────┘ │       │
+│    └────────┼────────┘    └────────┼────────┘    └────────┼────────┘       │
+│             │                      │                      │                 │
+│             └──────────────────────┼──────────────────────┘                 │
+│                                    │                                        │
+│                          ┌─────────▼─────────┐                              │
+│                          │   MQTT Broker     │                              │
+│                          │   (Mosquitto)     │                              │
+│                          └───────────────────┘                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### F5.1.1 Hardware Compatibility Matrix
+
+| Hardware | Meshtastic Method | LoRa Chip | Connection | Protocol |
+|----------|-------------------|-----------|------------|----------|
+| Adafruit Radio Bonnet | Native (portduino) | RFM95W (SX1276) | SPI | Meshtastic |
+| Heltec LoRa 32 V3 | Firmware | SX1262 | USB Serial | Meshtastic |
+| T-Beam | Firmware | SX1276 | USB Serial | Meshtastic |
+| RAK4631 | Firmware | SX1262 | USB Serial | Meshtastic |
+| Station G2 | Firmware | SX1262 | USB Serial | Meshtastic |
+| No LoRa hardware | N/A | N/A | WiFi/Ethernet | MQTT only |
+
+#### F5.1.2 Hybrid Transport Design
+
+PyMeshZork supports simultaneous use of multiple transports with automatic deduplication:
+
+```python
+# Transport priority and fallback logic
+class HybridTransport:
+    """
+    Transport selection priority:
+    1. Meshtastic (LoRa mesh) - Primary for offline/field use
+    2. MQTT (WiFi/Internet) - Fallback when LoRa unavailable
+
+    In hybrid mode, messages received on one transport are NOT
+    echoed to other transports (handled by deduplication).
+    """
+
+    def __init__(self):
+        self.transports = []  # Active transports
+        self.seen_messages = LRUCache(maxsize=1000)  # Message dedup
+
+    def detect_available(self) -> list[str]:
+        """Auto-detect available transports."""
+        available = []
+
+        # Check for Meshtastic Native (Radio Bonnet)
+        if self._check_meshtastic_native():
+            available.append("meshtastic_native")
+
+        # Check for USB-connected Meshtastic device
+        if self._check_meshtastic_serial():
+            available.append("meshtastic_serial")
+
+        # Check for MQTT connectivity
+        if self._check_mqtt_broker():
+            available.append("mqtt")
+
+        return available
+
+    def send(self, message: GameMessage):
+        """Send via primary transport only (avoid duplicates)."""
+        if self.transports:
+            self.transports[0].send(message)
+
+    def receive(self, message: GameMessage, source: str):
+        """Deduplicate messages received from any transport."""
+        msg_id = f"{message.player_id}:{message.sequence}"
+        if msg_id in self.seen_messages:
+            return  # Already processed
+        self.seen_messages[msg_id] = True
+        self._dispatch_to_game(message)
+```
+
+#### F5.1.3 Message Deduplication Strategy
+
+To prevent duplicate messages when multiple transports are active:
+
+1. **Message ID**: Each message has a unique ID = `{player_id}:{sequence_number}`
+2. **LRU Cache**: Track last 1000 message IDs seen
+3. **Source Tracking**: Log which transport delivered each message
+4. **Send Once**: Outgoing messages sent on primary transport only
+5. **Receive Any**: Accept messages from any transport, dedupe by ID
+
+```python
+@dataclass
+class DeduplicationConfig:
+    cache_size: int = 1000      # Max message IDs to track
+    cache_ttl: int = 300        # Seconds before expiring old IDs
+    log_duplicates: bool = True # Log when duplicates detected
+```
+
+#### F5.1.4 Transport Detection and Selection
+
+```python
+# CLI options for transport selection
+zork --meshtastic              # Auto-detect Meshtastic (Native or Serial)
+zork --meshtastic-native       # Force Meshtastic Native (Radio Bonnet)
+zork --serial                  # Force USB Serial to Meshtastic device
+zork --mqtt                    # Force MQTT only
+zork --hybrid                  # Enable all available transports
+
+# Auto-detection priority
+1. Check for meshtasticd running (Native on Radio Bonnet)
+2. Check for USB Meshtastic device (/dev/ttyUSB0, /dev/ttyACM0)
+3. Check MQTT broker connectivity
+4. Fall back to offline single-player
+```
+
+#### F5.1.5 Meshtastic Native on Raspberry Pi (Radio Bonnet)
+
+Run Meshtastic as a Linux daemon on Pi with Adafruit Radio Bonnet:
+
+```bash
+# Install Meshtastic Native
+pip install meshtastic
+
+# Or build from source for portduino support
+git clone https://github.com/meshtastic/firmware.git
+cd firmware
+pio run -e native
+
+# Configure for Adafruit Radio Bonnet
+# /etc/meshtasticd/config.yaml
+lora:
+  module: sx1276      # RFM95W is SX1276-based
+  cs: 7               # CE1 = GPIO7
+  irq: 22             # DIO0 = GPIO22
+  reset: 25           # RST = GPIO25
+  frequency: 915.0    # US frequency (868.0 for EU)
+
+# Run as daemon
+sudo systemctl enable meshtasticd
+sudo systemctl start meshtasticd
+
+# PyMeshZork connects via TCP
+zork --meshtastic-native --player-name "Adventurer"
 ```
 
 ---
@@ -1345,40 +1484,49 @@ pymeshzork/
 - [ ] Test with public mqtt.meshtastic.org broker
 - [ ] Add TLS support for encrypted connections
 
-#### Step 5.3: Scenario B - Direct LoRa (Raspberry Pi HAT)
-- [ ] Document MeshAdv-Pi HAT installation and GPIO pinout
-- [ ] Create meshtasticd configuration templates
-- [ ] Create `LoRaClient` class using meshtasticd TCP interface
-- [ ] Test with MeshAdv-Pi v1.1 HAT
-- [ ] Document alternative HAT options (Adafruit RFM9x, etc.)
-- [ ] Add SPI/UART configuration guides
+#### Step 5.3: Unified Meshtastic Architecture
+- [x] Create `LoRaClient` class for direct RFM9x control (legacy)
+- [ ] Install and configure Meshtastic Native (portduino) on Pi
+- [ ] Create meshtasticd configuration for Adafruit Radio Bonnet
+- [ ] Create `MeshtasticNativeClient` using TCP interface to meshtasticd
+- [ ] Test Radio Bonnet with Meshtastic Native firmware
+- [ ] Verify mesh interoperability with Heltec/T-Beam devices
+- [ ] Document SPI pin configuration for Radio Bonnet
 
 #### Step 5.4: Scenario C - Serial Interface
-- [ ] Create `SerialClient` class using meshtastic.serial_interface
-- [ ] Implement auto-detection of Meshtastic devices
-- [ ] Document USB driver setup (CP210x, CH9102)
-- [ ] Test with T-Beam, RAK4631, Heltec V3
-- [ ] Add serial module configuration (PROTO/TEXTMSG modes)
+- [x] Create `SerialClient` class using meshtastic.serial_interface
+- [x] Implement auto-detection of Meshtastic devices
+- [x] Document USB driver setup (CP210x, CH9102)
+- [ ] Test with T-Beam, Heltec V3 (firmware verification)
+- [ ] Verify cross-device mesh communication
 - [ ] Create troubleshooting guide for permissions
 
-#### Step 5.5: Presence and State System
-- [ ] Implement player join/leave broadcasting
-- [ ] Create heartbeat mechanism (60s interval)
-- [ ] Track active players per room
-- [ ] Handle timeout/disconnect (3 missed heartbeats)
+#### Step 5.5: Hybrid Transport Support
+- [ ] Create `HybridTransport` class for multi-transport management
+- [ ] Implement transport auto-detection logic
+- [ ] Add message deduplication with LRU cache
+- [ ] Add CLI options (--hybrid, --meshtastic-native, etc.)
+- [ ] Test hybrid mode with MQTT + Meshtastic simultaneously
+- [ ] Document transport priority and fallback behavior
+
+#### Step 5.6: Presence and State System
+- [x] Implement player join/leave broadcasting
+- [x] Create heartbeat mechanism (60s interval)
+- [x] Track active players per room
+- [x] Handle timeout/disconnect (3 missed heartbeats)
 - [ ] Implement object state synchronization
 - [ ] Add room state sync (doors, switches)
 - [ ] Design and implement conflict resolution
 
-#### Step 5.6: Multiplayer Gameplay Integration
-- [ ] Modify room descriptions to show other players
-- [ ] Display other player actions in output
-- [ ] Integrate with existing SAY/SHOUT/WHO commands
+#### Step 5.7: Multiplayer Gameplay Integration
+- [x] Modify room descriptions to show other players
+- [x] Display other player actions in output
+- [x] Integrate with existing SAY/SHOUT/WHO commands
 - [ ] Add player interaction verbs (GIVE, FOLLOW)
 - [ ] Implement shared team inventory option
 - [ ] Test cooperative puzzle solving
 
-#### Step 5.7: Scenario D - T-Deck Firmware (Advanced)
+#### Step 5.8: Scenario D - T-Deck Firmware (Advanced)
 - [ ] Set up PlatformIO development environment
 - [ ] Port game engine core to C++ for ESP32
 - [ ] Integrate LVGL ~8.3.9 for display UI
@@ -1389,12 +1537,24 @@ pymeshzork/
 - [ ] Create firmware build and flash documentation
 - [ ] Test on T-Deck Plus hardware
 
-#### Step 5.8: Testing and Documentation
+#### Step 5.9: Cross-Device Testing Matrix
+- [ ] Test Heltec ↔ Heltec communication
+- [ ] Test T-Beam ↔ T-Beam communication
+- [ ] Test Heltec ↔ T-Beam communication
+- [ ] Test Radio Bonnet (Native) ↔ Heltec communication
+- [ ] Test Radio Bonnet (Native) ↔ T-Beam communication
+- [ ] Test Radio Bonnet (Native) ↔ Radio Bonnet (Native) communication
+- [ ] Test 6-device mesh network with all hardware types
+- [ ] Verify message routing across mesh hops
+- [ ] Test hybrid mode (Meshtastic + MQTT simultaneously)
+
+#### Step 5.10: Testing and Documentation
 - [ ] Unit tests for all client types
 - [ ] Integration tests with real hardware
-- [ ] Multi-player scenario testing
+- [ ] Multi-player scenario testing (6 devices)
 - [ ] Write deployment guides for each scenario
 - [ ] Create troubleshooting documentation
+- [ ] Document Meshtastic firmware versions and compatibility
 - [ ] Performance testing on Raspberry Pi Zero 2 W
 
 ---
@@ -1455,8 +1615,11 @@ pymeshzork/
 
 ### Version 2.0 (Meshtastic Multiplayer)
 - [x] Scenario A: MQTT bridge operational on Raspberry Pi
-- [x] Scenario B: Direct LoRa with Adafruit Radio Bonnet working
-- [ ] Scenario C: Serial interface to Meshtastic nodes functional
+- [x] Scenario B (Legacy): Direct LoRa with Adafruit Radio Bonnet working
+- [x] Scenario C: Serial interface to Meshtastic nodes functional
+- [ ] Scenario B (Native): Meshtastic Native on Radio Bonnet for unified protocol
+- [ ] Hybrid transport: Multi-transport with message deduplication
+- [ ] Cross-device mesh: All hardware types interoperate via Meshtastic
 - [x] 2+ players can explore together via any scenario
 - [x] World state synchronized across mesh network
 - [x] SAY/SHOUT/CHAT commands functional over mesh
@@ -1668,18 +1831,21 @@ pymeshzork/
 - Time-limited invite codes with use tracking
 - Full in-game command interface for account/team management
 
-### Phase 5: Meshtastic Multiplayer ✅ MOSTLY COMPLETE
+### Phase 5: Meshtastic Multiplayer ⏳ IN PROGRESS
 
 | Component | Status | Notes |
 |-----------|--------|-------|
 | Core infrastructure | ✅ Done | Message protocol, base client, message queuing |
 | Scenario A: MQTT | ✅ Done | paho-mqtt client, tested with private broker |
-| Scenario B: LoRa HAT | ✅ Done | Adafruit RFM9x Radio Bonnet, thread-safe |
-| Scenario C: Serial | 🔲 Pending | USB serial interface |
+| Scenario B: LoRa HAT (Legacy) | ✅ Done | Adafruit RFM9x direct control, thread-safe |
+| Scenario B: Meshtastic Native | 🔲 Pending | Unified protocol via meshtasticd on Radio Bonnet |
+| Scenario C: Serial | ✅ Done | USB serial interface to Meshtastic devices |
 | Scenario D: T-Deck | 🔲 Pending | Custom ESP32 firmware |
+| Hybrid Transport | 🔲 Pending | Multi-transport support with deduplication |
 | Presence system | ✅ Done | Join/leave, heartbeat, player tracking |
 | State sync | ✅ Done | Object updates, room state, player locations |
 | Multiplayer gameplay | ✅ Done | Chat commands, player visibility, WHO |
+| Cross-device testing | 🔲 Pending | 6-device test matrix (Heltec, T-Beam, Bonnet) |
 | Documentation | ⏳ Partial | Setup script, config files created |
 
 **Files created:**
@@ -1687,11 +1853,16 @@ pymeshzork/
 - `pymeshzork/meshtastic/protocol.py` - Compact message format, room/object ID mapping
 - `pymeshzork/meshtastic/client.py` - Abstract base client with message queuing
 - `pymeshzork/meshtastic/mqtt_client.py` - MQTT client using paho-mqtt
-- `pymeshzork/meshtastic/lora_client.py` - Direct LoRa with Adafruit RFM9x bonnet
+- `pymeshzork/meshtastic/lora_client.py` - Direct LoRa with Adafruit RFM9x bonnet (legacy)
+- `pymeshzork/meshtastic/serial_client.py` - USB serial to Meshtastic devices (Heltec, T-Beam)
 - `pymeshzork/meshtastic/presence.py` - Player presence tracking, join/leave/move handlers
 - `pymeshzork/meshtastic/multiplayer.py` - High-level multiplayer manager
 - `pymeshzork/config.py` - Configuration management (env vars, config file)
 - `scripts/setup_pi_lora.sh` - Raspberry Pi setup script
+
+**Files pending:**
+- `pymeshzork/meshtastic/native_client.py` - Meshtastic Native (meshtasticd) TCP client
+- `pymeshzork/meshtastic/hybrid_transport.py` - Multi-transport with deduplication
 
 **Chat Commands Implemented:**
 - `chat <message>` - Broadcast message to all players
@@ -1725,16 +1896,24 @@ pymeshzork/
 - Chat, WHO, movement, and presence all verified working
 
 **Deployment Scenarios:**
-- **A: MQTT** - ✅ Complete - Raspberry Pi/Linux with Mosquitto broker
-- **B: Direct LoRa** - ✅ Complete - Raspberry Pi with Adafruit Radio Bonnet
-- **C: Serial** - 🔲 Pending - Any computer connected to Meshtastic node via USB
+- **A: MQTT** - ✅ Complete - Raspberry Pi/Linux with Mosquitto broker (WiFi fallback)
+- **B: LoRa (Legacy)** - ✅ Complete - Direct RFM9x control (not Meshtastic compatible)
+- **B: LoRa (Native)** - 🔲 Pending - Meshtastic Native on Radio Bonnet (unified protocol)
+- **C: Serial** - ✅ Complete - USB serial to Meshtastic devices (Heltec, T-Beam)
 - **D: T-Deck** - 🔲 Pending - Standalone device with custom firmware (LVGL + Meshtastic)
+- **Hybrid** - 🔲 Pending - Multiple transports with deduplication
 
 **Hardware Requirements:**
 - Scenario A: Raspberry Pi (any) + network connection + MQTT broker
-- Scenario B: Raspberry Pi 4 + Adafruit Radio Bonnet (RFM9x + OLED)
-- Scenario C: Any computer + Meshtastic device (T-Beam, RAK, Heltec)
+- Scenario B (Native): Raspberry Pi 4 + Adafruit Radio Bonnet + Meshtastic Native
+- Scenario C: Any computer + Meshtastic device (T-Beam, RAK, Heltec V3)
 - Scenario D: LILYGO T-Deck Plus
+- Hybrid: Any combination of above with MQTT for WiFi backup
+
+**Cross-Device Compatibility (Target):**
+All LoRa devices using Meshtastic protocol can mesh together:
+- Radio Bonnet (via Meshtastic Native) ↔ Heltec V3 ↔ T-Beam ↔ RAK4631
+- MQTT provides WiFi/internet bridge for non-LoRa connectivity
 
 ---
 
@@ -1753,6 +1932,7 @@ pymeshzork/
 | 1.8 | 2026-01-23 | Claude | Event system (thief AI, combat), puzzle handlers, conditional exits |
 | 1.9 | 2026-01-23 | Claude | Phase 5 expanded - Four deployment scenarios (MQTT, LoRa HAT, Serial, T-Deck) |
 | 2.0 | 2026-02-03 | Claude | Phase 5 implementation - MQTT and LoRa multiplayer complete, chat commands |
+| 2.1 | 2026-02-04 | Claude | Unified Meshtastic architecture - Serial client, hybrid transport design, cross-device testing plan |
 
 ---
 

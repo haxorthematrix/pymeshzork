@@ -60,6 +60,18 @@ class LoRaConfig:
 
 
 @dataclass
+class SerialConfig:
+    """Serial/USB configuration for Meshtastic devices."""
+
+    enabled: bool = False
+    port: str = ""  # e.g., /dev/ttyUSB0, COM3. Empty for auto-detect.
+
+    def is_configured(self) -> bool:
+        """Check if serial is enabled."""
+        return self.enabled
+
+
+@dataclass
 class GameConfig:
     """Game configuration."""
 
@@ -75,6 +87,7 @@ class Config:
 
     mqtt: MQTTConfig = field(default_factory=MQTTConfig)
     lora: LoRaConfig = field(default_factory=LoRaConfig)
+    serial: SerialConfig = field(default_factory=SerialConfig)
     game: GameConfig = field(default_factory=GameConfig)
 
     def to_dict(self) -> dict:
@@ -82,6 +95,7 @@ class Config:
         return {
             "mqtt": asdict(self.mqtt),
             "lora": asdict(self.lora),
+            "serial": asdict(self.serial),
             "game": asdict(self.game),
         }
 
@@ -93,6 +107,8 @@ class Config:
             config.mqtt = MQTTConfig(**data["mqtt"])
         if "lora" in data:
             config.lora = LoRaConfig(**data["lora"])
+        if "serial" in data:
+            config.serial = SerialConfig(**data["serial"])
         if "game" in data:
             config.game = GameConfig(**data["game"])
         return config
@@ -161,6 +177,12 @@ def load_config() -> Config:
             pass
     if "PYMESHZORK_LORA_TX_POWER" in os.environ:
         config.lora.tx_power = _get_env_int("PYMESHZORK_LORA_TX_POWER", 23)
+
+    # Serial/Meshtastic environment variables
+    if "PYMESHZORK_SERIAL_ENABLED" in os.environ:
+        config.serial.enabled = _get_env_bool("PYMESHZORK_SERIAL_ENABLED")
+    if "PYMESHZORK_SERIAL_PORT" in os.environ:
+        config.serial.port = os.environ["PYMESHZORK_SERIAL_PORT"]
 
     return config
 

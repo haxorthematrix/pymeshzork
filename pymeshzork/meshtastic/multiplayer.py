@@ -30,7 +30,9 @@ logger = logging.getLogger(__name__)
 class MultiplayerBackend(Enum):
     """Available multiplayer backends."""
     MQTT = "mqtt"
-    LORA = "lora"
+    LORA = "lora"  # Legacy direct RFM9x (not Meshtastic compatible)
+    SERIAL = "serial"  # USB serial to Meshtastic device
+    NATIVE = "native"  # meshtasticd on Radio Bonnet (Meshtastic compatible)
 
 
 class MultiplayerManager:
@@ -55,11 +57,14 @@ class MultiplayerManager:
         self.player_name = player_name or config.game.player_name
         self.mqtt_config = config.mqtt
         self.lora_config = config.lora
+        self.serial_config = config.serial
 
         # Determine backend
         if backend is None:
-            # Auto-detect: prefer LoRa if enabled, fall back to MQTT
-            if self.lora_config.enabled:
+            # Auto-detect: prefer Serial, then LoRa, fall back to MQTT
+            if self.serial_config.enabled:
+                self._backend = MultiplayerBackend.SERIAL
+            elif self.lora_config.enabled:
                 self._backend = MultiplayerBackend.LORA
             else:
                 self._backend = MultiplayerBackend.MQTT
@@ -90,7 +95,13 @@ class MultiplayerManager:
     @property
     def is_enabled(self) -> bool:
         """Check if multiplayer is enabled in config."""
-        if self._backend == MultiplayerBackend.LORA:
+        if self._backend == MultiplayerBackend.NATIVE:
+            # Native uses meshtasticd - check if it's running
+            from pymeshzork.meshtastic.native_client import check_meshtasticd_running
+            return check_meshtasticd_running()
+        elif self._backend == MultiplayerBackend.SERIAL:
+            return self.serial_config.enabled
+        elif self._backend == MultiplayerBackend.LORA:
             return self.lora_config.enabled
         else:
             return self.mqtt_config.enabled and self.mqtt_config.is_configured()
@@ -123,7 +134,11 @@ class MultiplayerManager:
 
         try:
             # Create appropriate client based on backend
-            if self._backend == MultiplayerBackend.LORA:
+            if self._backend == MultiplayerBackend.NATIVE:
+                self._client = self._create_native_client()
+            elif self._backend == MultiplayerBackend.SERIAL:
+                self._client = self._create_serial_client()
+            elif self._backend == MultiplayerBackend.LORA:
                 self._client = self._create_lora_client()
             else:
                 self._client = self._create_mqtt_client()
@@ -181,6 +196,31 @@ class MultiplayerManager:
         except ImportError as e:
             logger.error(f"LoRa client not available: {e}")
             logger.error("Install with: pip install 'pymeshzork[lora]'")
+            return None
+
+    def _create_serial_client(self) -> "MeshtasticClient | None":
+        """Create a serial client for Meshtastic devices."""
+        try:
+            from pymeshzork.meshtastic.serial_client import SerialClient
+            return SerialClient(
+                player_name=self.player_name,
+                port=self.serial_config.port or None,  # Empty string -> auto-detect
+            )
+        except ImportError as e:
+            logger.error(f"Serial client not available: {e}")
+            logger.error("Install with: pip install 'pymeshzork[mesh]'")
+            return None
+
+    def _create_native_client(self) -> "MeshtasticClient | None":
+        """Create a native client for meshtasticd (Meshtastic on Radio Bonnet)."""
+        try:
+            from pymeshzork.meshtastic.native_client import NativeClient
+            return NativeClient(
+                player_name=self.player_name,
+            )
+        except ImportError as e:
+            logger.error(f"Native client not available: {e}")
+            logger.error("Install with: pip install 'pymeshzork[mesh]'")
             return None
 
     def disconnect(self) -> None:

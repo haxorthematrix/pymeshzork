@@ -459,6 +459,317 @@ sudo usermod -a -G spi,gpio $USER
 2. Check I2C address: `i2cdetect -y 1` should show device at 0x3C
 3. Ensure user is in i2c group: `groups` should include "i2c"
 
+### Meshtastic Serial (USB)
+
+Connect PyMeshZork to a Meshtastic device via USB serial for mesh network multiplayer. Works with T-Beam, Heltec LoRa 32, RAK Wireless, and other Meshtastic-compatible devices.
+
+#### Supported Devices
+
+| Device | USB Chip | Linux Path | macOS Path |
+|--------|----------|------------|------------|
+| T-Beam | CP2102 | /dev/ttyUSB0 | /dev/cu.usbserial-* |
+| Heltec LoRa 32 V3 | CP2102 | /dev/ttyUSB0 | /dev/cu.usbserial-* |
+| RAK4631 | Native USB | /dev/ttyACM0 | /dev/cu.usbmodem* |
+| Station G2 | CP2102 | /dev/ttyUSB0 | /dev/cu.usbserial-* |
+
+#### Prerequisites
+
+1. **Meshtastic Firmware**: Flash your device with Meshtastic firmware from [meshtastic.org](https://meshtastic.org/docs/getting-started/flashing-firmware/)
+
+2. **USB Drivers** (if needed):
+   - Linux: Usually automatic
+   - macOS: May need [CP210x driver](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers)
+   - Windows: Install CP210x driver from Silicon Labs
+
+3. **User Permissions** (Linux):
+   ```bash
+   sudo usermod -a -G dialout $USER
+   # Log out and back in
+   ```
+
+#### Installation
+
+```bash
+# Install PyMeshZork with Meshtastic support
+pip install -e ".[mesh]"
+```
+
+#### Running with Meshtastic Serial
+
+```bash
+# Auto-detect device
+zork --serial --player-name "YourName"
+
+# Specify port explicitly
+zork --serial --serial-port /dev/ttyUSB0 --player-name "YourName"
+
+# On macOS
+zork --serial --serial-port /dev/cu.usbserial-0001 --player-name "YourName"
+```
+
+#### Configuration
+
+Create `~/.pymeshzork/config.json`:
+
+```json
+{
+  "serial": {
+    "enabled": true,
+    "port": ""
+  },
+  "game": {
+    "player_name": "Adventurer"
+  }
+}
+```
+
+Leave `port` empty for auto-detection, or specify the full path.
+
+#### Troubleshooting
+
+**Device not found:**
+```bash
+# List available serial devices
+ls -la /dev/ttyUSB* /dev/ttyACM*  # Linux
+ls -la /dev/cu.*                   # macOS
+```
+
+**Permission denied:**
+```bash
+sudo usermod -a -G dialout $USER  # Linux
+# Log out and back in
+```
+
+**"meshtastic library not installed":**
+```bash
+pip install meshtastic
+# or
+pip install -e ".[mesh]"
+```
+
+**Device not responding:**
+1. Ensure Meshtastic firmware is flashed
+2. Try unplugging and replugging the USB cable
+3. Check if another application is using the serial port
+4. Verify the device appears in `meshtastic --info`
+
+### Meshtastic Native (Raspberry Pi + Radio Bonnet)
+
+Run full Meshtastic protocol on a Raspberry Pi with the Adafruit Radio Bonnet using `meshtasticd` (Meshtastic Native daemon). This enables your Radio Bonnet to communicate with other Meshtastic devices (T-Beam, Heltec, etc.) over the mesh network.
+
+#### Hardware Required
+
+- Raspberry Pi 4 (recommended), 3B+, or Zero 2W
+- [Adafruit LoRa Radio Bonnet with OLED](https://www.adafruit.com/product/4074) (RFM95W @ 915MHz)
+- Antenna (required - **never transmit without antenna!**)
+
+#### Why Meshtastic Native?
+
+The legacy LoRa mode uses direct RFM95W radio control which is **not compatible** with Meshtastic devices. Meshtastic Native (`meshtasticd`) runs the full Meshtastic firmware on your Pi, enabling:
+
+- **Mesh Protocol Compatibility**: Communicate with T-Beam, Heltec LoRa 32, RAK Wireless, and other Meshtastic devices
+- **Multi-Hop Routing**: Messages can hop through intermediate nodes to reach distant destinations
+- **Standard Channels**: Use the same channels as the Meshtastic ecosystem
+
+#### Building meshtasticd from Source
+
+On Raspberry Pi OS (Debian 13/Trixie), prebuilt packages may have dependency issues. Building from source ensures compatibility:
+
+```bash
+# 1. Install build dependencies
+sudo apt update
+sudo apt install -y git python3-pip python3-venv libgpiod-dev libyaml-cpp-dev \
+    libssl-dev libbluetooth-dev libusb-1.0-0-dev
+
+# 2. Install PlatformIO
+pip install platformio --break-system-packages
+
+# 3. Clone Meshtastic firmware
+cd ~
+git clone --depth 1 https://github.com/meshtastic/firmware.git meshtastic-firmware
+cd meshtastic-firmware
+
+# 4. Build for native (Raspberry Pi)
+# This takes ~10-15 minutes on Pi 4
+pio run -e native
+
+# 5. Install the binary
+sudo cp .pio/build/native/program /usr/sbin/meshtasticd
+sudo chmod +x /usr/sbin/meshtasticd
+```
+
+#### Configuration
+
+Create the config directory and file:
+
+```bash
+sudo mkdir -p /etc/meshtasticd
+sudo nano /etc/meshtasticd/config.yaml
+```
+
+Add this configuration for the Adafruit Radio Bonnet:
+
+```yaml
+# Meshtastic Native configuration for Adafruit Radio Bonnet (RFM95W)
+---
+Lora:
+  Module: RF95   # RFM95W module type
+  CS: 7          # CE1 = GPIO7
+  IRQ: 22        # DIO0 = GPIO22
+  Reset: 25      # RST = GPIO25
+
+Webserver:
+  Port: 443
+
+TCP:
+  Enabled: true
+  Port: 4403
+
+Logging:
+  LogLevel: info
+```
+
+#### Systemd Service
+
+Create a service file for automatic startup:
+
+```bash
+sudo tee /etc/systemd/system/meshtasticd.service << 'EOF'
+[Unit]
+Description=Meshtastic Native Daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/meshtasticd --config /etc/meshtasticd/config.yaml
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start the service
+sudo systemctl daemon-reload
+sudo systemctl enable meshtasticd
+sudo systemctl start meshtasticd
+
+# Check status
+sudo systemctl status meshtasticd
+```
+
+#### Setting the Region
+
+After first start, you must set the region (required for LoRa transmission):
+
+```bash
+# Install meshtastic Python library
+pip install meshtastic --break-system-packages
+
+# Set region to US (or EU, ANZ, etc.)
+python3 -c "
+import meshtastic.tcp_interface
+import time
+
+iface = meshtastic.tcp_interface.TCPInterface(hostname='localhost')
+time.sleep(2)
+
+# Set region: 1=US, 2=EU_433, 3=EU_868, etc.
+iface.localNode.localConfig.lora.region = 1  # US
+iface.localNode.writeConfig('lora')
+print('Region set to US')
+
+iface.close()
+"
+
+# Restart meshtasticd to apply
+sudo systemctl restart meshtasticd
+```
+
+#### Running PyMeshZork with Native Mode
+
+```bash
+# Use Meshtastic Native (meshtasticd on localhost)
+zork --native --player-name "YourName"
+```
+
+#### Configuration File
+
+Create `~/.pymeshzork/config.json`:
+
+```json
+{
+  "game": {
+    "player_name": "Adventurer"
+  }
+}
+```
+
+#### Verifying the Setup
+
+Check that meshtasticd is running and the radio is working:
+
+```bash
+# Check service status
+sudo systemctl status meshtasticd
+
+# Check logs for radio initialization
+sudo journalctl -u meshtasticd | grep -E "RF95|region|freq"
+
+# Expected output:
+# Activate RF95 radio on SPI port /dev/spidev0.0
+# RF95 init success
+# Wanted region 1, using US
+# frequency: 906.875000
+```
+
+Test TCP connection:
+
+```bash
+python3 -c "
+import meshtastic.tcp_interface
+import time
+
+iface = meshtastic.tcp_interface.TCPInterface(hostname='localhost')
+time.sleep(2)
+
+info = iface.getMyNodeInfo()
+print(f'Node ID: {info.get(\"num\", 0):08x}')
+print(f'Region: {iface.localNode.localConfig.lora.region}')
+
+iface.close()
+"
+```
+
+#### Troubleshooting
+
+**"Region unset" or "lora tx disabled":**
+```bash
+# Set the region (see above) and restart meshtasticd
+sudo systemctl restart meshtasticd
+```
+
+**RF95 not initializing:**
+1. Verify SPI is enabled: `ls /dev/spi*`
+2. Check GPIO pins are correct for your bonnet
+3. Ensure antenna is attached
+4. Check logs: `sudo journalctl -u meshtasticd -f`
+
+**TCP connection refused (port 4403):**
+```bash
+# Check if meshtasticd is running
+sudo systemctl status meshtasticd
+
+# Check if port is listening
+ss -tlnp | grep 4403
+```
+
+**No packets received from other nodes:**
+- Verify all nodes are on the same region/frequency
+- Check that other devices are using the default channel
+- Try moving devices closer together
+- Check signal strength in logs
+
 ## Project Structure
 
 ```
@@ -479,7 +790,10 @@ pymeshzork/
 │   │   ├── protocol.py  # Message encoding/decoding
 │   │   ├── client.py    # Base client interface
 │   │   ├── mqtt_client.py  # MQTT implementation
-│   │   ├── lora_client.py  # LoRa radio implementation
+│   │   ├── lora_client.py  # Legacy direct LoRa (RFM9x)
+│   │   ├── serial_client.py  # USB serial to Meshtastic devices
+│   │   ├── native_client.py  # TCP to meshtasticd (Radio Bonnet)
+│   │   ├── hybrid_transport.py  # Multi-transport with deduplication
 │   │   ├── presence.py  # Player presence tracking
 │   │   └── multiplayer.py  # Game integration
 │   ├── accounts/        # Player account system
@@ -552,7 +866,7 @@ pytest tests/test_engine.py
 - [x] Phase 2: JSON Data Externalization
 - [x] Phase 3: GUI Map Editor
 - [x] Phase 4: Player Account System
-- [x] Phase 5: Meshtastic Multiplayer (MQTT + LoRa complete)
+- [x] Phase 5: Meshtastic Multiplayer (MQTT, LoRa, Serial, Native)
 
 See [SPECIFICATION.md](SPECIFICATION.md) for detailed technical documentation.
 
