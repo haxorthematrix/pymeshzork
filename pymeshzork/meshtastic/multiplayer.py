@@ -20,6 +20,7 @@ from pymeshzork.meshtastic.client import MeshtasticClient, ConnectionState
 from pymeshzork.meshtastic.mqtt_client import MQTTClient
 from pymeshzork.meshtastic.presence import PresenceManager, PlayerInfo
 from pymeshzork.meshtastic.protocol import MessageType, GameMessage
+from pymeshzork.meshtastic.oled_display import get_display
 
 if TYPE_CHECKING:
     from pymeshzork.engine.game import Game
@@ -86,6 +87,9 @@ class MultiplayerManager:
 
         # Pending messages to display
         self._pending_messages: list[str] = []
+
+        # OLED display reference
+        self._display = None
 
     @property
     def backend(self) -> MultiplayerBackend:
@@ -163,6 +167,13 @@ class MultiplayerManager:
             if self._client.connect():
                 backend_name = self._backend.value.upper()
                 logger.info(f"Connected to multiplayer ({backend_name}) as {self.player_name}")
+
+                # Initialize OLED display
+                self._display = get_display()
+                if self._display:
+                    self._display.update_player(self.player_name)
+                    self._display.set_connected(True, backend_name)
+
                 return True
             else:
                 logger.error("Failed to connect to multiplayer")
@@ -233,6 +244,11 @@ class MultiplayerManager:
             self._client.disconnect()
             self._client = None
 
+        # Update OLED display
+        if self._display:
+            self._display.set_connected(False)
+            self._display = None
+
     def set_game(self, game: "Game") -> None:
         """Set the game instance for integration."""
         self._game = game
@@ -262,10 +278,27 @@ class MultiplayerManager:
         if self._client and self.is_connected:
             self._client.send_chat(message, is_team)
 
-    def update_room(self, room_id: str) -> None:
-        """Update the current room context."""
+    def update_room(self, room_id: str, room_name: str = "") -> None:
+        """Update the current room context.
+
+        Args:
+            room_id: Room ID.
+            room_name: Human-readable room name for display.
+        """
         if self._client:
-            self._client.set_room(room_id)
+            # Check if client supports room_name parameter
+            if hasattr(self._client, 'set_room'):
+                try:
+                    self._client.set_room(room_id, room_name)
+                except TypeError:
+                    self._client.set_room(room_id)
+
+        # Update OLED display with room and players
+        if self._display:
+            self._display.update_player(self.player_name, room_id, room_name)
+            players = self.get_players_in_room(room_id)
+            player_names = [p.name for p in players]
+            self._display.set_players_in_room(player_names)
 
     # =========================================================================
     # Incoming message handlers
@@ -275,6 +308,16 @@ class MultiplayerManager:
         """Handle remote player joining."""
         msg = f"\n[{player.name} has entered the game]"
         self._pending_messages.append(msg)
+
+        # Update OLED display
+        if self._display:
+            self._display.add_message(f"{player.name} joined")
+            # Update player list if in same room
+            if self._game:
+                current_room = self._game.state.current_room
+                players = self.get_players_in_room(current_room)
+                player_names = [p.name for p in players]
+                self._display.set_players_in_room(player_names)
 
         for callback in self._on_player_join:
             try:
@@ -286,6 +329,16 @@ class MultiplayerManager:
         """Handle remote player leaving."""
         msg = f"\n[{player.name} has left the game]"
         self._pending_messages.append(msg)
+
+        # Update OLED display
+        if self._display:
+            self._display.add_message(f"{player.name} left")
+            # Update player list if in same room
+            if self._game:
+                current_room = self._game.state.current_room
+                players = self.get_players_in_room(current_room)
+                player_names = [p.name for p in players]
+                self._display.set_players_in_room(player_names)
 
         for callback in self._on_player_leave:
             try:
@@ -307,6 +360,12 @@ class MultiplayerManager:
             elif from_room == current_room:
                 msg = f"\n{player.name} has left."
                 self._pending_messages.append(msg)
+
+            # Update OLED display with current room players
+            if self._display:
+                players = self.get_players_in_room(current_room)
+                player_names = [p.name for p in players]
+                self._display.set_players_in_room(player_names)
 
         for callback in self._on_player_move:
             try:
@@ -340,6 +399,11 @@ class MultiplayerManager:
         else:
             msg = f"\n{player.name} says: \"{message}\""
         self._pending_messages.append(msg)
+
+        # Update OLED display with message
+        if self._display:
+            display_msg = f"{player.name}: {message}"
+            self._display.add_message(display_msg)
 
         for callback in self._on_chat:
             try:

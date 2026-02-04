@@ -25,6 +25,7 @@ from pymeshzork.meshtastic.protocol import (
     decode_message,
     PROTOCOL_VERSION,
 )
+from pymeshzork.meshtastic.oled_display import get_display, shutdown_display
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,11 @@ class NativeClient(MeshtasticClient):
         self.host = host
         self.port = port
         self._interface: Any = None  # meshtastic.tcp_interface.TCPInterface
+
+        # OLED display
+        self._display = get_display()
+        if self._display:
+            self._display.update_player(player_name)
 
     def _ensure_meshtastic(self) -> bool:
         """Ensure meshtastic library is available."""
@@ -146,12 +152,22 @@ class NativeClient(MeshtasticClient):
             # Start heartbeat
             self._start_heartbeat()
 
+            # Update OLED display
+            if self._display:
+                self._display.set_connected(True, "Native")
+                # Update mesh node count
+                nodes = self.get_mesh_nodes()
+                if nodes:
+                    self._display.update_mesh_info(len(nodes))
+
             logger.info(f"Native client connected to meshtasticd")
             return True
 
         except Exception as e:
             logger.error(f"Failed to connect to meshtasticd: {e}")
             self._set_state(ConnectionState.ERROR)
+            if self._display:
+                self._display.set_connected(False, "Native")
             return False
 
     def disconnect(self) -> None:
@@ -172,6 +188,10 @@ class NativeClient(MeshtasticClient):
             except Exception as e:
                 logger.debug(f"Error during disconnect: {e}")
             self._interface = None
+
+        # Update display
+        if self._display:
+            self._display.set_connected(False, "Native")
 
         self._set_state(ConnectionState.DISCONNECTED)
         logger.info("Native client disconnected")
@@ -203,6 +223,10 @@ class NativeClient(MeshtasticClient):
             )
 
             logger.debug(f"Sent {len(data_bytes)} bytes via meshtasticd")
+
+            # Flash TX indicator on display
+            if self._display:
+                self._display.show_tx()
 
         except Exception as e:
             logger.error(f"Failed to send message: {e}")
@@ -247,6 +271,15 @@ class NativeClient(MeshtasticClient):
             from_id = packet.get("fromId", "unknown")
             logger.debug(f"Received game message from {from_id}")
 
+            # Update display with RX indicator and signal info
+            if self._display:
+                self._display.show_rx()
+                # Extract signal info if available
+                rssi = packet.get("rxRssi") or packet.get("rssi")
+                snr = packet.get("rxSnr") or packet.get("snr")
+                if rssi is not None or snr is not None:
+                    self._display.update_signal(rssi=rssi, snr=snr)
+
         except Exception as e:
             logger.debug(f"Failed to process received packet: {e}")
 
@@ -269,6 +302,35 @@ class NativeClient(MeshtasticClient):
         if self._interface:
             return self._interface.nodes or {}
         return {}
+
+    def set_room(self, room_id: str, room_name: str = "") -> None:
+        """Update the current room context.
+
+        Args:
+            room_id: Room ID.
+            room_name: Human-readable room name for display.
+        """
+        super().set_room(room_id)
+        if self._display:
+            self._display.update_player(self.player_name, room_id, room_name)
+
+    def update_display_players(self, players: list[str]) -> None:
+        """Update the display with players in the current room.
+
+        Args:
+            players: List of other player names in the room.
+        """
+        if self._display:
+            self._display.set_players_in_room(players)
+
+    def add_display_message(self, message: str) -> None:
+        """Add a message to the display message feed.
+
+        Args:
+            message: Message text to display.
+        """
+        if self._display:
+            self._display.add_message(message)
 
 
 def create_native_client(

@@ -111,7 +111,10 @@ class Game:
     def _update_multiplayer_room(self, room_id: str) -> None:
         """Update multiplayer with current room context."""
         if self.multiplayer:
-            self.multiplayer.update_room(room_id)
+            # Get room name for display
+            room = self.world.get_room(room_id)
+            room_name = room.name if room else ""
+            self.multiplayer.update_room(room_id, room_name)
 
     def start(self) -> str:
         """Start a new game. Returns opening text."""
@@ -150,7 +153,7 @@ class Game:
 
             # Announce joining the game and set initial room
             self.multiplayer.send_join(self.state.current_room)
-            self.multiplayer.update_room(self.state.current_room)
+            self._update_multiplayer_room(self.state.current_room)
 
         # Add room description
         description = self.world.describe_room(self.state, room)
