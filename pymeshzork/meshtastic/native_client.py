@@ -216,15 +216,22 @@ class NativeClient(MeshtasticClient):
             interface: The interface that received the packet.
         """
         try:
-            from meshtastic import portnums_pb2
+            # PRIVATE_APP portnum = 256
+            PRIVATE_APP_PORTNUM = 256
 
             # Only process private app messages (our game data)
-            port_num = packet.get("decoded", {}).get("portnum")
-            if port_num != portnums_pb2.PortNum.PRIVATE_APP:
+            decoded = packet.get("decoded", {})
+            port_num = decoded.get("portnum")
+
+            # Handle both integer and string portnum values
+            if isinstance(port_num, str):
+                if port_num != "PRIVATE_APP":
+                    return
+            elif port_num != PRIVATE_APP_PORTNUM:
                 return
 
             # Get the payload
-            payload = packet.get("decoded", {}).get("payload")
+            payload = decoded.get("payload")
             if not payload:
                 return
 
