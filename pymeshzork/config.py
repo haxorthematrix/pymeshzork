@@ -32,7 +32,7 @@ class MQTTConfig:
     """MQTT multiplayer configuration."""
 
     enabled: bool = False
-    broker: str = "localhost"
+    broker: str = "mqtt.zorkmesh.com"
     port: int = 1883
     username: str = ""
     password: str = ""
@@ -199,10 +199,10 @@ def get_example_config() -> str:
     return '''{
   "mqtt": {
     "enabled": true,
-    "broker": "your-mqtt-server.example.com",
+    "broker": "mqtt.zorkmesh.com",
     "port": 1883,
-    "username": "your-username",
-    "password": "your-password",
+    "username": "",
+    "password": "",
     "channel": "pymeshzork",
     "use_tls": false
   },

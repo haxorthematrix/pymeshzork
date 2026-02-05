@@ -118,7 +118,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
   },
   "mqtt": {
     "enabled": false,
-    "broker": "your-mqtt-server.example.com",
+    "broker": "mqtt.zorkmesh.com",
     "port": 1883,
     "username": "",
     "password": "",
