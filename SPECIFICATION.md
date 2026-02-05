@@ -1630,10 +1630,152 @@ pymeshzork/
 - [x] Documentation for all deployment scenarios
 
 ### Version 2.1 (T-Deck Firmware)
-- [ ] Custom T-Deck firmware builds and flashes
-- [ ] Game playable on T-Deck built-in display/keyboard
-- [ ] T-Deck communicates with other mesh nodes
-- [ ] Firmware compatible with standard Meshtastic network
+
+The T-Deck firmware is a standalone implementation of PyMeshZork running directly on the LILYGO T-Deck Plus hardware. The approach is to **fork Meshtastic firmware v2.7.15 beta** and add a ZorkMesh game module, preserving full Meshtastic compatibility.
+
+#### Hardware Target: LILYGO T-Deck Plus
+
+| Component | Specification |
+|-----------|---------------|
+| MCU | ESP32-S3 (dual-core, 240MHz) |
+| Display | ST7789 320x240 IPS LCD |
+| Input | Built-in QWERTY keyboard + trackball |
+| Radio | SX1262 LoRa (868/915 MHz) |
+| Storage | 16MB Flash, 8MB PSRAM |
+| Power | 2000mAh LiPo battery |
+| Optional | GPS, microphone, speaker |
+
+#### Base Firmware
+
+- **Meshtastic v2.7.15 beta** (selected for stable GUI implementation)
+- Fork approach: Add ZorkMesh as a module within Meshtastic codebase
+- Preserves all standard Meshtastic functionality (messaging, nodes, channels)
+- Game uses existing Meshtastic radio layer for mesh communication
+
+#### T-Deck Firmware Components
+
+##### 7.1 Development Environment Setup
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Install PlatformIO with ESP-IDF | 🔲 Pending | Required for Meshtastic builds |
+| Clone Meshtastic firmware v2.5.x | 🔲 Pending | Base firmware fork |
+| Configure T-Deck Plus board | 🔲 Pending | Board definition and pins |
+| Verify base firmware builds | 🔲 Pending | Compile without modifications |
+| Flash and test base firmware | 🔲 Pending | Confirm T-Deck hardware works |
+| Set up debug output | 🔲 Pending | Serial console for development |
+
+##### 7.2 ZorkMesh Module Structure
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Create ZorkMesh module directory | 🔲 Pending | src/modules/ZorkMeshModule |
+| Define module interface | 🔲 Pending | Integrate with Meshtastic module system |
+| Hook into UI system | 🔲 Pending | Add game screen to existing UI |
+| Register for mesh messages | 🔲 Pending | Receive game protocol messages |
+| Add menu entry | 🔲 Pending | Access game from Meshtastic menu |
+
+##### 7.3 Game Display (LVGL Integration)
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Create game screen layout | 🔲 Pending | Terminal-style with status bar |
+| Implement text buffer | 🔲 Pending | Scrollback history (last N lines) |
+| Room description display | 🔲 Pending | Word-wrapped text rendering |
+| Command input line | 🔲 Pending | Cursor, editing, history |
+| Status bar | 🔲 Pending | Room name, score, battery, signal |
+| Multiplayer message area | 🔲 Pending | Chat/notifications overlay |
+| Player list popup | 🔲 Pending | WHO command display |
+
+##### 7.4 Keyboard Input
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Map T-Deck keyboard matrix | 🔲 Pending | Physical key to character mapping |
+| Implement input buffer | 🔲 Pending | Line editing with backspace |
+| Command history | 🔲 Pending | Up/down arrow for previous commands |
+| Special keys | 🔲 Pending | Enter (submit), Escape (cancel) |
+| Trackball navigation | 🔲 Pending | Scroll through text history |
+
+##### 7.5 Game Engine (Embedded C++)
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Design data structures | 🔲 Pending | Room, Object, State in C++ |
+| Port room data | 🔲 Pending | Convert JSON to C structs or SPIFFS |
+| Port object data | 🔲 Pending | Items, containers, properties |
+| Implement parser | 🔲 Pending | Simplified command parser |
+| Core verbs | 🔲 Pending | LOOK, GO, TAKE, DROP, INVENTORY |
+| Extended verbs | 🔲 Pending | OPEN, CLOSE, EXAMINE, READ |
+| Game state management | 🔲 Pending | Current room, inventory, flags |
+| Save/load to flash | 🔲 Pending | Persistent game state in NVS |
+
+##### 7.6 Meshtastic Protocol Integration
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Define ZorkMesh portnum | 🔲 Pending | Private app portnum for game messages |
+| Message encoding | 🔲 Pending | Compatible with PyMeshZork protocol |
+| Send game messages | 🔲 Pending | JOIN, LEAVE, MOVE, CHAT via mesh |
+| Receive game messages | 🔲 Pending | Parse and display incoming messages |
+| Player presence tracking | 🔲 Pending | Track online players and locations |
+| Heartbeat mechanism | 🔲 Pending | Periodic presence updates |
+
+##### 7.7 Multiplayer Features
+
+| Task | Status | Notes |
+|------|--------|-------|
+| JOIN notification | 🔲 Pending | Announce when entering game |
+| LEAVE notification | 🔲 Pending | Announce when exiting game |
+| MOVE broadcast | 🔲 Pending | Notify when changing rooms |
+| CHAT command | 🔲 Pending | Send messages to other players |
+| SAY command | 🔲 Pending | Room-local messages |
+| WHO command | 🔲 Pending | Display online players |
+| Player in room display | 🔲 Pending | Show others in current room |
+
+##### 7.8 Polish and Testing
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Cross-device testing | 🔲 Pending | T-Deck ↔ Pi (Native/Serial) |
+| Battery life optimization | 🔲 Pending | Power management tuning |
+| Error handling | 🔲 Pending | Graceful failures, reconnection |
+| Help screens | 🔲 Pending | In-game command reference |
+| About/credits screen | 🔲 Pending | Project info and links |
+
+#### File Structure (Proposed)
+
+```
+meshtastic-firmware/
+├── src/
+│   └── modules/
+│       └── ZorkMeshModule/
+│           ├── ZorkMeshModule.cpp    # Module entry point
+│           ├── ZorkMeshModule.h
+│           ├── GameEngine.cpp        # Core game logic
+│           ├── GameEngine.h
+│           ├── Parser.cpp            # Command parser
+│           ├── Parser.h
+│           ├── GameData.cpp          # Room/object data
+│           ├── GameData.h
+│           ├── GameUI.cpp            # LVGL screens
+│           ├── GameUI.h
+│           ├── Protocol.cpp          # Message encoding
+│           └── Protocol.h
+└── data/
+    └── zorkmesh/
+        ├── rooms.json               # Room definitions (SPIFFS)
+        └── objects.json             # Object definitions (SPIFFS)
+```
+
+#### Success Criteria
+
+- [ ] T-Deck boots into Meshtastic with ZorkMesh menu option
+- [ ] Game is playable entirely on T-Deck (no computer needed)
+- [ ] Player can explore rooms, take/drop items, solve puzzles
+- [ ] Chat and presence work with PyMeshZork on other devices
+- [ ] Game state persists across power cycles
+- [ ] Battery life supports 4+ hours of gameplay
 
 ---
 
@@ -2045,6 +2187,7 @@ zork --player-name "GrueHunter" --reset-all
 | 2.3 | 2026-02-05 | Claude | zorkmesh.com deployed - Website, public MQTT broker (mqtt.zorkmesh.com), SSL configured |
 | 2.4 | 2026-02-05 | Claude | Phase 6 spec - First-run name prompt, persistent game state, reset CLI options |
 | 2.5 | 2026-02-05 | Claude | Phase 6 complete - Autosave, name prompt, reset options implemented |
+| 2.6 | 2026-02-05 | Claude | T-Deck firmware detailed breakdown - 8 component areas, Meshtastic v2.5.x fork approach |
 
 ---
 
