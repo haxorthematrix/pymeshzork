@@ -9,6 +9,7 @@ Usage:
 """
 
 import argparse
+import os
 import sys
 import time
 
@@ -22,6 +23,14 @@ def main():
     parser.add_argument('--port', help='Serial port (optional)')
     parser.add_argument('--duration', type=int, default=45, help='Test duration in seconds')
     args = parser.parse_args()
+
+    # Set config environment variables based on mode BEFORE importing
+    if args.serial:
+        os.environ['PYMESHZORK_SERIAL_ENABLED'] = 'true'
+        if args.port:
+            os.environ['PYMESHZORK_SERIAL_PORT'] = args.port
+    elif args.native:
+        os.environ['PYMESHZORK_LORA_ENABLED'] = 'true'
 
     from pymeshzork.meshtastic.multiplayer import MultiplayerManager, MultiplayerBackend
 
