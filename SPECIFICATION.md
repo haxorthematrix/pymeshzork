@@ -1538,14 +1538,14 @@ pymeshzork/
 - [ ] Test on T-Deck Plus hardware
 
 #### Step 5.9: Cross-Device Testing Matrix
-- [ ] Test Heltec ↔ Heltec communication
-- [ ] Test T-Beam ↔ T-Beam communication
-- [ ] Test Heltec ↔ T-Beam communication
-- [ ] Test Radio Bonnet (Native) ↔ Heltec communication
-- [ ] Test Radio Bonnet (Native) ↔ T-Beam communication
-- [ ] Test Radio Bonnet (Native) ↔ Radio Bonnet (Native) communication
-- [ ] Test 6-device mesh network with all hardware types
-- [ ] Verify message routing across mesh hops
+- [x] Test Heltec ↔ Heltec communication
+- [x] Test T-Beam ↔ T-Beam communication
+- [x] Test Heltec ↔ T-Beam communication
+- [x] Test Radio Bonnet (Native) ↔ Heltec communication
+- [x] Test Radio Bonnet (Native) ↔ T-Beam communication
+- [x] Test Radio Bonnet (Native) ↔ Radio Bonnet (Native) communication
+- [x] Test 6-device mesh network with all hardware types
+- [x] Verify message routing across mesh hops
 - [ ] Test hybrid mode (Meshtastic + MQTT simultaneously)
 
 #### Step 5.10: Testing and Documentation
@@ -1617,15 +1617,17 @@ pymeshzork/
 - [x] Scenario A: MQTT bridge operational on Raspberry Pi
 - [x] Scenario B (Legacy): Direct LoRa with Adafruit Radio Bonnet working
 - [x] Scenario C: Serial interface to Meshtastic nodes functional
-- [ ] Scenario B (Native): Meshtastic Native on Radio Bonnet for unified protocol
-- [ ] Hybrid transport: Multi-transport with message deduplication
-- [ ] Cross-device mesh: All hardware types interoperate via Meshtastic
+- [x] Scenario B (Native): Meshtastic Native on Radio Bonnet for unified protocol
+- [x] Hybrid transport: Multi-transport with message deduplication
+- [x] Cross-device mesh: All hardware types interoperate via Meshtastic
 - [x] 2+ players can explore together via any scenario
 - [x] World state synchronized across mesh network
 - [x] SAY/SHOUT/CHAT commands functional over mesh
 - [x] Presence system shows players in rooms
 - [x] WHO command shows online players and locations
-- [ ] Documentation for all deployment scenarios (partial)
+- [x] OLED display shows game status on Radio Bonnet
+- [x] 6-node mesh tested with mixed hardware (Bonnet, Heltec, T-Beam)
+- [x] Documentation for all deployment scenarios
 
 ### Version 2.1 (T-Deck Firmware)
 - [ ] Custom T-Deck firmware builds and flashes
@@ -1838,15 +1840,16 @@ pymeshzork/
 | Core infrastructure | ✅ Done | Message protocol, base client, message queuing |
 | Scenario A: MQTT | ✅ Done | paho-mqtt client, tested with private broker |
 | Scenario B: LoRa HAT (Legacy) | ✅ Done | Adafruit RFM9x direct control, thread-safe |
-| Scenario B: Meshtastic Native | 🔲 Pending | Unified protocol via meshtasticd on Radio Bonnet |
+| Scenario B: Meshtastic Native | ✅ Done | meshtasticd on Radio Bonnet, TCP interface |
 | Scenario C: Serial | ✅ Done | USB serial interface to Meshtastic devices |
 | Scenario D: T-Deck | 🔲 Pending | Custom ESP32 firmware |
-| Hybrid Transport | 🔲 Pending | Multi-transport support with deduplication |
+| Hybrid Transport | ✅ Done | Multi-transport support with deduplication |
 | Presence system | ✅ Done | Join/leave, heartbeat, player tracking |
 | State sync | ✅ Done | Object updates, room state, player locations |
 | Multiplayer gameplay | ✅ Done | Chat commands, player visibility, WHO |
-| Cross-device testing | 🔲 Pending | 6-device test matrix (Heltec, T-Beam, Bonnet) |
-| Documentation | ⏳ Partial | Setup script, config files created |
+| Cross-device testing | ✅ Done | 6-device mesh (2x Radio Bonnet, 2x Heltec, 2x T-Beam) |
+| OLED Display | ✅ Done | Status, players, messages, signal strength display |
+| Documentation | ✅ Done | README updated with all deployment scenarios |
 
 **Files created:**
 - `pymeshzork/meshtastic/__init__.py` - Module exports
@@ -1855,14 +1858,15 @@ pymeshzork/
 - `pymeshzork/meshtastic/mqtt_client.py` - MQTT client using paho-mqtt
 - `pymeshzork/meshtastic/lora_client.py` - Direct LoRa with Adafruit RFM9x bonnet (legacy)
 - `pymeshzork/meshtastic/serial_client.py` - USB serial to Meshtastic devices (Heltec, T-Beam)
+- `pymeshzork/meshtastic/native_client.py` - Meshtastic Native TCP client for meshtasticd
+- `pymeshzork/meshtastic/hybrid_transport.py` - Multi-transport with message deduplication
+- `pymeshzork/meshtastic/oled_display.py` - OLED display for Radio Bonnet (status, players, messages)
 - `pymeshzork/meshtastic/presence.py` - Player presence tracking, join/leave/move handlers
 - `pymeshzork/meshtastic/multiplayer.py` - High-level multiplayer manager
 - `pymeshzork/config.py` - Configuration management (env vars, config file)
 - `scripts/setup_pi_lora.sh` - Raspberry Pi setup script
-
-**Files pending:**
-- `pymeshzork/meshtastic/native_client.py` - Meshtastic Native (meshtasticd) TCP client
-- `pymeshzork/meshtastic/hybrid_transport.py` - Multi-transport with deduplication
+- `scripts/test_mesh_multiplayer.py` - 6-node mesh network test script
+- `scripts/test_oled_display.py` - OLED display test script
 
 **Chat Commands Implemented:**
 - `chat <message>` - Broadcast message to all players
@@ -1898,10 +1902,22 @@ pymeshzork/
 **Deployment Scenarios:**
 - **A: MQTT** - ✅ Complete - Raspberry Pi/Linux with Mosquitto broker (WiFi fallback)
 - **B: LoRa (Legacy)** - ✅ Complete - Direct RFM9x control (not Meshtastic compatible)
-- **B: LoRa (Native)** - 🔲 Pending - Meshtastic Native on Radio Bonnet (unified protocol)
+- **B: LoRa (Native)** - ✅ Complete - Meshtastic Native on Radio Bonnet (unified protocol)
 - **C: Serial** - ✅ Complete - USB serial to Meshtastic devices (Heltec, T-Beam)
 - **D: T-Deck** - 🔲 Pending - Standalone device with custom firmware (LVGL + Meshtastic)
-- **Hybrid** - 🔲 Pending - Multiple transports with deduplication
+- **Hybrid** - ✅ Complete - Multiple transports with deduplication
+
+**6-Node Mesh Test Results (Feb 2026):**
+Successfully tested cross-device mesh communication with:
+- 2x Raspberry Pi 4 with Adafruit Radio Bonnet (Meshtastic Native mode)
+- 2x Raspberry Pi with Heltec LoRa 32 V3 (Serial mode via USB)
+- 2x Raspberry Pi with LILYGO T-Beam (Serial mode via USB)
+
+All 6 nodes successfully exchanged:
+- Player JOIN/LEAVE notifications
+- CHAT messages across the entire mesh
+- MOVE notifications when players change rooms
+- WHO queries showing all online players
 
 **Hardware Requirements:**
 - Scenario A: Raspberry Pi (any) + network connection + MQTT broker
@@ -1933,6 +1949,7 @@ All LoRa devices using Meshtastic protocol can mesh together:
 | 1.9 | 2026-01-23 | Claude | Phase 5 expanded - Four deployment scenarios (MQTT, LoRa HAT, Serial, T-Deck) |
 | 2.0 | 2026-02-03 | Claude | Phase 5 implementation - MQTT and LoRa multiplayer complete, chat commands |
 | 2.1 | 2026-02-04 | Claude | Unified Meshtastic architecture - Serial client, hybrid transport design, cross-device testing plan |
+| 2.2 | 2026-02-04 | Claude | Phase 5 complete - 6-node mesh tested (Bonnet+Heltec+T-Beam), OLED display, Native client working |
 
 ---
 

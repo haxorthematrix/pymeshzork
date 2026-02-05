@@ -401,11 +401,17 @@ zork --lora --player-name "Explorer"
 
 #### OLED Display
 
-The bonnet's OLED display shows:
-- Player name and current room
-- TX/RX activity indicators
-- Signal strength (RSSI) of received messages
-- Recent chat messages
+The bonnet's 128x32 OLED display (SSD1306) cycles through four display modes every 5 seconds:
+
+1. **Status Mode**: Player name, current room, connection status
+2. **Players Mode**: Other players currently in your room
+3. **Messages Mode**: Recent chat messages from other players
+4. **Mesh Info Mode**: Signal strength (RSSI/SNR) and node count
+
+Additional indicators:
+- **TX**: Flashes when transmitting a message
+- **RX**: Flashes when receiving a message
+- Connection status icon (connected/disconnected)
 
 #### Hardware Notes
 
@@ -769,6 +775,29 @@ ss -tlnp | grep 4403
 - Check that other devices are using the default channel
 - Try moving devices closer together
 - Check signal strength in logs
+
+### Mixed Hardware Mesh Network
+
+PyMeshZork has been tested with a 6-node mesh network combining different hardware types, all communicating over the Meshtastic protocol:
+
+| Node | Hardware | Connection Mode | Status |
+|------|----------|-----------------|--------|
+| Pi1 | Adafruit Radio Bonnet | Native (meshtasticd) | ✅ Working |
+| Pi2 | Adafruit Radio Bonnet | Native (meshtasticd) | ✅ Working |
+| Pi3 | Heltec LoRa 32 V3 | Serial (USB) | ✅ Working |
+| Pi4 | Heltec LoRa 32 V3 | Serial (USB) | ✅ Working |
+| Pi5 | LILYGO T-Beam | Serial (USB) | ✅ Working |
+| Pi6 | LILYGO T-Beam | Serial (USB) | ✅ Working |
+
+All nodes successfully:
+- Send and receive JOIN/LEAVE notifications
+- Exchange CHAT messages across the mesh
+- Track player MOVE events between rooms
+- Show online players with `/who` command
+
+This demonstrates full interoperability between:
+- Raspberry Pi with Radio Bonnet running Meshtastic Native
+- USB-connected Meshtastic devices (Heltec, T-Beam) via Serial mode
 
 ## Project Structure
 
