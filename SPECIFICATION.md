@@ -1931,6 +1931,98 @@ All LoRa devices using Meshtastic protocol can mesh together:
 - Radio Bonnet (via Meshtastic Native) ↔ Heltec V3 ↔ T-Beam ↔ RAK4631
 - MQTT provides WiFi/internet bridge for non-LoRa connectivity
 
+### Phase 6: User Experience Improvements ✅ COMPLETE
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| First-run player name prompt | ✅ Done | Prompt if no name in config or CLI, saves to config |
+| Persistent game state | ✅ Done | Autosave after each command, restore on startup |
+| Reset CLI options | ✅ Done | --reset-location, --reset-inventory, --reset-all |
+| zorkmesh.com website | ✅ Done | Landing page, public MQTT broker |
+
+#### F6.1 First-Run Player Name Prompt
+
+When the game starts without a player name configured:
+1. Check if `--player-name` was provided on command line → use it
+2. Check if `game.player_name` exists in config and is not "Adventurer" → use it
+3. Otherwise, prompt the user to enter a player name
+4. Save the chosen name to `~/.pymeshzork/config.json`
+5. Display message: "Your name has been saved. You can change it later in ~/.pymeshzork/config.json"
+
+**Rationale:** Reduces friction for new users while allowing power users to configure via CLI or config file.
+
+#### F6.2 Persistent Game State
+
+Automatically save and restore game progress per player:
+
+**Saved State:**
+- Current room location
+- Player inventory (items carried)
+- Game flags (puzzles completed, doors opened, etc.)
+- Score and move count
+
+**Storage Location:** `~/.pymeshzork/saves/<player_name>_autosave.json`
+
+**Behavior:**
+- On game exit (quit command or Ctrl+C): Auto-save current state
+- On game start: Check for autosave file and offer to restore
+- Autosave created/updated after each command
+
+**File Format:**
+```json
+{
+  "player_name": "GrueHunter",
+  "current_room": "whous",
+  "inventory": ["lamp", "sword", "leaflet"],
+  "score": 25,
+  "moves": 142,
+  "flags": {
+    "lamp_lit": true,
+    "troll_defeated": false
+  },
+  "timestamp": "2026-02-05T12:34:56Z"
+}
+```
+
+#### F6.3 Reset CLI Options
+
+New command-line options for troubleshooting stuck players:
+
+| Option | Description |
+|--------|-------------|
+| `--reset-location` | Start at the beginning room (West of House) instead of saved location |
+| `--reset-inventory` | Start with empty inventory instead of saved items |
+| `--reset-all` | Equivalent to `--reset-location --reset-inventory` (fresh start) |
+
+**Examples:**
+```bash
+# Resume from saved state (default)
+zork --player-name "GrueHunter"
+
+# Start at beginning but keep inventory
+zork --player-name "GrueHunter" --reset-location
+
+# Keep location but clear inventory (dropped items in a bad place)
+zork --player-name "GrueHunter" --reset-inventory
+
+# Complete fresh start
+zork --player-name "GrueHunter" --reset-all
+```
+
+#### F6.4 ZorkMesh Public Infrastructure
+
+**Website:** [zorkmesh.com](https://zorkmesh.com)
+- Landing page with project description and retro terminal theme
+- Mesh network diagram showing player connectivity
+- Platform and hardware compatibility list
+- Links to GitHub repository and documentation
+
+**Public MQTT Broker:** mqtt.zorkmesh.com
+- Port 1883 (plain MQTT)
+- Port 8883 (MQTT over TLS)
+- Anonymous access allowed
+- Default broker in PyMeshZork configuration
+
 ---
 
 ## 11. Document History
@@ -1950,6 +2042,9 @@ All LoRa devices using Meshtastic protocol can mesh together:
 | 2.0 | 2026-02-03 | Claude | Phase 5 implementation - MQTT and LoRa multiplayer complete, chat commands |
 | 2.1 | 2026-02-04 | Claude | Unified Meshtastic architecture - Serial client, hybrid transport design, cross-device testing plan |
 | 2.2 | 2026-02-04 | Claude | Phase 5 complete - 6-node mesh tested (Bonnet+Heltec+T-Beam), OLED display, Native client working |
+| 2.3 | 2026-02-05 | Claude | zorkmesh.com deployed - Website, public MQTT broker (mqtt.zorkmesh.com), SSL configured |
+| 2.4 | 2026-02-05 | Claude | Phase 6 spec - First-run name prompt, persistent game state, reset CLI options |
+| 2.5 | 2026-02-05 | Claude | Phase 6 complete - Autosave, name prompt, reset options implemented |
 
 ---
 

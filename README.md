@@ -73,6 +73,57 @@ zork
 python -m pymeshzork.cli
 ```
 
+#### First-Time Setup
+
+On your first run, PyMeshZork will prompt you to choose an adventurer name:
+
+```
+============================================================
+Welcome to PyMeshZork!
+============================================================
+
+Before we begin, please choose a name for your adventurer.
+This name will be visible to other players in multiplayer mode.
+
+Enter your adventurer name: GrueHunter
+Your name will be 'GrueHunter'. Is this correct? (Y/n): y
+
+Your name has been saved to ~/.pymeshzork/config.json
+You can change it later by editing that file.
+```
+
+#### Automatic Save/Restore
+
+Your game progress is automatically saved after each command. When you start the game again, you'll be prompted to restore your saved game:
+
+```
+Found saved game for GrueHunter:
+  Last played: 2026-02-05T12:34:56
+  Location: cellar
+  Score: 25, Moves: 142
+Restore saved game? (Y/n):
+```
+
+Autosaves are stored in `~/.pymeshzork/autosaves/`.
+
+#### Reset Options
+
+If you get stuck or want a fresh start, use these command-line options:
+
+```bash
+# Start at West of House but keep your inventory
+zork --reset-location
+
+# Keep your location but clear inventory
+zork --reset-inventory
+
+# Complete fresh start (reset everything)
+zork --reset-all
+
+# Disable autosave for this session
+zork --no-autosave
+```
+
 #### Basic Commands
 
 | Command | Description |
