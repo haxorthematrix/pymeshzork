@@ -263,7 +263,16 @@ class SerialClient(MeshtasticClient):
 
             # Only process private app messages (our game data)
             port_num = packet.get("decoded", {}).get("portnum")
-            if port_num != portnums_pb2.PortNum.PRIVATE_APP:
+
+            # Handle portnum comparison - can be string, int, or enum
+            private_app_num = int(portnums_pb2.PortNum.PRIVATE_APP)
+            if isinstance(port_num, str):
+                if port_num != "PRIVATE_APP" and port_num != str(private_app_num):
+                    return
+            elif isinstance(port_num, int):
+                if port_num != private_app_num:
+                    return
+            elif port_num != portnums_pb2.PortNum.PRIVATE_APP:
                 return
 
             # Get the payload
