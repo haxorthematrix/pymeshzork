@@ -1,6 +1,8 @@
 # PyMeshZork
 
-A modern Python implementation of the classic Zork text adventure game, featuring a GUI map editor and designed for future Meshtastic mesh network multiplayer support.
+A modern Python implementation of the classic Zork text adventure game, featuring multiplayer support via Meshtastic mesh radio networks and MQTT.
+
+**Website:** [zorkmesh.com](https://zorkmesh.com) - *"It is pitch black. You are likely to be eaten by a mesh."*
 
 ```
 ZORK I: The Great Underground Empire
@@ -163,16 +165,26 @@ PyMeshZork supports multiplayer via MQTT, allowing players to see each other in 
 
 #### Configuration
 
+#### Public MQTT Server
+
+A public MQTT broker is available for testing and play:
+
+- **Broker:** `mqtt.zorkmesh.com`
+- **Port:** `1883` (plain) or `8883` (TLS)
+- **No authentication required**
+
+#### Configuration
+
 Create a configuration file at `~/.pymeshzork/config.json`:
 
 ```json
 {
   "mqtt": {
     "enabled": true,
-    "broker": "your-mqtt-server.example.com",
+    "broker": "mqtt.zorkmesh.com",
     "port": 1883,
-    "username": "your-username",
-    "password": "your-password",
+    "username": "",
+    "password": "",
     "channel": "pymeshzork",
     "use_tls": false
   },
@@ -188,10 +200,8 @@ Or use environment variables:
 
 ```bash
 export PYMESHZORK_MQTT_ENABLED=true
-export PYMESHZORK_MQTT_BROKER=your-mqtt-server.example.com
+export PYMESHZORK_MQTT_BROKER=mqtt.zorkmesh.com
 export PYMESHZORK_MQTT_PORT=1883
-export PYMESHZORK_MQTT_USERNAME=your-username
-export PYMESHZORK_MQTT_PASSWORD=your-password
 export PYMESHZORK_MQTT_CHANNEL=pymeshzork
 export PYMESHZORK_PLAYER_NAME=YourName
 ```
