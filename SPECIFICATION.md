@@ -1658,32 +1658,32 @@ The T-Deck firmware is a standalone implementation of PyMeshZork running directl
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Install PlatformIO with ESP-IDF | 🔲 Pending | Required for Meshtastic builds |
-| Clone Meshtastic firmware v2.5.x | 🔲 Pending | Base firmware fork |
-| Configure T-Deck Plus board | 🔲 Pending | Board definition and pins |
-| Verify base firmware builds | 🔲 Pending | Compile without modifications |
-| Flash and test base firmware | 🔲 Pending | Confirm T-Deck hardware works |
-| Set up debug output | 🔲 Pending | Serial console for development |
+| Install PlatformIO with ESP-IDF | ✅ Done | Required for Meshtastic builds |
+| Clone Meshtastic firmware v2.7.15 | ✅ Done | Base firmware fork |
+| Configure T-Deck Plus board | ✅ Done | Board definition and pins |
+| Verify base firmware builds | ✅ Done | Compile without modifications |
+| Flash and test base firmware | ✅ Done | Confirm T-Deck hardware works |
+| Set up debug output | ✅ Done | Serial console for development |
 
 ##### 7.2 ZorkMesh Module Structure
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Create ZorkMesh module directory | 🔲 Pending | src/modules/ZorkMeshModule |
-| Define module interface | 🔲 Pending | Integrate with Meshtastic module system |
-| Hook into UI system | 🔲 Pending | Add game screen to existing UI |
-| Register for mesh messages | 🔲 Pending | Receive game protocol messages |
-| Add menu entry | 🔲 Pending | Access game from Meshtastic menu |
+| Create ZorkMesh module directory | ✅ Done | src/modules/ZorkMeshModule |
+| Define module interface | ✅ Done | SinglePortModule for PRIVATE_APP port |
+| Hook into UI system | ✅ Done | LVGL screen integration |
+| Register for mesh messages | ✅ Done | Receive game protocol messages |
+| Add menu entry | ✅ Done | Button in Settings > Tools panel |
 
 ##### 7.3 Game Display (LVGL Integration)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Create game screen layout | 🔲 Pending | Terminal-style with status bar |
-| Implement text buffer | 🔲 Pending | Scrollback history (last N lines) |
-| Room description display | 🔲 Pending | Word-wrapped text rendering |
-| Command input line | 🔲 Pending | Cursor, editing, history |
-| Status bar | 🔲 Pending | Room name, score, battery, signal |
+| Create game screen layout | ✅ Done | Terminal-style with status bar |
+| Implement text buffer | ✅ Done | Scrollback history via LVGL textarea |
+| Room description display | ✅ Done | Word-wrapped text rendering |
+| Command input line | ✅ Done | Cursor, editing, history |
+| Status bar | ✅ Done | Room name, score/moves, battery |
 | Multiplayer message area | 🔲 Pending | Chat/notifications overlay |
 | Player list popup | 🔲 Pending | WHO command display |
 
@@ -1691,47 +1691,50 @@ The T-Deck firmware is a standalone implementation of PyMeshZork running directl
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Map T-Deck keyboard matrix | 🔲 Pending | Physical key to character mapping |
-| Implement input buffer | 🔲 Pending | Line editing with backspace |
-| Command history | 🔲 Pending | Up/down arrow for previous commands |
-| Special keys | 🔲 Pending | Enter (submit), Escape (cancel) |
+| Map T-Deck keyboard matrix | ✅ Done | Uses Meshtastic inputBroker system |
+| Implement input buffer | ✅ Done | Line editing with backspace |
+| Command history | ✅ Done | Up/down arrow for previous commands |
+| Special keys | ✅ Done | Enter (submit), X button (exit) |
 | Trackball navigation | 🔲 Pending | Scroll through text history |
 
 ##### 7.5 Game Engine (Embedded C++)
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Design data structures | 🔲 Pending | Room, Object, State in C++ |
-| Port room data | 🔲 Pending | Convert JSON to C structs or SPIFFS |
-| Port object data | 🔲 Pending | Items, containers, properties |
-| Implement parser | 🔲 Pending | Simplified command parser |
-| Core verbs | 🔲 Pending | LOOK, GO, TAKE, DROP, INVENTORY |
-| Extended verbs | 🔲 Pending | OPEN, CLOSE, EXAMINE, READ |
-| Game state management | 🔲 Pending | Current room, inventory, flags |
-| Save/load to flash | 🔲 Pending | Persistent game state in NVS |
+| Design data structures | ✅ Done | Room, Object, State in C++ |
+| Port room data | ✅ Done | 98 rooms from world.json → GameData.h |
+| Port object data | ✅ Done | 57 objects with full properties |
+| Implement parser | ✅ Done | Simplified command parser |
+| Core verbs | ✅ Done | LOOK, GO, TAKE, DROP, INVENTORY |
+| Extended verbs | ✅ Done | OPEN, CLOSE, EXAMINE, READ, ATTACK, etc. |
+| Light/darkness mechanics | ✅ Done | Lamp, grue attacks, room lighting |
+| NPC combat system | ✅ Done | Troll, thief, cyclops with AI |
+| Puzzle mechanics | ✅ Done | Move rug, tie rope, odysseus, etc. |
+| Game state management | ✅ Done | Current room, inventory, flags |
+| Save/load to flash | ✅ Done | Persistent game state in NVS |
 
 ##### 7.6 Meshtastic Protocol Integration
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Define ZorkMesh portnum | 🔲 Pending | Private app portnum for game messages |
-| Message encoding | 🔲 Pending | Compatible with PyMeshZork protocol |
-| Send game messages | 🔲 Pending | JOIN, LEAVE, MOVE, CHAT via mesh |
+| Define ZorkMesh portnum | ✅ Done | PRIVATE_APP (256) for game messages |
+| Message encoding | ✅ Done | Compact JSON, compatible with PyMeshZork |
+| Send game messages | ✅ Done | JOIN, LEAVE, MOVE, CHAT via mesh |
 | Receive game messages | 🔲 Pending | Parse and display incoming messages |
-| Player presence tracking | 🔲 Pending | Track online players and locations |
-| Heartbeat mechanism | 🔲 Pending | Periodic presence updates |
+| Player presence tracking | ✅ Done | Track online players and locations |
+| Heartbeat mechanism | ✅ Done | Periodic presence updates |
 
 ##### 7.7 Multiplayer Features
 
 | Task | Status | Notes |
 |------|--------|-------|
-| JOIN notification | 🔲 Pending | Announce when entering game |
-| LEAVE notification | 🔲 Pending | Announce when exiting game |
-| MOVE broadcast | 🔲 Pending | Notify when changing rooms |
-| CHAT command | 🔲 Pending | Send messages to other players |
+| JOIN notification | ✅ Done | Announce when entering game |
+| LEAVE notification | ✅ Done | Announce when exiting game |
+| MOVE broadcast | ✅ Done | Notify when changing rooms |
+| CHAT command | ✅ Done | Send messages to other players |
 | SAY command | 🔲 Pending | Room-local messages |
 | WHO command | 🔲 Pending | Display online players |
-| Player in room display | 🔲 Pending | Show others in current room |
+| Player in room display | ✅ Done | Show others in current room |
 
 ##### 7.8 Polish and Testing
 
@@ -1770,12 +1773,194 @@ meshtastic-firmware/
 
 #### Success Criteria
 
-- [ ] T-Deck boots into Meshtastic with ZorkMesh menu option
-- [ ] Game is playable entirely on T-Deck (no computer needed)
-- [ ] Player can explore rooms, take/drop items, solve puzzles
+- [x] T-Deck boots into Meshtastic with ZorkMesh menu option
+- [x] Game is playable entirely on T-Deck (no computer needed)
+- [x] Player can explore rooms, take/drop items, solve puzzles
 - [ ] Chat and presence work with PyMeshZork on other devices
-- [ ] Game state persists across power cycles
+- [x] Game state persists across power cycles
 - [ ] Battery life supports 4+ hours of gameplay
+
+---
+
+### Version 2.2 (T-Deck Enhanced Features)
+
+Additional features required for full feature parity with the Linux PyMeshZork version.
+
+#### 7.9 First-Run Setup & Settings Menu
+
+The T-Deck version needs a settings system to replace command-line options available on Linux.
+
+##### 7.9.1 First-Run Username Prompt
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Detect first-run (no saved username) | 🔲 Pending | Check NVS for player name |
+| Display username entry screen | 🔲 Pending | LVGL text input dialog |
+| Validate username (1-20 chars) | 🔲 Pending | Alphanumeric + underscore |
+| Save username to NVS | 🔲 Pending | Persist across power cycles |
+| Generate player ID from username | 🔲 Pending | 6-char hex hash |
+
+##### 7.9.2 In-Game Settings Menu
+
+Accessible via a "Settings" button or menu option within the game UI.
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Create settings screen | 🔲 Pending | LVGL panel with options |
+| Change Username option | 🔲 Pending | Re-enter username |
+| Reset Location option | 🔲 Pending | Return to West of House |
+| Reset Inventory option | 🔲 Pending | Drop all items, reset to starting |
+| Reset All (New Game) | 🔲 Pending | Full game reset including puzzles |
+| View Current Stats | 🔲 Pending | Score, moves, lamp life, etc. |
+| Exit to Settings menu | 🔲 Pending | Return to Meshtastic |
+
+##### 7.9.3 Settings Menu Layout
+
+```
++----------------------------------+
+|          ZorkMesh Settings       |
++----------------------------------+
+| Player: GrueHunter               |
+| Score: 45  Moves: 123            |
+| Lamp: 280/350 turns              |
++----------------------------------+
+| [Change Username]                |
+| [Reset Location]                 |
+| [Reset Inventory]                |
+| [New Game (Reset All)]           |
+| [Back to Game]                   |
+| [Exit to Meshtastic]             |
++----------------------------------+
+```
+
+#### 7.10 Custom Boot Splash Screen
+
+Display ZorkMesh branding during device boot.
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Design splash screen graphics | 🔲 Pending | Meshtastic + Zork logos |
+| Create 320x240 splash image | 🔲 Pending | PNG/BMP for T-Deck display |
+| Integrate into boot sequence | 🔲 Pending | Display before main UI |
+| Add version number display | 🔲 Pending | Show firmware version |
+| Fade/transition to main UI | 🔲 Pending | Smooth transition effect |
+
+##### Splash Screen Design
+
+```
++----------------------------------+
+|                                  |
+|     [Meshtastic Logo]            |
+|            +                     |
+|      [Zork Lantern Icon]         |
+|                                  |
+|        Z O R K M E S H           |
+|                                  |
+|    Multiplayer Adventure         |
+|       over Mesh Radio            |
+|                                  |
+|         v2.7.15                  |
++----------------------------------+
+```
+
+#### 7.11 Main Menu Bar Integration
+
+Add ZorkMesh as a top-level navigation item instead of buried in Settings > Tools.
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Research Meshtastic UI tabs | 🔲 Pending | Understand tab/nav system |
+| Add ZorkMesh icon to nav bar | 🔲 Pending | Custom icon for game |
+| Create ZorkMesh tab page | 🔲 Pending | Direct access from main UI |
+| Update button in Tools panel | 🔲 Pending | Keep as secondary access |
+| Handle tab switching | 🔲 Pending | Proper screen lifecycle |
+
+#### 7.12 Build & Flash Instructions
+
+##### Prerequisites
+
+```bash
+# Install PlatformIO CLI
+pip install platformio
+
+# Or use VS Code with PlatformIO extension
+# https://platformio.org/install/ide?install=vscode
+```
+
+##### Clone and Build
+
+```bash
+# Clone Meshtastic firmware with ZorkMesh module
+git clone https://github.com/meshtastic/firmware.git
+cd firmware
+
+# Copy ZorkMesh module files
+# (assuming ZorkMesh module is in a separate repository)
+cp -r /path/to/ZorkMeshModule src/modules/
+
+# Build for T-Deck Plus
+pio run -e t-deck-tft
+
+# Build output:
+# .pio/build/t-deck-tft/firmware.bin
+# .pio/build/t-deck-tft/firmware.factory.bin
+```
+
+##### Flash via USB
+
+```bash
+# Connect T-Deck via USB-C cable
+
+# Flash firmware (auto-detects port)
+pio run -e t-deck-tft -t upload
+
+# Or specify port manually
+pio run -e t-deck-tft -t upload --upload-port /dev/cu.usbmodem*
+```
+
+##### Flash via esptool (manual)
+
+```bash
+# Put T-Deck in bootloader mode:
+# 1. Hold BOOT button
+# 2. Press and release RESET button
+# 3. Release BOOT button
+
+# Flash the factory image
+esptool.py --chip esp32s3 --port /dev/cu.usbmodem* \
+  write_flash 0x0 .pio/build/t-deck-tft/firmware.factory.bin
+
+# Reset device after flashing
+esptool.py --chip esp32s3 --port /dev/cu.usbmodem* run
+```
+
+##### First Boot
+
+1. Device boots into Meshtastic with ZorkMesh installed
+2. Navigate to Settings > Tools
+3. Tap "ZorkMesh Game" button
+4. First run: Enter your player name
+5. Game starts at West of House
+6. Use keyboard to type commands
+7. Press X button to exit back to Meshtastic
+
+##### Firmware Files
+
+| File | Size | Description |
+|------|------|-------------|
+| firmware.bin | ~3.6 MB | Application binary |
+| firmware.factory.bin | ~3.7 MB | Complete flash image |
+| bootloader.bin | ~15 KB | ESP32-S3 bootloader |
+| partitions.bin | ~3 KB | Partition table |
+
+##### Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Device not detected | Try different USB cable (data, not charge-only) |
+| Upload fails | Put device in bootloader mode (BOOT+RESET) |
+| Screen stays black | Flash firmware.factory.bin to offset 0x0 |
+| Game doesn't appear | Rebuild with `pio run -e t-deck-tft --clean` |
 
 ---
 
@@ -2188,6 +2373,8 @@ zork --player-name "GrueHunter" --reset-all
 | 2.4 | 2026-02-05 | Claude | Phase 6 spec - First-run name prompt, persistent game state, reset CLI options |
 | 2.5 | 2026-02-05 | Claude | Phase 6 complete - Autosave, name prompt, reset options implemented |
 | 2.6 | 2026-02-05 | Claude | T-Deck firmware detailed breakdown - 8 component areas, Meshtastic v2.5.x fork approach |
+| 2.7 | 2026-02-05 | Claude | T-Deck single-player complete - 98 rooms, 57 objects, combat, puzzles, light/darkness |
+| 2.8 | 2026-02-05 | Claude | Added: First-run username, settings menu, boot splash, menu bar, build/flash instructions |
 
 ---
 

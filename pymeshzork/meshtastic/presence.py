@@ -12,6 +12,26 @@ from pymeshzork.meshtastic.protocol import (
 )
 
 
+def _parse_room_id(value) -> str:
+    """Parse room ID from message data, handling both numeric and string formats.
+
+    Args:
+        value: Either a numeric room ID (from Python client) or string room ID (from T-Deck)
+
+    Returns:
+        String room ID like "whous"
+    """
+    if value is None:
+        return "whous"
+    if isinstance(value, str):
+        # T-Deck sends string room IDs directly
+        return value
+    if isinstance(value, int):
+        # Python client sends numeric room IDs
+        return ROOM_NAMES.get(value, "whous")
+    return "whous"
+
+
 @dataclass
 class PlayerInfo:
     """Information about a remote player."""
@@ -130,8 +150,7 @@ class PresenceManager:
 
     def _handle_join(self, msg: GameMessage) -> None:
         """Handle player join message."""
-        room_num = msg.data.get("r", 0)
-        room_id = ROOM_NAMES.get(room_num, "whous")
+        room_id = _parse_room_id(msg.data.get("r"))
         name = msg.data.get("n", msg.player_id)
 
         with self._lock:
@@ -164,8 +183,8 @@ class PresenceManager:
 
     def _handle_move(self, msg: GameMessage) -> None:
         """Handle player move message."""
-        from_room = ROOM_NAMES.get(msg.data.get("f", 0), "")
-        to_room = ROOM_NAMES.get(msg.data.get("r", 0), "whous")
+        from_room = _parse_room_id(msg.data.get("f"))
+        to_room = _parse_room_id(msg.data.get("r"))
         player_name = msg.data.get("n")  # Name included in move messages
 
         with self._lock:
@@ -193,8 +212,7 @@ class PresenceManager:
 
     def _handle_heartbeat(self, msg: GameMessage) -> None:
         """Handle heartbeat message."""
-        room_num = msg.data.get("r", 0)
-        room_id = ROOM_NAMES.get(room_num, "whous")
+        room_id = _parse_room_id(msg.data.get("r"))
 
         with self._lock:
             player = self._players.get(msg.player_id)
