@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZorkMesh - It is pitch black. You are likely to be eaten by a mesh.</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap");
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #33ff33;
+            font-family: "VT323", monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            line-height: 1.4;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        .terminal {
+            background: #000;
+            border: 2px solid #33ff33;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(51, 255, 51, 0.3),
+                        inset 0 0 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .terminal::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                transparent 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-family: "Press Start 2P", cursive;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px #33ff33;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        
+        .tagline {
+            font-size: 1.8rem;
+            color: #ffcc00;
+            text-shadow: 0 0 8px #ffcc00;
+            margin-bottom: 30px;
+            animation: flicker 3s infinite;
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            95% { opacity: 0.9; }
+            96% { opacity: 1; }
+        }
+        
+        .mesh-diagram {
+            text-align: center;
+            margin: 20px 0 30px 0;
+        }
+        
+        .mesh-diagram img {
+            max-width: 100%;
+            height: auto;
+            min-height: 200px;
+        }
+        
+        .description {
+            font-size: 1.4rem;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .prompt {
+            color: #33ff33;
+        }
+        
+        .prompt::before {
+            content: "> ";
+            color: #ffcc00;
+        }
+        
+        .features {
+            margin: 30px 0;
+            font-size: 1.3rem;
+        }
+        
+        .features li {
+            list-style: none;
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        
+        .features li::before {
+            content: "◆";
+            position: absolute;
+            left: 0;
+            color: #ff6600;
+        }
+        
+        .platform-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .platform-box {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            border: 1px solid #33ff33;
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .platform-box h3 {
+            color: #ffcc00;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .platform-box ul {
+            list-style: none;
+            font-size: 1.1rem;
+        }
+        
+        .platform-box li {
+            padding: 3px 0;
+            color: #33ff33;
+        }
+        
+        .coming-soon {
+            color: #00ccff;
+            font-style: italic;
+        }
+        
+        .status-bar {
+            background: linear-gradient(180deg, #1a3a5c 0%, #0d2840 100%);
+            border: 2px solid #2a5a8c;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 30px 0;
+            font-size: 1.1rem;
+            color: #7fdbff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .status-room {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .status-room .icon {
+            font-size: 1.3rem;
+        }
+        
+        .status-room .name {
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .status-players {
+            color: #ffcc00;
+            font-size: 1rem;
+        }
+        
+        .status-arrow {
+            color: #4a9eff;
+        }
+        
+        a {
+            color: #ff6600;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            color: #ffcc00;
+            text-shadow: 0 0 5px #ffcc00;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        .grue {
+            color: #ff3333;
+            font-weight: bold;
+        }
+        
+        .blink {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        
+        .cursor::after {
+            content: "█";
+            animation: blink 1s step-end infinite;
+        }
+
+        /* Gameplay Demo Styles */
+        .gameplay-demo {
+            background: #0a0a0a;
+            border: 2px solid #33ff33;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            font-size: 1.1rem;
+            max-height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .gameplay-demo::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(transparent, #0a0a0a);
+            pointer-events: none;
+        }
+        
+        .demo-title {
+            color: #00ccff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+        
+        .demo-line {
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+            margin: 4px 0;
+            line-height: 1.5;
+        }
+        
+        .demo-line.system { color: #888; }
+        .demo-line.room-name { color: #ffcc00; font-weight: bold; }
+        .demo-line.room-desc { color: #33ff33; }
+        .demo-line.player-join { color: #00ccff; }
+        .demo-line.player-move { color: #00ccff; }
+        .demo-line.chat { color: #ff9900; }
+        .demo-line.command { color: #33ff33; }
+        .demo-line.command::before { content: "> "; color: #ffcc00; }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        .demo-line:nth-child(1) { animation-delay: 0.5s; }
+        .demo-line:nth-child(2) { animation-delay: 1.0s; }
+        .demo-line:nth-child(3) { animation-delay: 1.5s; }
+        .demo-line:nth-child(4) { animation-delay: 2.5s; }
+        .demo-line:nth-child(5) { animation-delay: 3.5s; }
+        .demo-line:nth-child(6) { animation-delay: 4.0s; }
+        .demo-line:nth-child(7) { animation-delay: 5.0s; }
+        .demo-line:nth-child(8) { animation-delay: 5.5s; }
+        .demo-line:nth-child(9) { animation-delay: 6.5s; }
+        .demo-line:nth-child(10) { animation-delay: 7.0s; }
+        .demo-line:nth-child(11) { animation-delay: 7.5s; }
+        .demo-line:nth-child(12) { animation-delay: 8.5s; }
+        .demo-line:nth-child(13) { animation-delay: 9.0s; }
+        .demo-line:nth-child(14) { animation-delay: 9.5s; }
+        .demo-line:nth-child(15) { animation-delay: 10.5s; }
+        .demo-line:nth-child(16) { animation-delay: 11.0s; }
+        .demo-line:nth-child(17) { animation-delay: 12.0s; }
+        .demo-line:nth-child(18) { animation-delay: 12.5s; }
+        .demo-line:nth-child(19) { animation-delay: 13.5s; }
+        .demo-line:nth-child(20) { animation-delay: 14.0s; }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .tagline { font-size: 1.3rem; }
+            .status-bar { 
+                flex-direction: column; 
+                align-items: flex-start;
+            }
+            .platform-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="terminal">
+            <div class="header">
+                <h1>ZORKMESH</h1>
+                <div class="tagline">It is pitch black.<br>You are likely to be eaten by a mesh.</div>
+            </div>
+            
+            <div class="mesh-diagram">
+                <img src="mesh-diagram.svg" alt="Mesh Network Diagram showing connected adventurers: Zork Slayer, Grue Hunter, Lamp Holder, Sword Master, and Brave Soul">
+            </div>
+            
+            <div class="description">
+                <p class="prompt">look</p>
+                <p>You are standing in an open field west of a white house, 
+                with a boarded front door. There is a small mailbox here.</p>
+                <p style="margin-top: 15px; color: #00ccff;">
+                But wait... you are not alone. Through the crackling static of 
+                radio waves, you sense other adventurers exploring the 
+                <span class="grue">Great Underground Empire</span>.</p>
+            </div>
+            
+            <div class="description">
+                <p class="prompt">examine zorkmesh</p>
+                <p><strong>ZorkMesh</strong> is a multiplayer implementation of the classic 
+                Zork text adventure, connected via <a href="https://meshtastic.org">Meshtastic</a> 
+                radio mesh networks or MQTT over the internet. Explore the dungeon together, chat with fellow adventurers, 
+                and watch out for grues!</p>
+            </div>
+            
+            <ul class="features">
+                <li>Classic Zork gameplay with Z-Machine interpreter</li>
+                <li>Multiplayer via Meshtastic LoRa mesh radio</li>
+                <li>See other players in your current room</li>
+                <li>Chat with nearby adventurers</li>
+                <li>OLED display support for portable play</li>
+                <li>MQTT bridge for internet connectivity</li>
+                <li>Play offline via radio mesh, or online via MQTT - no Meshtastic hardware required!</li>
+                <li>Build your own adventures with the included map editor</li>
+            </ul>
+            
+            <div class="status-bar">
+                <div class="status-room">
+                    <span class="icon">🏠</span>
+                    <span class="name">West of House</span>
+                    <span class="status-players">[You, GrueHunter]</span>
+                </div>
+                <span class="status-arrow">→</span>
+                <div class="status-room">
+                    <span class="icon">🌲</span>
+                    <span class="name">Forest</span>
+                    <span class="status-players">[LampBearer]</span>
+                </div>
+                <span class="status-arrow">→</span>
+                <div class="status-room">
+                    <span class="icon">🗝️</span>
+                    <span class="name">Behind House</span>
+                    <span class="status-players">[ZorkSlayer, BraveSoul]</span>
+                </div>
+            </div>
+            
+            <!-- Gameplay Demo Animation -->
+            <div class="description">
+                <p class="prompt">watch demo</p>
+                <p>See multiplayer in action:</p>
+            </div>
+            
+            <div class="gameplay-demo">
+                <div class="demo-title">▶ LIVE GAMEPLAY SESSION</div>
+                <div class="demo-line system">Connecting to mesh (Serial)...</div>
+                <div class="demo-line system">Connected! Player ID: bf3a21</div>
+                <div class="demo-line system">[JOIN] BraveSoul entered the game</div>
+                <div class="demo-line room-name">West of House</div>
+                <div class="demo-line room-desc">You are standing in an open field west of a white house, with a boarded front door. There is a small mailbox here.</div>
+                <div class="demo-line room-desc">GrueHunter is here.</div>
+                <div class="demo-line player-join">[JOIN] LampBearer entered the game</div>
+                <div class="demo-line chat">GrueHunter says: "Welcome to the mesh!"</div>
+                <div class="demo-line command">say Thanks! Anyone found the lamp yet?</div>
+                <div class="demo-line chat">You say: "Thanks! Anyone found the lamp yet?"</div>
+                <div class="demo-line chat">LampBearer says: "I have it! Heading to the cellar."</div>
+                <div class="demo-line player-move">[MOVE] LampBearer moved to Living Room</div>
+                <div class="demo-line command">north</div>
+                <div class="demo-line room-name">North of House</div>
+                <div class="demo-line room-desc">You are facing the north side of a white house. There is no door here, and all the windows are boarded up.</div>
+                <div class="demo-line player-move">[MOVE] ZorkSlayer moved to Cellar</div>
+                <div class="demo-line chat">ZorkSlayer says: "Watch out - there is a grue down here!"</div>
+                <div class="demo-line chat">GrueHunter says: "On my way with the sword!"</div>
+                <div class="demo-line player-move">[MOVE] GrueHunter moved to Living Room</div>
+            </div>
+            
+            <div class="description">
+                <p class="prompt">inventory platforms</p>
+                <p>You are carrying:</p>
+            </div>
+            
+            <div class="platform-grid">
+                <div class="platform-box">
+                    <h3>🖥️ Platforms</h3>
+                    <ul>
+                        <li>Raspberry Pi</li>
+                        <li>Ubuntu Linux</li>
+                        <li>macOS (experimental)</li>
+                    </ul>
+                </div>
+                <div class="platform-box">
+                    <h3>📻 LoRa Radios</h3>
+                    <ul>
+                        <li>Heltec LoRa 32</li>
+                        <li>LILYGO T-Beam</li>
+                        <li>Adafruit Radio Bonnet</li>
+                    </ul>
+                </div>
+                <div class="platform-box">
+                    <h3>🔮 Coming Soon</h3>
+                    <ul>
+                        <li class="coming-soon">T-Deck standalone firmware</li>
+                        <li class="coming-soon">Additional platforms</li>
+                        <li class="coming-soon">More radio support</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="description">
+                <p class="prompt">get source</p>
+                <p>Taken. Find the code at 
+                <a href="https://github.com/haxorthematrix/pymeshzork">github.com/haxorthematrix/pymeshzork</a></p>
+            </div>
+            
+            <div class="description">
+                <p class="prompt">connect mqtt<span class="cursor"></span></p>
+                <p>MQTT Broker: <code>mqtt.zorkmesh.com:1883</code> (TLS: 8883)</p>
+                <p>Topic: <code>msh/US/2/json/LongFast/#</code></p>
+            </div>
+            
+            <div class="footer">
+                <p>A project combining retro gaming with modern mesh networking.</p>
+                <p style="margin-top: 10px;">
+                    <span class="grue">WARNING:</span> The grue population in mesh networks 
+                    has been increasing. Carry a lantern.
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
